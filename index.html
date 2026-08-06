@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#e9e6df" />
+  <title>Kile B. Jones</title>
+  <meta name="description" content="Kile B. Jones — interactive typographic homepage." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bodoni+Moda:opsz,ital,wght@6..96,400..900;1,6..96,400..900&family=DM+Mono:wght@300;400;500&family=Syne:wght@400..800&family=Unbounded:wght@300..900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bodoni+Moda:opsz,ital,wght@6..96,400..900;1,6..96,400..900&family=DM+Mono:wght@300;400;500&family=Syne:wght@400..800&family=Unbounded:wght@300..900&display=swap" rel="stylesheet"></noscript>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-plane">
+    <div class="noise" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <nav class="pill-nav" aria-label="Primary navigation">
+        <div class="desktop-links" aria-hidden="false">
+          <a href="/writings">Writings</a>
+          <a href="https://kilejones-alt.github.io/TheAntizionistGlossary/">Glossary</a>
+          <a href="/az-detector">AZ Detector</a>
+          <a href="/projects">Projects</a>
+        </div>
+        <button class="menu-pill mobile-only" id="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-drawer">Menu</button>
+        <button class="music-pill" id="music-toggle" type="button" aria-pressed="false">
+          <span class="music-led" aria-hidden="true"></span>
+          <span>Music</span>
+        </button>
+      </nav>
+    </header>
+
+    <aside class="mobile-drawer" id="mobile-drawer" aria-hidden="true">
+      <a href="/writings">Writings</a>
+      <a href="https://kilejones-alt.github.io/TheAntizionistGlossary/">Glossary</a>
+      <a href="/az-detector">AZ Detector</a>
+      <a href="/projects">Projects</a>
+    </aside>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <canvas id="type-canvas" aria-hidden="true"></canvas>
+        <h1 id="hero-title" class="sr-only">Kile B. Jones</h1>
+      </section>
+    </main>
+  </div>
+
+  <audio id="background-music" src="music.mp3" preload="auto" loop playsinline autoplay></audio>
+
+  <script src="script.js"></script>
+</body>
+</html>
