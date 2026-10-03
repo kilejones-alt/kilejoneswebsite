@@ -1,0 +1,171 @@
+KILE B. JONES HOMEPAGE — FINAL QA PASS — 2026-09-15
+
+VISUAL / RESPONSIVE
+- Desktop layout reviewed at 1440×900 and 800×450; stacked KILE B. / JONES stays inside the viewport and the top navigation remains clear.
+- Phone layout reviewed at 390×844; no horizontal overflow; desktop navigation is replaced by Menu + Music; drawer exposes all four destinations and closes with Escape.
+- The reveal is multiplied by the final text mask in the GPU compositor; reveal content cannot render outside the letter silhouettes.
+- A Canvas2D fallback preserves the stacked typography, clipped reveal, interaction, and navigation when WebGL2 is unavailable.
+
+LINKS
+- Writings -> https://kilejones.substack.com/archive
+- Glossary -> https://kilejones-alt.github.io/TheAntizionistGlossary/
+- AZ Detector -> https://kilejones-alt.github.io/antizionistdetector/
+- Projects -> /projects/ (projects/index.html + projects/projects.css included)
+- Projects page also links to StopAZ and Inverted World.
+- Writings/Substack and StopAZ were independently reachable during QA.
+- The two GitHub Pages destinations are configured from the corresponding public repositories; this environment could not independently HTTP-fetch those Pages URLs, so do not treat that as a separate availability certification.
+
+GPU / ANIMATION
+- WebGL2 execution was verified dynamically in headed Chromium under Xvfb; EXT_color_buffer_float was available and the exact production final compositor/style/mask shaders rendered successfully.
+- The production fluid path uses velocity advection, curl, vorticity confinement, divergence, pressure relaxation, pressure-gradient subtraction, dye advection, velocity/dye splats, and a masked final compositor. The complete multi-pass solver was not used as a performance benchmark in this software-GPU environment.
+- Desktop initial pressure solve: 24 Jacobi iterations; adaptive range 14–30.
+- Laptop initial pressure solve: 21 iterations.
+- Mobile initial pressure solve: 16 iterations; adaptive range 10–22.
+- Desktop simulation short side: 512px (384px on narrower laptops), long side capped at 900px. Mobile short side: 256px, long side capped at 640px.
+- Final render pixel budget is capped at about 2.2M desktop pixels and 650k mobile pixels so high-DPI screens do not multiply GPU load unnecessarily.
+- A normal desktop frame begins around 32 full-screen/simulation passes at 24 pressure iterations; active cursor strokes can add up to 16 splat passes in a frame. Mobile begins around 24 passes and can add up to 10 splat passes. Adaptive pressure iterations reduce work when frame time rises.
+- Fluid splats are deliberately broad, viscous, persistent, and interpolated between pointer samples so fast movement does not break into disconnected circles.
+- The hidden material is distorted by both fluid velocity and local dye gradients, with edge/specular treatment to read more like oil/liquid than a simple blurred blob.
+- Animation pauses when the page is hidden.
+- JavaScript syntax check passed after the final performance optimization.
+
+IMPORTANT PERFORMANCE LIMIT
+- This is the same class of multi-pass GPU fluid technique used for high-end interactive liquid-mask work; it is not Nothin’s proprietary code or data.
+- Exact parity with noth.in frame rate, GPU cost, or asset-processing volume cannot be truthfully guaranteed without their private source/assets and identical hardware/browser conditions.
+- The software-renderer capture is proof that the WebGL2 path executes, not a meaningful real-hardware FPS benchmark. The build targets smooth current-browser performance and adapts pressure iterations to measured frame time.
+
+CURSOR / INPUT
+- Fine-pointer desktop devices receive a custom kinetic cursor: precision dot + delayed halo, velocity stretch, hover expansion, and press compression.
+- Touch devices use native touch behavior; the custom cursor is disabled.
+- Reduced-motion users do not receive the custom cursor or forced motion.
+- Keyboard focus remains visible; Escape closes the mobile drawer.
+
+SECURITY / PROTECTION
+- CSP, frame denial, nosniff, referrer policy, permissions policy, COOP/CORP, HSTS host configs, noarchive directive, AI/data-crawler robots directives, and a copyright notice are included.
+- Vercel: vercel.json is ready for a future move.
+- Netlify / Cloudflare Pages: _headers is ready for a future move.
+- SECURITY_DEPLOYMENT.md documents private-repository, WAF, bot protection, hotlink protection, HTTPS, rate-limiting, and server-side-data guidance.
+- No public website can make browser-delivered text, images, CSS, or JavaScript impossible to inspect or capture. Anything genuinely proprietary must remain server-side behind authenticated endpoints when the site moves to infrastructure that supports them.
+
+DEPLOYMENT STATUS
+- This package has NOT been pushed to the live GitHub repository. The connected GitHub integration returned HTTP 403 on write/create-branch actions despite read access. Manual upload is still required.
+
+
+HOVER / STYLE-CYCLE BEHAVIOR — CURRENT
+- Cursor interaction is active while the pointer is over the rendered KILE B. / JONES letterforms.
+- Style rotation does NOT pause during hover or cursor interaction.
+- Five treatments rotate continuously: silver Mylar, electric-blue crumpled foil, glossy black inflated plastic, magenta fluid, and bubble/refractive glass.
+- Each treatment holds for 4.15 seconds and blends for 0.65 seconds; the target full style-to-style interval is about 4.8 seconds.
+- Style timing uses real elapsed frame time independently of the capped fluid-simulation timestep, so dropped frames do not intentionally stretch the cycle.
+- WebGL and Canvas2D fallback use the same continuous five-style cycle.
+
+FINAL CROSS-DEVICE OPTIMIZATION — 2026-09-16
+- Rechecked the current packaged source, not an older build.
+- JavaScript syntax validation passes after the final changes.
+- Mobile logic is aligned at the 700px breakpoint between CSS and JavaScript.
+- Short coarse-pointer landscape phones are treated as mobile even when their width exceeds 700px.
+- The hero/canvas uses the actual small viewport height instead of forcing a 500–560px minimum that could be clipped in phone landscape.
+- Representative rendering budgets:
+  • 390×844 phone: 390×844 final canvas, 256×554 fluid simulation, 16 pressure iterations.
+  • 844×390 phone landscape: 844×390 final canvas, 554×256 fluid simulation, 16 pressure iterations.
+  • 1366×768 laptop: 1366×768 final canvas at 1× DPR, fluid simulation capped at 900×506, 24 initial pressure iterations.
+  • 1440×900 desktop: 1440×900 at 1× DPR; Retina rendering is capped by a ~2.2M-pixel WebGL budget.
+  • 3840×2160 desktop: WebGL final framebuffer is reduced to about 1978×1112 instead of wasteful full 4K/Retina rendering; fluid simulation remains capped at 900×506.
+- Canvas2D fallback has its own desktop/mobile pixel budget so fallback mode cannot become the slowest mode on a high-resolution display.
+- Mobile project cards collapse to one column; homepage navigation collapses to Menu + Music on portrait phones and short touch-phone landscape.
+- No duplicate element IDs were found in the homepage or Projects page.
+- Homepage and Projects HTML link targets were re-audited.
+
+FINAL SWEEP — 2026-09-17
+- Replaced per-pointer-event canvas getImageData hit-testing with a cached alpha mask. This removes a CPU readback from every cursor movement while preserving exact letter-only hover detection.
+- Added Canvas2D fallback visibility pausing so hidden tabs do not continue doing animation work.
+- Added shader/program compilation fallback, so an unusual GPU/driver shader failure drops to the 2D version instead of leaving a blank hero.
+- Internal Projects/Home links are now relative, so the package works on the custom domain, a GitHub Pages subpath, or a future host without rewriting root URLs.
+- CSP now permits the Google Fonts preconnect endpoints instead of generating avoidable connection-policy failures.
+- Added canonical/Open Graph metadata for cleaner search and link previews.
+- Added forced-colors handling so the custom cursor cannot interfere with Windows high-contrast accessibility mode.
+- The package intentionally still references the existing music.mp3 rather than duplicating the ~4 MB audio file. Keep/copy that file when deploying or migrating.
+
+SELF-HOSTED FONT PASS — 2026-09-17
+- Removed runtime Google Fonts stylesheet, preconnect, font, and connect dependencies.
+- Added local @font-face rules for Inter Tight (700–900) and IBM Plex Mono (400/500).
+- Added local Inter Tight preload on homepage and Projects page.
+- CSP is now local-only for styles, fonts, and connections.
+- Added one-year immutable caching for generated WOFF2 assets.
+- Added a pinned GitHub Action to vendor the open-source fonts once and commit them into assets/fonts/.
+
+
+
+BRAND / PLATFORM ASSET PASS
+- Added multi-resolution favicon.
+- Added 180×180 Apple touch icon.
+- Added 192×192 and 512×512 application icons.
+- Added 1200×630 Open Graph/social-share image.
+- Added large-image Twitter/X card metadata.
+- Added exact OG image dimensions and alt text.
+- Added site.webmanifest.
+- Added long-lived cache headers for immutable icon/share assets.
+- Homepage and Projects page both reference the same canonical brand assets.
+- Social image contains only KILE B. JONES and KILEBARDENJONES.COM; no invented tagline.
+
+DOMAIN BINDING PASS
+- Root CNAME file included.
+- CNAME value: kilebardenjones.com
+- Homepage canonical URL: https://kilebardenjones.com/
+- Projects canonical URL: https://kilebardenjones.com/projects/
+- Open Graph URL/image references use kilebardenjones.com.
+
+
+PERMANENT ASSET + FIVE-STYLE INTERACTION PASS — 2026-09-20
+- Restored the exact existing background music into the package as root music.mp3. Its Git blob SHA matches the file currently deployed in kilejones-alt/kilejoneswebsite: adab1e196ecdc0b1c7644b7dec86245103cba264.
+- The music is now carried by the master package and can remain committed in the site repository permanently.
+- The pinned font-vendoring workflow remains as a recovery/first-deploy mechanism. It creates and commits the WOFF2 files under assets/fonts; after that those font files remain permanent repository assets and later site updates do not require a separate font upload.
+- Final visual-treatment count is FIVE: magenta fluid, monochrome cascade, chrome, electric grid, and silver Mylar/helium-balloon foil.
+- The Mylar treatment uses a silver reflective field plus text-mask-derived rim normals to produce inflated foil edges, specular highlights, darker compressed rims, moving reflection sweeps, and crinkle/seam structure. It is distinct from the flatter chrome treatment.
+- Style hold is 4.15s with a 0.45s blend, targeting a complete style-to-style cycle of about 4.6s.
+- Style timing is decoupled from the capped fluid timestep so low frame rate does not intentionally slow the color/pattern cycle.
+- Style rotation never pauses during hover. Pointer interaction and pattern/style evolution run simultaneously.
+- WebGL pointer response uses the latest pointer coordinate directly in the parallax uniform every rendered frame. Where supported, pointerrawupdate and coalesced pointer events are consumed; otherwise it falls back to pointermove.
+- The per-frame WebGL splat budget was increased to reduce queued-input latency while retaining adaptive fluid quality.
+- WebGL reveal is multiplied by the rendered text alpha mask. Edge/specular/Mylar-rim contributions are also mask-gated, so procedural material cannot render outside the letterforms.
+- Canvas2D fallback uses destination-in clipping with the same text mask.
+- JavaScript syntax validation passes.
+
+LIVE DYNAMIC SHADER QA — 2026-09-20
+- Localhost and file:// navigation are blocked by this environment's Chromium administrator policy; that is a tooling restriction, not a site restriction.
+- Headed Chromium was run under Xvfb, where WebGL2 and EXT_color_buffer_float are available.
+- The exact production final fragment shader, text mask, five-style state machine, transition blending, and direct pointer-parallax logic were executed live in a lightweight WebGL harness rather than judged only from source code.
+- With continuous pointer movement, all five styles advanced; hover/pointer movement did not stop the cycle.
+- Observed full-style changes in the virtual test occurred at approximately 4.30s, 8.94s, 13.55s, 18.19s, and 22.80s. After the first startup interval, successive changes were about 4.62–4.63s apart.
+- Rapid pointer tests showed the rendered pointer state matching every commanded target. Input-event delivery in this virtual display was roughly 7–24 ms; this is evidence of live event-to-render linkage, not a real-hardware latency benchmark.
+- The complete multi-pass fluid solver is too GPU-intensive for this container's software-rendered Chromium to serve as a reliable full-performance benchmark; real-device FPS/latency still must be judged on actual hardware. The production fluid code remains syntax-checked and the exact final compositor/style/mask path is live-tested.
+
+NOTHIN-LEVEL MOTION TUNING PASS — 2026-09-21 (SUPERSEDES EARLIER PERFORMANCE VALUES)
+- Current public Nothin site and recent technical analyses were reviewed as the quality reference; no proprietary Nothin source or assets were copied.
+- The production compositor now has a direct cursor-material path: the newest pointer coordinate is applied every rendered frame independently of the fluid solver. The fluid simulation is secondary deformation rather than the only source of cursor response.
+- Raw/coalesced pointer input remains enabled where supported. The visible material therefore does not wait for an expensive fluid-simulation update before reacting to the cursor.
+- Fluid workload was reduced to improve frame pacing: desktop simulation short side is now 448px (336px below 1200px); mobile is 224px; desktop long side is capped at 800px and mobile at 600px.
+- Pressure solve now begins at 18 desktop / 16 narrower desktop / 13 mobile iterations, with adaptive ranges of 10–24 desktop and 8–18 mobile.
+- Fluid simulation is decoupled from final rendering at up to ~80Hz desktop / ~55Hz mobile; final compositor still renders every RAF so direct cursor response can update at display cadence.
+- Splat processing is compressed to representative samples rather than executing one full GPU pass for every raw pointer event; direct material response still uses the latest pointer every render frame.
+- Cursor force was increased, the interactive footprint tightened, and dye persistence reduced so motion feels more immediate and less muddy.
+- The silver Mylar style was refined with broader reflective bands, crinkle/seam fields, micro-foil variation, convex text-mask-derived rim lighting, compressed dark edges, and moving specular sweep.
+- Style timing is now 4.00s hold + 0.55s morph, targeting ~4.55s per full style change. Hover does not pause style rotation.
+- A 24-second full-production hover test completed 0→1→2→3→4→0 while the pointer remained inside a letter. Observed changes after startup were ~4.5–4.8s apart in the deliberately slow software-GPU browser.
+- Controlled software-GPU stress comparison on the same Chromium/Xvfb renderer: previous full build sustained ~4 rendered fps; tuned full build sustained ~10–12 fps after warm-up. This is a relative optimization result, not a real-device FPS prediction.
+- Full production WebGL2 + EXT_color_buffer_float path remained stable through the long hover-cycle test. No JavaScript errors were observed; only expected SwiftShader/software-GL performance warnings appeared.
+- Text-mask clipping architecture is unchanged: all final reveal, edge, and Mylar contributions are multiplied by the text alpha mask. Direct cursor warp changes sampled material coordinates, not the mask, so it cannot intentionally paint outside the letterforms.
+- Reduced-motion capability probing was hardened so the 2D fallback can acquire the production canvas before a WebGL context is claimed. Readback-heavy mask contexts now request willReadFrequently.
+- Homepage script cache key bumped to 20260921b so deployment cannot silently reuse the prior four/five-style JavaScript from browser/CDN cache.
+- This environment's Chromium is administrator-blocked from external HTTP/HTTPS navigation, including noth.in and temporary public previews. Therefore literal automated browser-to-browser playback against live Nothin could not be run here. The Nothin comparison used current public page evidence/technical inspection plus the dynamically executed full local production solver.
+
+NOTH.IN MATERIAL / PARALLAX OVERHAUL — 2026-10-02
+- Preserved the September 21 WebGL2 fluid solver, exact letter-mask clipping, direct raw pointer sampling, kinetic custom cursor, mobile behavior, local assets, and Canvas2D fallback.
+- Replaced the prior five skins (magenta fluid / monochrome cascade / chrome / electric grid / silver Mylar) with a tactile five-material set: Silver Mylar, Electric Blue Foil, Black Inflated Plastic, Magenta Fluid, and Bubble Glass.
+- Added multi-octave procedural noise and material-specific folds, crinkles, gloss ribbons, viscous flow, and refractive bubble structure.
+- Added three material depth planes with distinct parallax rates; direct cursor warp is strongest in the near plane while fluid velocity remains a secondary deformation.
+- Inflated edge lighting now applies by material weight to foil, blue foil, glossy black plastic, and lightly to bubble glass; magenta fluid remains flatter.
+- The final reveal is still multiplied by the exact text alpha mask, so the upgraded depth/parallax system cannot intentionally paint outside the KILE B. / JONES letter silhouettes.
+- Style timing is 4.15s hold + 0.65s transition (~4.8s per complete change), and style rotation continues while the pointer is active.
+- Canvas2D fallback was updated to the same five material identities.
+- Production script cache key bumped to 20261002a.

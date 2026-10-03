@@ -1,0 +1,39 @@
+UPLOAD / DEPLOY
+
+For the CURRENT GitHub Pages site:
+- Replace index.html, styles.css, and script.js.
+- Upload the projects folder.
+- Upload robots.txt and COPYRIGHT.txt.
+- CNAME and music.mp3 are now included in this package; upload them with the rest of the site.
+
+GitHub Pages will ignore vercel.json and _headers; keep those files for a later host move.
+
+For a FUTURE Vercel move:
+- Deploy the same public site files plus vercel.json.
+- Use a PRIVATE source repository if you do not want the source tree publicly downloadable.
+
+For a FUTURE Netlify / Cloudflare Pages move:
+- Deploy the same public site files plus _headers.
+
+Read SECURITY_DEPLOYMENT.md before moving any proprietary logic or non-public data into the site.
+
+
+HOVER / STYLE CYCLE: Hovering the letters drives the fluid in real time. Five internal treatments rotate continuously about every 4.8 seconds, including while the pointer is over the letters: silver Mylar, electric-blue foil, glossy black inflated plastic, magenta fluid, and bubble glass.
+
+PORTABILITY
+- Internal navigation now uses relative paths, so the same package can be deployed at a custom domain root or under a subpath.
+- music.mp3 is included beside index.html and should remain in the repository so future deploys do not require a separate audio upload.
+
+SELF-HOSTED FONTS
+This package contains a GitHub Action at .github/workflows/vendor-fonts.yml.
+On the first push to main (if the WOFF2 files are not already present), it fetches the open-source Inter Tight and IBM Plex Mono source files from a pinned google/fonts commit, converts them to WOFF2, saves them under assets/fonts/, and commits those generated webfonts back to the repository.
+That commit makes the actual WOFF2 files permanent repository assets. Later site updates do not require you to upload the fonts again; if they are ever missing, the workflow recreates them automatically.
+After that, the live site makes no runtime requests to Google Fonts.
+Leave the .github folder in the upload.
+The workflow also requests a GitHub Pages rebuild after the font commit, because GitHub Pages does not automatically rebuild from commits made with GITHUB_TOKEN.
+
+CUSTOM DOMAIN — REQUIRED
+- Keep `CNAME` in the repository root.
+- Its exact contents must be: kilebardenjones.com
+- Upload this package to the same GitHub Pages repository: kilejones-alt/kilejoneswebsite
+- Do not delete the CNAME file during replacement. It is what preserves the custom-domain binding.

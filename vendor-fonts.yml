@@ -1,0 +1,89 @@
+name: Vendor webfonts
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'assets/fonts/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  vendor-fonts:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+
+      - name: Skip when fonts already exist
+        id: existing
+        shell: bash
+        run: |
+          if [[ -s assets/fonts/InterTight-Variable.woff2 && -s assets/fonts/IBMPlexMono-Regular.woff2 && -s assets/fonts/IBMPlexMono-Medium.woff2 ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install WOFF2 tooling
+        if: steps.existing.outputs.ready != 'true'
+        run: python -m pip install --disable-pip-version-check 'fonttools[woff]' brotli
+
+      - name: Fetch pinned open-source fonts
+        if: steps.existing.outputs.ready != 'true'
+        shell: bash
+        env:
+          GOOGLE_FONTS_COMMIT: 92345ac0dbb28d27dbd32f3a782e84c55eaac214
+        run: |
+          set -euo pipefail
+          mkdir -p assets/fonts .font-src
+          base="https://raw.githubusercontent.com/google/fonts/${GOOGLE_FONTS_COMMIT}/ofl"
+          curl --fail --location --retry 3 "$base/intertight/InterTight%5Bwght%5D.ttf" -o .font-src/InterTight-Variable.ttf
+          curl --fail --location --retry 3 "$base/intertight/OFL.txt" -o assets/fonts/OFL-InterTight.txt
+          curl --fail --location --retry 3 "$base/ibmplexmono/IBMPlexMono-Regular.ttf" -o .font-src/IBMPlexMono-Regular.ttf
+          curl --fail --location --retry 3 "$base/ibmplexmono/IBMPlexMono-Medium.ttf" -o .font-src/IBMPlexMono-Medium.ttf
+          curl --fail --location --retry 3 "$base/ibmplexmono/OFL.txt" -o assets/fonts/OFL-IBMPlexMono.txt
+
+      - name: Convert to WOFF2
+        if: steps.existing.outputs.ready != 'true'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from fontTools.ttLib import TTFont
+          pairs = [
+              ('.font-src/InterTight-Variable.ttf', 'assets/fonts/InterTight-Variable.woff2'),
+              ('.font-src/IBMPlexMono-Regular.ttf', 'assets/fonts/IBMPlexMono-Regular.woff2'),
+              ('.font-src/IBMPlexMono-Medium.ttf', 'assets/fonts/IBMPlexMono-Medium.woff2'),
+          ]
+          for src, dst in pairs:
+              font = TTFont(src)
+              font.flavor = 'woff2'
+              font.save(dst)
+              if Path(dst).stat().st_size < 1000:
+                  raise RuntimeError(f'Generated font looks invalid: {dst}')
+          PY
+          rm -rf .font-src
+
+      - name: Commit local webfonts
+        if: steps.existing.outputs.ready != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/fonts
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m 'Vendor local webfonts'
+          git push
+
+      - name: Request GitHub Pages rebuild
+        if: steps.existing.outputs.ready != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${{ github.repository }}/pages/builds" || true

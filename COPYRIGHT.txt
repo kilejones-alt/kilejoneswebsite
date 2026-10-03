@@ -1,0 +1,5 @@
+Copyright © 2026 Kile B. Jones. All rights reserved.
+
+The website text, design, custom animation code, and original visual treatment are not licensed for reuse, redistribution, republication, or derivative commercial use without written permission.
+
+Technical note: a copyright notice does not make browser-delivered assets impossible to inspect or copy. Proprietary data or logic must be kept server-side when the site moves to infrastructure that supports private server code.
