@@ -99,7 +99,7 @@ void main(){
   window.KBJEnvironment={
     render(mode,w,h,t,x,y){
       if(disabled)return null;
-      const scale=w<720?.72:.78;
+      const scale = w < 720 ? 0.72 : 0.78;
       const pw=Math.round(w*scale),ph=Math.round(h*scale);
       if(pw!==cacheWidth||ph!==cacheHeight){
         canvas.width=cacheWidth=pw;canvas.height=cacheHeight=ph;
