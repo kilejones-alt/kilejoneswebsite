@@ -1,0 +1,55 @@
+name: Personal Site Visual QA
+on:
+  push:
+    paths:
+      - 'index.html'
+      - 'script.js'
+      - 'styles.css'
+      - 'media.html'
+      - '.github/workflows/visual-qa.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax-check hero script
+        run: node --check script.js
+      - name: Verify navigation, links and hero renderer
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const h=fs.readFileSync('index.html','utf8');
+          const s=fs.readFileSync('script.js','utf8');
+          const css=fs.readFileSync('styles.css','utf8');
+          const nav=h.substring(h.indexOf('<aside class="mobile-drawer"'),h.indexOf('</aside>'));
+          for(const word of ['Inverted World','Unlikely Zio','Glossary','AZ Detector','Media']){
+            if(!nav.includes(word))throw Error('Missing menu item: '+word);
+          }
+          if(nav.indexOf('Inverted World')>nav.indexOf('Unlikely Zio'))throw Error('Menu order');
+          if(!nav.includes('https://kilejones.substack.com/subscribe'))throw Error('Wrong Substack destination');
+          if(nav.includes('Projects') || h.includes('>Projects<'))throw Error('Projects must be removed from homepage navigation');
+          for(const id of ['hero-canvas','menu-toggle','music-toggle','mobile-drawer']){
+            if(!h.includes('id="'+id+'"'))throw Error('Missing '+id);
+          }
+          for(const fn of ['drawFoilWorld','drawFoilStar','drawWordMetal','drawStaircase','buildMask']){
+            if(!s.includes('function '+fn+'('))throw Error('Renderer missing '+fn);
+          }
+          if(!css.includes('menu-word-enter'))throw Error('Menu reveal missing');
+          console.log('Navigation, visual engine and accessibility selectors validated.');
+          NODE
+      - name: Headless desktop smoke test
+        run: |
+          CHROME=$(command -v google-chrome || command -v chromium || true)
+          if [ -n "$CHROME" ]; then
+            "$CHROME" --headless --no-sandbox --disable-gpu --hide-scrollbars --window-size=1440,900 --virtual-time-budget=8500 --screenshot=desktop-qa.png "file://$PWD/index.html" || true
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-qa
+          path: desktop-qa.png
+          if-no-files-found: ignore
