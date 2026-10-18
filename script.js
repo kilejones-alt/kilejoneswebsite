@@ -37,6 +37,7 @@
     mobile: false,
     running: true,
     start: performance.now(),
+    lastDraw: 0,
     last: performance.now(),
     mode: 0,
     nextMode: 1,
@@ -279,6 +280,11 @@
   function frame(now) {
     if (!state.running) return;
     requestAnimationFrame(frame);
+    // Hardware-aware redraw budget: pointer coordinates are still sampled at
+    // full frequency; expensive material and alpha masks are not.
+    const interval = 1000 / (state.mobile ? 30 : 50);
+    if (now - state.lastDraw < interval) return;
+    state.lastDraw = now;
 
     const dt = Math.min(0.05, Math.max(0.001, (now - state.last) / 1000));
     state.last = now;
