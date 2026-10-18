@@ -22,16 +22,14 @@
 
   const PAPER = '#f3f5f7';
   const INK = '#09090a';
-  const MODE_SECONDS = 6.4;
-  const TRANSITION_SECONDS = 0.72;
+  const MODE_SECONDS = 5.8;
+  const TRANSITION_SECONDS = 1.10;
   const MODE_NAMES = [
-    'ELECTRIC BLUE FOIL STARS',
+    'ORBITING BLUE FOIL STARS',
     'BLACK INFLATABLE IMPOSSIBLE STAIRCASE',
-    'HOT PINK BALLOON RHINO',
-    'SAFETY ORANGE METAL SICKLE AND HAMMER',
+    'SILVER MYLAR LETTERFORMS',
     'ARCHIVAL VIDEO'
   ];
-
   const state = {
     w: 0,
     h: 0,
@@ -75,7 +73,7 @@
     i,
     lane: ((i * 0.61803398875) % 1),
     speed: 0.072 + (i % 4) * 0.012,
-    size: 0.050 + (i % 5) * 0.008,
+    size: 0.105 + (i % 5) * 0.013,
     phase: (i * 1.731) % (Math.PI * 2),
     spin: (i % 2 ? -1 : 1) * (0.20 + (i % 4) * 0.045),
     white: i === 5,
@@ -102,6 +100,7 @@
       menuToggle.setAttribute('aria-expanded', String(open));
       mobileDrawer.classList.toggle('is-open', open);
       mobileDrawer.setAttribute('aria-hidden', String(!open));
+      mobileDrawer.inert = !open;
     };
 
     menuToggle?.addEventListener('click', () => setMenu(menuToggle.getAttribute('aria-expanded') !== 'true'));
@@ -191,8 +190,8 @@
     state.h = Math.max(320, innerHeight);
     state.mobile = state.w <= 700 || (coarsePointer && state.h <= 700);
 
-    const pixelBudget = state.mobile ? 2_300_000 : 5_600_000;
-    let dpr = Math.min(devicePixelRatio || 1, state.mobile ? 1.65 : 2.0);
+    const pixelBudget = state.mobile ? 1_700_000 : 3_600_000;
+    let dpr = Math.min(devicePixelRatio || 1, state.mobile ? 1.5 : 1.75);
     const requested = state.w * state.h * dpr * dpr;
     if (requested > pixelBudget) dpr *= Math.sqrt(pixelBudget / requested);
     state.dpr = Math.max(1, dpr);
@@ -216,22 +215,37 @@
     const g = maskCtx;
     g.clearRect(0, 0, state.w, state.h);
     g.fillStyle = INK;
+    g.strokeStyle = INK;
     g.textAlign = 'center';
     g.textBaseline = 'middle';
 
-    const family = '"Arial Black","Helvetica Neue",Arial,sans-serif';
-    const targetW = state.w * (state.mobile ? 0.92 : 0.91);
-    const topMax = Math.min(state.w * (state.mobile ? 0.25 : 0.20), state.h * (state.mobile ? 0.225 : 0.265));
-    const bottomMax = Math.min(state.w * (state.mobile ? 0.31 : 0.245), state.h * (state.mobile ? 0.275 : 0.335));
-    const top = fitFont(g, 'KILE B.', family, 900, targetW, topMax);
-    const bottom = fitFont(g, 'JONES', family, 900, targetW, bottomMax);
-    const gap = Math.max(12, Math.min(top, bottom) * (state.mobile ? 0.72 : 0.58));
-    const cy = state.h * (state.mobile ? 0.55 : 0.56);
+    // Much taller, narrower display lettering: a large window for the moving
+    // visuals. Horizontal compression happens in the drawing matrix, not by
+    // artificially scaling the artwork behind it.
+    const family = '"Impact","Arial Narrow","Arial Black","Helvetica Neue",sans-serif';
+    const squeeze = state.mobile ? .82 : .78;
+    const available = state.w * .985 / squeeze;
+    const top = fitFont(g, 'KILE B.', family, 900, available,
+      Math.min(state.w * (state.mobile ? .61 : .40), state.h * (state.mobile ? .37 : .49)));
+    const bottom = fitFont(g, 'JONES', family, 900, available,
+      Math.min(state.w * (state.mobile ? .71 : .50), state.h * (state.mobile ? .41 : .54)));
 
+    const half = state.h * .50;
+    const topY = half - (top + bottom) * (state.mobile ? .315 : .255);
+    const bottomY = half + (top + bottom) * (state.mobile ? .315 : .255);
+    g.save();
+    g.translate(state.w / 2, 0);
+    g.scale(squeeze, 1);
+    g.lineJoin = 'round';
     g.font = `900 ${top}px ${family}`;
-    g.fillText('KILE B.', state.w / 2, cy - gap * 0.58);
+    g.lineWidth = top * .034;
+    g.strokeText('KILE B.', 0, topY, available);
+    g.fillText('KILE B.', 0, topY, available);
     g.font = `900 ${bottom}px ${family}`;
-    g.fillText('JONES', state.w / 2, cy + gap * 0.58);
+    g.lineWidth = bottom * .034;
+    g.strokeText('JONES', 0, bottomY, available);
+    g.fillText('JONES', 0, bottomY, available);
+    g.restore();
   }
 
   function fitFont(g, text, family, weight, targetW, maxSize) {
@@ -318,9 +332,8 @@
     switch (mode) {
       case 0: drawStars(g, t); break;
       case 1: drawStaircase(g, t); break;
-      case 2: drawRhino(g, t); break;
-      case 3: drawSickleHammer(g, t); break;
-      case 4: drawVideo(g, t); break;
+      case 2: drawWordMetal(g, t); break;
+      case 3: drawVideo(g, t); break;
     }
   }
 
