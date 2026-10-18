@@ -356,6 +356,8 @@
   // Full-bleed moving foil environment: letters are windows onto a scene,
   // not isolated tiny pictures pasted in black glyphs.
   function drawFoilWorld(g, t) {
+    const materialCanvas = window.KBJEnvironment?.render(0,state.w,state.h,t,pointer.nx,pointer.ny);
+    if(materialCanvas){g.drawImage(materialCanvas,0,0,state.w,state.h);return;}
     const W=state.w,H=state.h;
     const bg=g.createLinearGradient(0,0,W,H);
     bg.addColorStop(0,'#031337');bg.addColorStop(.24,'#1056d6');
@@ -496,9 +498,11 @@
   }
 
   function drawStaircase(g, t) {
+    const materialCanvas = window.KBJEnvironment?.render(1,state.w,state.h,t,pointer.nx,pointer.ny);
+    if(materialCanvas)g.drawImage(materialCanvas,0,0,state.w,state.h);
     const bg=g.createLinearGradient(0,0,state.w,state.h);
     bg.addColorStop(0,'#05070b');bg.addColorStop(.45,'#272c35');bg.addColorStop(.78,'#555c65');bg.addColorStop(1,'#06090e');
-    g.fillStyle=bg;g.fillRect(0,0,state.w,state.h);
+    if(!materialCanvas){g.fillStyle=bg;g.fillRect(0,0,state.w,state.h);}
     const cx = state.w * 0.50 + pointer.nx * state.w * 0.030;
     const cy = state.h * 0.54 + pointer.ny * state.h * 0.026;
     const scale = Math.min(state.w, state.h) * (state.mobile ? 1.08 : 1.38);
@@ -728,10 +732,12 @@
   // The lowercase-to-uppercase change uses a staggered spatial crossfade.
   function drawWordMetal(g, t) {
     const W=state.w,H=state.h;
+    const materialCanvas = window.KBJEnvironment?.render(2,W,H,t,pointer.nx,pointer.ny);
     const bg=g.createLinearGradient(0,0,W,H);
     bg.addColorStop(0,'#121620');bg.addColorStop(.36,'#727e8e');
     bg.addColorStop(.68,'#1b2639');bg.addColorStop(1,'#e4e9ed');
-    g.fillStyle=bg;g.fillRect(0,0,W,H);
+    if(materialCanvas)g.drawImage(materialCanvas,0,0,W,H);
+    else{g.fillStyle=bg;g.fillRect(0,0,W,H);}
     const phase=((t-(state.modeStart-state.start)/1000)%5.8+5.8)%5.8;
     const upper=phase>2.5;
     const txt=upper?'FORM':'form';
