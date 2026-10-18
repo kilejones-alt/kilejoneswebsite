@@ -38,7 +38,7 @@ button{font:inherit}
 :focus-visible{outline:2px solid #0b0b0c;outline-offset:3px}
 @keyframes arrive{0%{opacity:.08;transform:translate3d(0,-7vh,0) scale(.988)}70%{opacity:1;transform:translate3d(0,.5vh,0) scale(1.001)}100%{opacity:1;transform:none}}
 @media(pointer:fine) and (hover:hover){body,body a,body button,#hero-canvas{cursor:none}}
-@media(max-width:700px),(max-height:700px) and (hover:none) and (pointer:coarse){.site-header{padding:calc(10px + env(safe-area-inset-top,0px)) calc(10px + env(safe-area-inset-right,0px)) 10px calc(10px + env(safe-area-inset-left,0px))}.desktop-links{display:none}.mobile-only{display:inline-flex!important}.pill-nav{gap:6px}.pill-nav button{min-height:44px;padding:0 14px}.elite-cursor{display:none}}
+@media(max-width:850px),(max-height:700px) and (hover:none) and (pointer:coarse){.site-header{padding:calc(10px + env(safe-area-inset-top,0px)) calc(10px + env(safe-area-inset-right,0px)) 10px calc(10px + env(safe-area-inset-left,0px))}.desktop-links{display:none}.mobile-only{display:inline-flex!important}.pill-nav{gap:6px}.pill-nav button{min-height:44px;padding:0 14px}.elite-cursor{display:none}}
 @media(max-width:420px){.site-header{padding-left:8px;padding-right:8px}.pill-nav button{padding-inline:13px}.mobile-drawer{right:8px;width:calc(100vw - 16px)}}
 @media(hover:none) and (pointer:coarse){.pill-nav a:hover,.pill-nav button:hover,.mobile-drawer a:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){.page-plane{animation:none}.elite-cursor{display:none}}
