@@ -4,6 +4,7 @@ on:
     paths:
       - 'index.html'
       - 'script.js'
+      - 'hero-webgl.js'
       - 'styles.css'
       - 'media.html'
       - '.github/workflows/visual-qa.yml'
@@ -17,7 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Syntax-check hero script
-        run: node --check script.js
+        run: |
+          node --check script.js
+          node --check hero-webgl.js
       - name: Verify navigation, links and hero renderer
         run: |
           node <<'NODE'
@@ -25,6 +28,7 @@ jobs:
           const h=fs.readFileSync('index.html','utf8');
           const s=fs.readFileSync('script.js','utf8');
           const css=fs.readFileSync('styles.css','utf8');
+          const gpu=fs.readFileSync('hero-webgl.js','utf8');
           const nav=h.substring(h.indexOf('<aside class="mobile-drawer"'),h.indexOf('</aside>'));
           for(const word of ['Inverted World','Unlikely Zio','Glossary','AZ Detector','Media']){
             if(!nav.includes(word))throw Error('Missing menu item: '+word);
@@ -39,6 +43,7 @@ jobs:
             if(!s.includes('function '+fn+'('))throw Error('Renderer missing '+fn);
           }
           if(!css.includes('menu-word-enter'))throw Error('Menu reveal missing');
+          if(!h.includes('src="hero-webgl.js') || !gpu.includes("getContext('webgl2'"))throw Error('GPU material stage missing');
           console.log('Navigation, visual engine and accessibility selectors validated.');
           NODE
       - name: Headless desktop smoke test
