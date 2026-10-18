@@ -25,7 +25,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
   <link rel="manifest" href="site.webmanifest" />
-  <link rel="stylesheet" href="styles.css?v=20261018a" />
+  <link rel="stylesheet" href="styles.css?v=20261018b" />
 </head>
 <body>
   <div class="page-plane">
@@ -36,23 +36,18 @@
         <button class="music-pill" id="music-toggle" type="button" aria-pressed="false" aria-label="Play background music">
           <span class="music-led" aria-hidden="true"></span><span>Music</span>
         </button>
-        <div class="desktop-links">
-          <a href="https://kilejones-alt.github.io/TheAntizionistGlossary/">Glossary</a>
-          <a href="https://antizionistdetector.netlify.app/">AZ Detector</a>
-          <a href="https://kilejones-alt.github.io/the-unlikely-zionists/">Unlikely Zio</a>
-          <a href="media.html">Media</a>
-          <a href="index%20(1).html">Projects</a>
-        </div>
-        <button class="menu-pill mobile-only" id="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-drawer">Menu</button>
+        <button class="menu-pill" id="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-drawer" aria-haspopup="true">
+          <span>Menu</span><span class="menu-icon" aria-hidden="true"><i></i><i></i></span>
+        </button>
       </nav>
     </header>
 
-    <aside class="mobile-drawer" id="mobile-drawer" aria-hidden="true">
-      <a href="https://kilejones-alt.github.io/TheAntizionistGlossary/">Glossary</a>
-      <a href="https://antizionistdetector.netlify.app/">AZ Detector</a>
-      <a href="https://kilejones-alt.github.io/the-unlikely-zionists/">Unlikely Zio</a>
-      <a href="media.html">Media</a>
-      <a href="index%20(1).html">Projects</a>
+    <aside class="mobile-drawer" id="mobile-drawer" aria-label="Website links" aria-hidden="true" inert>
+      <a href="https://kilejones.substack.com/subscribe">Inverted World <span aria-hidden="true">↗</span></a>
+      <a href="https://kilejones-alt.github.io/the-unlikely-zionists/">Unlikely Zio <span aria-hidden="true">↗</span></a>
+      <a href="https://kilejones-alt.github.io/TheAntizionistGlossary/">Glossary <span aria-hidden="true">↗</span></a>
+      <a href="https://antizionistdetector.netlify.app/">AZ Detector <span aria-hidden="true">↗</span></a>
+      <a href="media.html">Media <span aria-hidden="true">→</span></a>
     </aside>
 
     <main>
@@ -72,6 +67,6 @@
   <video id="hero-video" muted playsinline loop preload="auto" aria-hidden="true"
     src="https://cdn.creativeclaw.co/u/2118c0b9/videos/d58bf6e0-46e0-4c38-9c33-ad260ccefa1e.mp4"></video>
 
-  <script src="script.js?v=20261003b"></script>
+  <script src="script.js?v=20261018b"></script>
 </body>
 </html>
