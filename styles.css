@@ -99,3 +99,18 @@ button{font:inherit}
 .mobile-drawer a span{display:none}
 .mobile-drawer a:hover,.mobile-drawer a:focus-visible{color:#070709}
 @media(max-width:700px){.mobile-drawer a{font-size:clamp(26px,7vw,37px)}}
+
+/* Noth.in-inspired art direction: monumental editorial type and nearly
+   invisible navigation.  The pointer-reactive color stays in the wordmark. */
+body{font-family:"IBM Plex Mono","SFMono-Regular",Menlo,Consolas,monospace}
+.mobile-drawer a{
+  font-family:"Archivo Black","Arial Black","Helvetica Neue",Arial,sans-serif;
+  font-weight:400;
+  letter-spacing:-.057em;
+}
+.pill-nav button{font-family:"IBM Plex Mono","SFMono-Regular",Menlo,monospace;
+  letter-spacing:.045em;font-weight:500}
+@media(prefers-reduced-motion:reduce){
+ .mobile-drawer.is-open a{animation:none!important}
+ .page-plane{animation:none!important}
+}
