@@ -52,15 +52,20 @@ jobs:
           if((nav.match(/<a /g)||[]).length!==5)throw Error('Navigation contains unapproved items');
           console.log('Navigation, visual engine and accessibility selectors validated.');
           NODE
-      - name: Headless desktop smoke test
+      - name: Headless desktop and phone rendering smoke tests
         run: |
           CHROME=$(command -v google-chrome || command -v chromium || true)
           if [ -n "$CHROME" ]; then
-            "$CHROME" --headless --no-sandbox --disable-gpu --hide-scrollbars --window-size=1440,900 --virtual-time-budget=8500 --screenshot=desktop-qa.png "file://$PWD/index.html" || true
+            "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=1440,900 --virtual-time-budget=10000 --screenshot=desktop-qa.png "file://$PWD/index.html"
+            "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=390,844 --virtual-time-budget=10000 --screenshot=phone-qa.png "file://$PWD/index.html"
+          else
+            echo "Chrome unavailable: browser screenshot tests skipped."
           fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: desktop-qa
-          path: desktop-qa.png
+          name: responsive-hero-qa
+          path: |
+            desktop-qa.png
+            phone-qa.png
           if-no-files-found: ignore
