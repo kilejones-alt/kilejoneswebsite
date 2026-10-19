@@ -130,9 +130,15 @@ body{font-family:"IBM Plex Mono","SFMono-Regular",Menlo,Consolas,monospace}
   isolation:isolate;
 }
 #hero-video.gpu-native-film{
-  position:absolute;inset:0;left:0;top:0;width:100%;height:100%;
+  position:absolute;left:0;top:50%;width:100%;height:100%;
   opacity:1;display:block;object-fit:cover;object-position:center;
   max-width:none;max-height:none;
   transform-origin:50% 50%;will-change:transform,filter;
   z-index:1;pointer-events:none;
+}
+
+/* Mobile letter block is much shorter than the full screen. Avoid magnifying
+   4:3 footage to 844px tall when only the center lettering needs imagery. */
+@media (max-width:700px){
+  #hero-video.gpu-native-film{height:clamp(340px,58svh,540px);object-fit:cover;}
 }
