@@ -42,3 +42,12 @@ jobs:
             await res.body?.cancel();
           }catch(e){console.log('CDN probe unavailable:',String(e));}
           NODE
+      - name: Inspect live-layout GPU fallback and capture previews
+        continue-on-error: true
+        run: node tests/site-preview.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gpu-renderer-preview
+          path: qa-screenshots/
+          if-no-files-found: ignore
