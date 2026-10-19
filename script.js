@@ -209,32 +209,31 @@
     g.textAlign = 'center';
     g.textBaseline = 'middle';
 
-    // Much taller, narrower display lettering: a large window for the moving
-    // visuals. Horizontal compression happens in the drawing matrix, not by
-    // artificially scaling the artwork behind it.
-    const family = '"Impact","Arial Narrow","Arial Black","Helvetica Neue",sans-serif';
-    const squeeze = state.mobile ? .82 : .78;
-    const available = state.w * .985 / squeeze;
-    const top = fitFont(g, 'KILE B.', family, 900, available,
-      Math.min(state.w * (state.mobile ? .61 : .40), state.h * (state.mobile ? .37 : .49)));
-    const bottom = fitFont(g, 'JONES', family, 900, available,
-      Math.min(state.w * (state.mobile ? .71 : .50), state.h * (state.mobile ? .41 : .54)));
+    // Noth.in-style monumental grotesque, keeping your name and the two lines.
+    // Actual glyph bounds, not a reduced 3D image, define the entire artwork.
+    const family = '"Arial Black","Helvetica Neue",Arial,sans-serif';
+    const horizontal = state.mobile ? .92 : .94;
+    const targetW = state.w * .975 / horizontal;
+    const top = fitFont(g, 'KILE B.', family, 900, targetW,
+      Math.min(state.w * (state.mobile ? .46 : .60), state.h * (state.mobile ? .28 : .44)));
+    const bottom = fitFont(g, 'JONES', family, 900, targetW,
+      Math.min(state.w * (state.mobile ? .52 : .65), state.h * (state.mobile ? .34 : .49)));
 
-    const half = state.h * .50;
-    const topY = half - (top + bottom) * (state.mobile ? .315 : .255);
-    const bottomY = half + (top + bottom) * (state.mobile ? .315 : .255);
+    // Keep both lines inside the screen, including the actual font ascenders.
+    const middle = state.h * (state.mobile ? .52 : .53);
+    const separation = (top + bottom) * (state.mobile ? .32 : .278);
     g.save();
     g.translate(state.w / 2, 0);
-    g.scale(squeeze, 1);
+    g.scale(horizontal, 1);
     g.lineJoin = 'round';
     g.font = `900 ${top}px ${family}`;
-    g.lineWidth = top * .034;
-    g.strokeText('KILE B.', 0, topY, available);
-    g.fillText('KILE B.', 0, topY, available);
+    g.lineWidth = Math.max(1, top * .017);
+    g.strokeText('KILE B.', 0, middle - separation);
+    g.fillText('KILE B.', 0, middle - separation);
     g.font = `900 ${bottom}px ${family}`;
-    g.lineWidth = bottom * .034;
-    g.strokeText('JONES', 0, bottomY, available);
-    g.fillText('JONES', 0, bottomY, available);
+    g.lineWidth = Math.max(1, bottom * .017);
+    g.strokeText('JONES', 0, middle + separation);
+    g.fillText('JONES', 0, middle + separation);
     g.restore();
   }
 
@@ -325,7 +324,7 @@
     g.clearRect(0, 0, state.w, state.h);
 
     switch (mode) {
-      case 0: drawVideo(g, t); break;
+      case 0: drawVideo(g, t); drawFluidOverlay(g, t, 0, .52); break;
       case 1: drawFoilWorld(g, t); break;
       case 2: drawLiquidSilver(g, t); break;
     }
@@ -349,28 +348,26 @@
 
   // Full-bleed moving foil environment: letters are windows onto a scene,
   // not isolated tiny pictures pasted in black glyphs.
+  // The background is real moving footage. The GPU fluid is a translucent
+  // reveal on top, rather than another full-screen flat illustration.
+  function drawFluidOverlay(g, t, material, opacity) {
+    const fluid = window.KBJEnvironment?.render(material,state.w,state.h,t,
+      pointer.nx,pointer.ny,pointer.active && !reduceMotion);
+    if(!fluid) return;
+    g.save();
+    g.globalAlpha=opacity;
+    g.drawImage(fluid,0,0,state.w,state.h);
+    g.restore();
+  }
+
   function drawFoilWorld(g, t) {
-    const material = window.KBJEnvironment?.render(0,state.w,state.h,t,pointer.nx,pointer.ny);
-    if(material){
-      g.drawImage(material,0,0,state.w,state.h);
-    }else{
-      drawVideo(g,t);
-      g.save();
-      g.fillStyle='rgba(8,52,139,.28)';
-      g.fillRect(0,0,state.w,state.h);
-      g.restore();
-    }
+    drawVideo(g,t);
+    drawFluidOverlay(g,t,1,.97);
   }
 
   function drawLiquidSilver(g, t) {
-    const fluid=window.KBJEnvironment?.render(2,state.w,state.h,t,pointer.nx,pointer.ny);
-    if(fluid){
-      g.drawImage(fluid,0,0,state.w,state.h);
-    }else{
-      drawVideo(g,t);
-      g.fillStyle='rgba(218,225,236,.14)';
-      g.fillRect(0,0,state.w,state.h);
-    }
+    drawVideo(g,t);
+    drawFluidOverlay(g,t,2,.97);
   }
 
   function drawVideo(g, t) {
@@ -388,13 +385,13 @@
 
     const vw = video.videoWidth;
     const vh = video.videoHeight;
-    const scale = Math.max(state.w / vw, state.h / vh) * 1.10;
+    const scale = Math.max(state.w / vw, state.h / vh) * 1.012;
     const dw = vw * scale;
     const dh = vh * scale;
     const maxShiftX = Math.max(0, (dw - state.w) * .46);
     const maxShiftY = Math.max(0, (dh - state.h) * .46);
-    const x = (state.w - dw) * .5 - pointer.nx * Math.min(maxShiftX, state.w * .045) + Math.sin(t * .11) * 3;
-    const y = (state.h - dh) * .5 - pointer.ny * Math.min(maxShiftY, state.h * .045);
+    const x = (state.w - dw) * .5 - pointer.nx * Math.min(maxShiftX, state.w * .08) + Math.sin(t * .12) * 5;
+    const y = (state.h - dh) * .5 - pointer.ny * Math.min(maxShiftY, state.h * .075);
     g.drawImage(video, x, y, dw, dh);
   }
 
