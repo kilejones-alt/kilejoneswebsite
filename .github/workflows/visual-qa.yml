@@ -39,11 +39,13 @@ jobs:
           for(const id of ['hero-canvas','menu-toggle','music-toggle','mobile-drawer']){
             if(!h.includes('id="'+id+'"'))throw Error('Missing '+id);
           }
-          for(const fn of ['drawFoilWorld','drawFoilStar','drawWordMetal','drawStaircase','buildMask']){
+          for(const fn of ['drawFoilWorld','drawLiquidSilver','drawVideo','buildMask']){
             if(!s.includes('function '+fn+'('))throw Error('Renderer missing '+fn);
           }
           if(!css.includes('menu-word-enter'))throw Error('Menu reveal missing');
           if(!h.includes('src="hero-webgl.js') || !gpu.includes("getContext('webgl2'"))throw Error('GPU material stage missing');
+          if(s.includes('function drawStars(') || s.includes('function drawStaircase('))throw Error('Rejected visuals still bundled');
+          if(!gpu.includes('SIM_SIZE=256') || !gpu.includes('oldState'))throw Error('Fluid simulation missing');
           console.log('Navigation, visual engine and accessibility selectors validated.');
           NODE
       - name: Headless desktop smoke test
