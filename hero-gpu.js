@@ -278,13 +278,13 @@ void main() {
       if (this.nativeMode && this.originalVideo) {
         const video = this.originalVideo;
         video.classList.remove('gpu-native-film');
-        for (const prop of [
-          'mask-image','-webkit-mask-image','mask-size','-webkit-mask-size',
-          'mask-repeat','-webkit-mask-repeat'
-        ]) video.style.removeProperty(prop);
+        video.style.removeProperty('transform');
+        video.style.removeProperty('filter');
         const parent = this.originalVideoParent || document.body;
         parent.insertBefore(video,
           this.originalVideoNext?.parentNode === parent ? this.originalVideoNext : null);
+        this.filmWindow?.remove();
+        this.filmWindow = null;
         this.nativeMode = false;
       }
       if (error) console.warn('[Kile GPU renderer] ' + message, error);
@@ -297,7 +297,12 @@ void main() {
       // Reuse the original video node: no duplicate decoder/download.
       this.nativeMode = true;
       const video = this.originalVideo;
-      this.canvas.parentNode.insertBefore(video,this.canvas);
+      const filmWindow = document.createElement('div');
+      filmWindow.className = 'hero-film-window';
+      filmWindow.setAttribute('aria-hidden','true');
+      this.canvas.parentNode.insertBefore(filmWindow,this.canvas);
+      filmWindow.appendChild(video);
+      this.filmWindow = filmWindow;
       video.classList.add('gpu-native-film');
       if (this.video) {
         this.video.pause();
@@ -312,13 +317,13 @@ void main() {
       if (!this.nativeMode || !this.maskCanvas) return;
       const url = this.maskCanvas.toDataURL('image/png');
       const image = 'url("' + url + '")';
-      const video = this.originalVideo;
-      video.style.webkitMaskImage = image;
-      video.style.maskImage = image;
-      video.style.webkitMaskRepeat = 'no-repeat';
-      video.style.maskRepeat = 'no-repeat';
-      video.style.webkitMaskSize = '100% 100%';
-      video.style.maskSize = '100% 100%';
+      const filmWindow = this.filmWindow;
+      filmWindow.style.webkitMaskImage = image;
+      filmWindow.style.maskImage = image;
+      filmWindow.style.webkitMaskRepeat = 'no-repeat';
+      filmWindow.style.maskRepeat = 'no-repeat';
+      filmWindow.style.webkitMaskSize = '100% 100%';
+      filmWindow.style.maskSize = '100% 100%';
     }
 
     initializeVideo(host) {
@@ -552,6 +557,7 @@ void main() {
       if(this.failed || !this.gl || !this.width) return false;
       if (this.nativeMode) {
         try {
+          window.KBJScenes?.apply(this.originalVideo,options);
           const gl=this.gl;
           this.simulate(options.now,options.pointer,options.dt,options.reducedMotion);
           gl.bindFramebuffer(gl.FRAMEBUFFER,null);
@@ -615,7 +621,8 @@ void main() {
     diagnostic() {
       return {
         status:this.status,active:!this.failed && (this.status==='active' || this.status==='native video + GPU fluid reveal active'),
-        simSize:this.simSize,source:this.nativeMode ? 'original native MP4 + glyph CSS mask' : 'same-origin GPU video texture'
+        simSize:this.simSize,source:this.nativeMode ? 'original native MP4 + stable letter aperture' : 'same-origin GPU video texture',
+        scenes:window.KBJScenes?.diagnostics?.() || null
       };
     }
   }
