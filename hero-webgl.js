@@ -160,7 +160,7 @@ void main(){
   window.KBJEnvironment={
     render(material,w,h,t,nx,ny){
       if(disabled||w<=0||h<=0)return null;
-      const scale=w<720?.68:.78;
+      const scale = w < 720 ? 0.78 : 1.0;
       const pw=Math.max(1,Math.round(w*scale)),ph=Math.max(1,Math.round(h*scale));
       if(pw!==cacheW||ph!==cacheH){
         canvas.width=cacheW=pw;canvas.height=cacheH=ph;
