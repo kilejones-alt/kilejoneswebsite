@@ -7,7 +7,7 @@
   const canvas = document.createElement('canvas');
   let gl;
   try { gl = canvas.getContext('webgl2', {
-    alpha:false, antialias:false, depth:false, stencil:false,
+    alpha:true, antialias:false, depth:false, stencil:false,
     preserveDrawingBuffer:true, powerPreference:'high-performance'
   }); } catch (_) {}
   if (!gl) return;
@@ -36,12 +36,20 @@ void main() {
   vec2 origin=clamp(uv-velocity*.026,vec2(.001),vec2(.999));
   vec4 advected=texture(oldState,origin);
   vec2 advVel=(advected.rg-.5)*2.0;
-  float dye=advected.b*.981;
+  float dye=advected.b*.988;
   vec2 diff=(uv-point)*vec2(aspect,1.0);
-  float radius=exp(-dot(diff,diff)*85.0);
-  vec2 swirl=vec2(-diff.y,diff.x)*radius*.037;
-  velocity=clamp((advVel*.968)+swirl+motion*radius*injecting*1.45,vec2(-.9),vec2(.9));
-  dye=max(dye,radius*injecting*.97);
+  float radius=exp(-dot(diff,diff)*49.0);
+  vec2 swirl=vec2(-diff.y,diff.x)*radius*.26;
+  // Neighbor curl feeds a small rotational force back into the fluid field.
+  vec2 stepUV=1.0/resolution;
+  vec2 vR=(texture(oldState,uv+vec2(stepUV.x,0.0)).rg-.5)*2.0;
+  vec2 vL=(texture(oldState,uv-vec2(stepUV.x,0.0)).rg-.5)*2.0;
+  vec2 vT=(texture(oldState,uv+vec2(0.0,stepUV.y)).rg-.5)*2.0;
+  vec2 vB=(texture(oldState,uv-vec2(0.0,stepUV.y)).rg-.5)*2.0;
+  float curl=(vR.y-vL.y)-(vT.x-vB.x);
+  vec2 confinement=vec2(-advVel.y,advVel.x)*clamp(curl,-.2,.2)*.048;
+  velocity=clamp((advVel*.973)+swirl+confinement+motion*radius*injecting*5.7,vec2(-.9),vec2(.9));
+  dye=min(1.0,max(dye,radius*injecting)+radius*injecting*.24);
   result=vec4(velocity*.5+.5,dye,1.0);
 }`;
   const surfaceShader = `#version 300 es
@@ -95,7 +103,14 @@ void main(){
   float rim=pow(1.0-sat(dot(n,eye)),3.0);
   base+=rim*(material<1.5?vec3(.09,.29,.75):vec3(.22,.24,.28));
   float vignette=1.0-.24*smoothstep(.35,1.3,length(p));
-  color=vec4(pow(clamp(base*vignette,0.0,1.0),vec3(.88)),1.0);
+  // Organic reveal: keep the film visible beneath these moving liquid edges.
+  // Dye moves with the field; it is not simply a circular cursor spotlight.
+  float feather=smoothstep(.06,.46,dye);
+  float turbulence=sat(length(velocity)*2.6);
+  float revealed=sat(feather*.93+turbulence*.30);
+  float underlying=material<.5?.24:.095;
+  float opacity=mix(underlying,.995,revealed);
+  color=vec4(pow(clamp(base*vignette,0.0,1.0),vec3(.88)),opacity);
 }`;
   function shader(type,source){
     const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);
@@ -158,18 +173,22 @@ void main(){
   gl.bindTexture(gl.TEXTURE_2D,null);
   canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();disabled=true;});
   window.KBJEnvironment={
-    render(material,w,h,t,nx,ny){
+    render(material,w,h,t,nx,ny,active=false,animated=true){
       if(disabled||w<=0||h<=0)return null;
       const scale = w < 720 ? 0.78 : 1.0;
       const pw=Math.max(1,Math.round(w*scale)),ph=Math.max(1,Math.round(h*scale));
       if(pw!==cacheW||ph!==cacheH){
         canvas.width=cacheW=pw;canvas.height=cacheH=ph;
       }
-      const px=.5+nx*.5,py=.5-ny*.5;
-      const dt=prevTime?Math.min(.07,Math.max(0,t-prevTime)):0;
-      const mx=Math.max(-.15,Math.min(.15,px-oldX));
-      const my=Math.max(-.15,Math.min(.15,py-oldY));
-      const injecting=prevTime&&dt>0&&(Math.abs(mx)+Math.abs(my))>.0003?1:0;
+      const elapsed=animated?t:0;
+      const idleX=.5+.28*Math.sin(elapsed*.36),idleY=.5+.23*Math.sin(elapsed*.27+.9);
+      const px=active?.5+nx*.5:idleX,py=active?.5-ny*.5:idleY;
+      const dt=prevTime&&animated?Math.min(.07,Math.max(0,t-prevTime)):0;
+      const mx=prevTime?Math.max(-.15,Math.min(.15,px-oldX)):0;
+      const my=prevTime?Math.max(-.15,Math.min(.15,py-oldY)):0;
+      // A quiet travelling brush keeps the image alive even before interaction.
+      const speed=Math.abs(mx)+Math.abs(my);
+      const injecting=dt>0?(active?(speed>.0003?1:0):(speed>.0001?.41:0)):0;
       if(dt>0){
         gl.bindFramebuffer(gl.FRAMEBUFFER,framebuffer[1-front]);
         gl.viewport(0,0,SIM_SIZE,SIM_SIZE);
@@ -187,12 +206,15 @@ void main(){
       oldX=px;oldY=py;prevTime=t;
       gl.bindFramebuffer(gl.FRAMEBUFFER,null);
       gl.viewport(0,0,pw,ph);
+      gl.disable(gl.BLEND);
+      gl.clearColor(0,0,0,0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
       gl.useProgram(surfaceProgram);
       gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture[front]);
       gl.uniform1i(sLoc.fluidField,0);
       gl.uniform2f(sLoc.resolution,pw,ph);
       gl.uniform2f(sLoc.cursor,nx,ny);
-      gl.uniform1f(sLoc.time,t);
+      gl.uniform1f(sLoc.time,animated?t:0);
       gl.uniform1f(sLoc.material,material);
       gl.drawArrays(gl.TRIANGLES,0,3);
       return canvas;
