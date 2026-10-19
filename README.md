@@ -23,6 +23,10 @@ This experiment keeps KILE B. / JONES, the original MP4 and MP3 URLs, all five e
 2. Move the mouse across the letters; inspect `window.__KBJ_DIAGNOSTICS` for `renderer`, `gpu.status`, and frame rate.
 3. Verify video playback, pause/play Music, open/close Menu, and visit all five destinations.
 4. Test iPhone Safari, laptop Chrome/Safari, and desktop Chrome/Firefox, including reduced motion.
-5. The CDN-hosted MP4 must send permissive cross-origin headers for the GPU path. If it does not, or when WebGL2 fails, the original 2D renderer continues automatically. The CDN's CORS behavior has not been independently confirmed.
+5. Production's cross-origin MP4 uses its original native HTML video element, masked through the current glyph canvas, while WebGL2 renders the fluid reveal with transparency above it. This avoids WebGL video-texture CORS restrictions without altering the MP4. Same-origin video can use GPU texture sampling directly. If WebGL2 is unavailable, the legacy Canvas 2D renderer remains available. Verify the native video and GPU overlay together on iPhone Safari.
 
 The fluid algorithm is a new bespoke implementation informed by public research on fluid masking and pressure solving; no source from the reference projects was copied. Visual fidelity to Noth.in has **not** been verified. This is the first engineering integration, not a final visual sign-off.
+
+### Verified browser finding
+
+Chromium rejected direct WebGL video texture loading from the original CDN on 2026-10-19, even though a separate HTTP Range probe returned Access-Control-Allow-Origin: *. The native-video plus GPU-alpha route was added specifically to address this rather than assuming the synthetic-video shader test covered production conditions.
