@@ -209,7 +209,7 @@ void main() {
   // Binary-style opening in the veil exposes the true native film underneath.
   float opened = smoothstep(.19,.33,dye);
   vec3 ink = mix(material(uMode,vUv), material(uNextMode,vUv),uMix);
-  float veil = mix(.42,.59,smoothstep(.4,1.5,uMode));
+  float veil = mix(.29,.44,smoothstep(.4,1.5,uMode));
   outColor = vec4(ink, glyph * veil * (1.0 - .96*opened));
 }`;
 
@@ -453,7 +453,7 @@ void main() {
         this.canvas.height = Math.max(1,Math.round(height*dpr));
         this.canvas.style.width = width + 'px';
         this.canvas.style.height = height + 'px';
-        this.resetFluid(width < 700 ? 176 : 256);
+        this.resetFluid(width < 700 ? 160 : 224);
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D,this.glyphTexture);
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -537,7 +537,7 @@ void main() {
 
       // Jacobi pressure iterations, then subtract pressure gradient.
       // Density persists independently of the velocity projection.
-      for(let iteration=0;iteration<10;iteration++) {
+      for(let iteration=0;iteration<7;iteration++) {
         const dst=(iteration+1)%2,src=iteration%2;
         this.pass(this.pressure,pressures[dst],{
           uPressure:0,uDivergence:1,uTexel:texel
@@ -545,7 +545,7 @@ void main() {
       }
       this.pass(this.project,flow[0],{
         uFlow:0,uPressure:1,uTexel:texel
-      },[flow[1].texture,pressures[0].texture]);
+      },[flow[1].texture,pressures[1].texture]);
     }
 
     render(options) {
@@ -615,7 +615,7 @@ void main() {
     diagnostic() {
       return {
         status:this.status,active:!this.failed && (this.status==='active' || this.status==='native video + GPU fluid reveal active'),
-        simSize:this.simSize,source:'CORS-enabled duplicate of original MP4'
+        simSize:this.simSize,source:this.nativeMode ? 'original native MP4 + glyph CSS mask' : 'same-origin GPU video texture'
       };
     }
   }
