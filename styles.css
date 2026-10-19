@@ -120,11 +120,19 @@ body{font-family:"IBM Plex Mono","SFMono-Regular",Menlo,Consolas,monospace}
 .gpu-source-video{position:absolute;left:-2px;top:-2px;width:1px;height:1px;opacity:.001;pointer-events:none}
 
 /* Cross-origin-safe path: original browser-decoded video stays inside glyphs. */
+/* The parent holds the pixel-perfect word mask, the native video moves
+   inside it as a perspective camera plane. The mask never moves. */
+.hero-film-window {
+  position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none;
+  -webkit-mask-position:center;mask-position:center;
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  isolation:isolate;
+}
 #hero-video.gpu-native-film{
   position:absolute;inset:0;left:0;top:0;width:100%;height:100%;
   opacity:1;display:block;object-fit:cover;object-position:center;
-  filter:brightness(1.12) contrast(1.035);
-  z-index:1;pointer-events:none;-webkit-mask-position:center;mask-position:center;
-  -webkit-mask-size:100% 100%;mask-size:100% 100%;
-  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  max-width:none;max-height:none;
+  transform-origin:50% 50%;will-change:transform,filter;
+  z-index:1;pointer-events:none;
 }
