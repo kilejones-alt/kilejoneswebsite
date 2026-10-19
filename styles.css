@@ -84,3 +84,18 @@ button{font:inherit}
 .mobile-drawer a{min-height:64px;font-size:clamp(25px,7vw,35px)}
 }
 @media(prefers-reduced-motion:reduce){.mobile-drawer.is-open a{animation:none!important}}
+
+/* Editorial dropdown: strong grotesk typography, no decorative arrow glyphs. */
+.mobile-drawer a{
+  font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;
+  font-weight:750;
+  font-size:clamp(25px,3vw,37px);
+  letter-spacing:-.047em;
+  text-transform:none;
+  padding-inline:8px;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+}
+.mobile-drawer a span{display:none}
+.mobile-drawer a:hover,.mobile-drawer a:focus-visible{color:#070709}
+@media(max-width:700px){.mobile-drawer a{font-size:clamp(26px,7vw,37px)}}
