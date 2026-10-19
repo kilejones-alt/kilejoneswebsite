@@ -44,14 +44,15 @@
     const c=blend(a,b,smooth(clamp(options.mix||0,0,1)));
     const driftX=.012*Math.sin(now*.43) + .007*Math.sin(now*.17+.3);
     const driftY=.011*Math.cos(now*.37+.9);
-    const tx=c.x - smoothX*.029 + driftX;
-    const ty=c.y - smoothY*.021 + driftY;
+    const mobile=window.innerWidth<=700;
+    const tx=(c.x - smoothX*.029 + driftX)*(mobile?.52:1);
+    const ty=(c.y - smoothY*.021 + driftY)*(mobile?.55:1);
     const pitch=-smoothY*.85+Math.sin(now*.29)*.34;
     const yaw=smoothX*1.10+Math.cos(now*.33)*.35;
-    const z=c.zoom + .012*Math.sin(now*.47);
+    const z=lerp(1,c.zoom,mobile?.42:1) + .008*Math.sin(now*.47);
     // Parent is masked; footage moves *behind* stationary glyphs.
     const transform =
-      'translate3d('+ (tx*100).toFixed(3)+'%,'+(ty*100).toFixed(3)+'%,0) '+
+      'translateY(-50%) translate3d('+ (tx*100).toFixed(3)+'%,'+(ty*100).toFixed(3)+'%,0) '+
       'perspective(850px) rotateX('+(pitch).toFixed(2)+'deg) '+
       'rotateY('+(yaw+c.tilt).toFixed(2)+'deg) '+
       'rotateZ('+ (c.roll).toFixed(2)+'deg) scale('+z.toFixed(4)+')';
