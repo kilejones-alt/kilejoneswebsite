@@ -217,6 +217,8 @@ void main() {
     constructor(originalCanvas, originalVideo) {
       this.original = originalCanvas;
       this.originalVideo = originalVideo;
+      this.originalVideoParent = originalVideo?.parentNode;
+      this.originalVideoNext = originalVideo?.nextSibling;
       this.status = 'initializing';
       this.failed = false;
       this.last = 0;
@@ -272,6 +274,19 @@ void main() {
       this.failed = true;
       this.status = message;
       this.canvas.style.display = 'none';
+      // A GPU failure must restore the untouched 2D+video fallback.
+      if (this.nativeMode && this.originalVideo) {
+        const video = this.originalVideo;
+        video.classList.remove('gpu-native-film');
+        for (const prop of [
+          'mask-image','-webkit-mask-image','mask-size','-webkit-mask-size',
+          'mask-repeat','-webkit-mask-repeat'
+        ]) video.style.removeProperty(prop);
+        const parent = this.originalVideoParent || document.body;
+        parent.insertBefore(video,
+          this.originalVideoNext?.parentNode === parent ? this.originalVideoNext : null);
+        this.nativeMode = false;
+      }
       if (error) console.warn('[Kile GPU renderer] ' + message, error);
     }
 
