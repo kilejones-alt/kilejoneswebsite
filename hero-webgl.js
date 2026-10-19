@@ -182,13 +182,14 @@ void main(){
       }
       const elapsed=animated?t:0;
       const idleX=.5+.28*Math.sin(elapsed*.36),idleY=.5+.23*Math.sin(elapsed*.27+.9);
-      const px=active?.5+nx*.5:idleX,py=active?.5-ny*.5:idleY;
+      const px = active ? (.5 + nx*.5) : idleX;
+      const py = active ? (.5 - ny*.5) : idleY;
       const dt=prevTime&&animated?Math.min(.07,Math.max(0,t-prevTime)):0;
       const mx=prevTime?Math.max(-.15,Math.min(.15,px-oldX)):0;
       const my=prevTime?Math.max(-.15,Math.min(.15,py-oldY)):0;
       // A quiet travelling brush keeps the image alive even before interaction.
       const speed=Math.abs(mx)+Math.abs(my);
-      const injecting=dt>0?(active?(speed>.0003?1:0):(speed>.0001?.41:0)):0;
+      const injecting = dt > 0 ? (active ? (speed > .0003 ? 1 : 0) : (speed > .0001 ? .46 : 0)) : 0;
       if(dt>0){
         gl.bindFramebuffer(gl.FRAMEBUFFER,framebuffer[1-front]);
         gl.viewport(0,0,SIM_SIZE,SIM_SIZE);
