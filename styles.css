@@ -118,3 +118,12 @@ body{font-family:"IBM Plex Mono","SFMono-Regular",Menlo,Consolas,monospace}
 /* Progressive WebGL2 layer sits above the preserved Canvas 2D fallback. */
 .hero-gpu-layer{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;display:block}
 .gpu-source-video{position:absolute;left:-2px;top:-2px;width:1px;height:1px;opacity:.001;pointer-events:none}
+
+/* Cross-origin-safe path: original browser-decoded video stays inside glyphs. */
+#hero-video.gpu-native-film{
+  position:absolute;inset:0;left:0;top:0;width:100%;height:100%;
+  opacity:1;display:block;object-fit:cover;object-position:center;
+  z-index:1;pointer-events:none;-webkit-mask-position:center;mask-position:center;
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+}
