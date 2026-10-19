@@ -47,9 +47,25 @@ try{
       await page.mouse.move(720,490,{steps:12});
       await page.waitForTimeout(600);
     }
-    const diagnostic=await page.evaluate(()=>window.__KBJ_DIAGNOSTICS||null);
+    const diagnostic=await page.evaluate(()=>{
+      const v=document.querySelector('#hero-video');
+      const gpu=document.querySelector('.hero-gpu-layer');
+      const wrapper=document.querySelector('.hero-film-window');
+      return {
+        ...(window.__KBJ_DIAGNOSTICS||{}),
+        videoDimensions:v ? [v.videoWidth,v.videoHeight] : null,
+        filmRect:v ? {w:Math.round(v.getBoundingClientRect().width),h:Math.round(v.getBoundingClientRect().height)} : null,
+        parentMask:!!wrapper && getComputedStyle(wrapper).maskImage!=='none',
+        gpuCanvas:gpu ? [gpu.width,gpu.height] : null,
+        topLevelControls:[...document.querySelectorAll('.pill-nav button')].map(e=>e.textContent.trim())
+      };
+    });
     await page.screenshot({path:'qa-screenshots/'+spec.name+'.png'});
     console.log(JSON.stringify({device:spec.name,diagnostic,errors}));
+    if(!diagnostic?.gpu?.active) throw new Error('GPU not active for '+spec.name);
+    if(!diagnostic?.parentMask) throw new Error('Native letter mask missing for '+spec.name);
+    if((diagnostic?.gpu?.scenes?.numberOfCameraTreatments||0)!==6) throw new Error('Expected six scene camera treatments');
+    if(errors.length) throw new Error('Browser errors: '+errors.join('; '));
     await context.close();
   }
 }finally{
