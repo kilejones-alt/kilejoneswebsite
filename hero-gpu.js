@@ -196,21 +196,52 @@ uniform float uMode;
 uniform float uNextMode;
 uniform float uMix;
 uniform float uTime;
-vec3 material(float mode,vec2 uv) {
-  if(mode < .5) return vec3(.012,.019,.036);
-  float studio = pow(max(0.0, sin(uv.x*7.1-uv.y*5.2+uTime*.23)), 22.0);
-  if(mode < 1.5) return vec3(.014,.046,.19) + studio*vec3(.035,.09,.24);
-  return vec3(.18,.205,.24) + studio*vec3(.16,.20,.25);
+uniform float uIntro;
+uniform vec2 uPointer;
+float hash21(vec2 p){
+  p=fract(p*vec2(123.34,456.21));
+  p+=dot(p,p+45.32);
+  return fract(p.x*p.y);
+}
+float noise(vec2 p){
+  vec2 f=fract(p);vec2 i=floor(p);
+  f=f*f*(3.0-2.0*f);
+  return mix(mix(hash21(i),hash21(i+vec2(1.,0.)),f.x),
+             mix(hash21(i+vec2(0.,1.)),hash21(i+vec2(1.,1.)),f.x),f.y);
+}
+vec3 material(float scene, vec2 uv){
+  // Ink is a quiet neutral film over native photographed footage.
+  if(scene<.5) return vec3(.012,.017,.025);
+  if(scene<1.5) return vec3(.012,.018,.035);
+  if(scene<2.5) return vec3(.017,.020,.026);
+  if(scene<3.5) return vec3(.008,.008,.010);
+  if(scene<4.5) return vec3(.12,.13,.14);
+  return vec3(.016,.018,.025);
 }
 void main() {
   float glyph = texture(uGlyph,vUv).a;
-  if(glyph < .005) discard;
-  float dye = texture(uFlow,vUv).b;
-  // Binary-style opening in the veil exposes the true native film underneath.
-  float opened = smoothstep(.19,.33,dye);
-  vec3 ink = mix(material(uMode,vUv), material(uNextMode,vUv),uMix);
-  float veil = mix(.29,.44,smoothstep(.4,1.5,uMode));
-  outColor = vec4(ink, glyph * veil * (1.0 - .96*opened));
+  if(glyph<.005) discard;
+  vec4 flow = texture(uFlow,vUv);
+  float density = flow.b;
+  // Not a circular radial reveal. Let the fluid field create an irregular,
+  // approximately binary boundary, like the photographed Nothin effect.
+  float small = noise(vUv*vec2(19.0,13.0)+vec2(uTime*.18,0.0));
+  float broad = noise(vUv*vec2(6.0,4.0)-vec2(uTime*.07,0.0));
+  float organic = (small-.5)*.085 + (broad-.5)*.12;
+  float activated = smoothstep(.19+organic,.29+organic,density);
+
+  // Slow opening animation. The scene remains moving when the cursor is idle.
+  float sweep = smoothstep(-.36,1.30,uIntro);
+  float advancing = vUv.x*.9 + vUv.y*.46;
+  float initial = 1.0-smoothstep(sweep-.28,sweep+.14,
+              advancing+(broad-.5)*.23);
+  float revealed = max(activated,initial*.60);
+
+  vec3 ink = mix(material(uMode,vUv),material(uNextMode,vUv),uMix);
+  float ambient = mix(.18,.37,smoothstep(.7,3.8,uMode));
+  // Ink veil thins sharply in the locally fluid-revealed region.
+  float alpha = glyph*ambient*(1.0-.985*revealed);
+  outColor = vec4(ink,alpha);
 }`;
 
   class GPUHero {
@@ -227,6 +258,7 @@ void main() {
       this.width = 0;
       this.height = 0;
       this.readyFrame = false;
+      this.birthTime = performance.now()*.001;
 
       this.canvas = document.createElement('canvas');
       this.canvas.className = 'hero-gpu-layer';
@@ -569,7 +601,9 @@ void main() {
           this.use(this.overlay,{
             uGlyph:0,uFlow:1,
             uMode:options.mode,uNextMode:options.nextMode,
-            uMix:options.mix,uTime:options.now*.001
+            uMix:options.mix,uTime:options.now*.001,
+            uPointer:[options.pointer.nx,options.pointer.ny],
+            uIntro:Math.min(1.6,options.now*.001 - this.birthTime)
           });
           gl.drawArrays(gl.TRIANGLES,0,3);
           if (gl.getError()!==gl.NO_ERROR) throw new Error('Native video fluid pass failed');
