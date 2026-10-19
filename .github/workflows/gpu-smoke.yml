@@ -1,0 +1,24 @@
+name: GPU renderer smoke test
+on:
+  push:
+    branches: [nothin-gpu-renderer-v1]
+  pull_request:
+    paths:
+      - 'hero-gpu.js'
+      - 'script.js'
+      - 'index.html'
+      - 'tests/**'
+      - 'package.json'
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check
+      - run: npm run test:gpu
