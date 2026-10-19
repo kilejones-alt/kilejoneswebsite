@@ -486,8 +486,11 @@ void main() {
       try {
         this.width = width;
         this.height = height;
-        this.canvas.width = Math.max(1,Math.round(width*dpr));
-        this.canvas.height = Math.max(1,Math.round(height*dpr));
+        // Film remains full browser resolution; only the translucent GPU ink
+        // is lowered on high-DPR screens to control mobile fill-rate.
+        const inkDpr = Math.min(dpr,width <= 700 ? 1.15 : 1.35);
+        this.canvas.width = Math.max(1,Math.round(width*inkDpr));
+        this.canvas.height = Math.max(1,Math.round(height*inkDpr));
         this.canvas.style.width = width + 'px';
         this.canvas.style.height = height + 'px';
         this.resetFluid(width < 700 ? 160 : 224);
@@ -664,6 +667,8 @@ void main() {
   window.KBJGpuRenderer={
     create(originalCanvas,originalVideo) {
       if(!originalCanvas || !originalVideo) return null;
+      // Development QA escape hatch; no change to default presentation.
+      if (new URLSearchParams(location.search).get('renderer') === 'legacy') return null;
       // Keep the original reduced-motion behavior (static/non-autoplay fallback).
       if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return null;
       try{return new GPUHero(originalCanvas,originalVideo);}
