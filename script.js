@@ -22,12 +22,11 @@
 
   const PAPER = '#f3f5f7';
   const INK = '#09090a';
-  const MODE_SECONDS = 5.8;
-  const TRANSITION_SECONDS = 1.10;
-  const MODE_NAMES = [
-    'FILM / CURSOR REVEAL',
-    'FLUID COBALT',
-    'LIQUID SILVER'
+  const MODE_SECONDS = window.KBJScenes?.duration || 5.2;
+  const TRANSITION_SECONDS = window.KBJScenes?.transition || 1.65;
+  const MODE_NAMES = window.KBJScenes?.names || [
+    'FILM / REVEAL', 'DEEP COBALT', 'MERCURY / STUDIO',
+    'MONOCHROME / CLOSE', 'HIGH KEY / MOTION', 'FILM / OPEN WORLD'
   ];
   const state = {
     w: 0,
