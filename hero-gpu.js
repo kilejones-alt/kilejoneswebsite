@@ -186,6 +186,33 @@ void main() {
   outColor = vec4(mix(paper, clamp(scene,0.0,1.0), glyph), 1.0);
 }`;
 
+  const OVERLAY = `#version 300 es
+precision highp float;
+in vec2 vUv;
+out vec4 outColor;
+uniform sampler2D uGlyph;
+uniform sampler2D uFlow;
+uniform float uMode;
+uniform float uNextMode;
+uniform float uMix;
+uniform float uTime;
+vec3 material(float mode,vec2 uv) {
+  if(mode < .5) return vec3(.012,.019,.036);
+  float studio = pow(max(0.0, sin(uv.x*7.1-uv.y*5.2+uTime*.23)), 22.0);
+  if(mode < 1.5) return vec3(.014,.046,.19) + studio*vec3(.035,.09,.24);
+  return vec3(.18,.205,.24) + studio*vec3(.16,.20,.25);
+}
+void main() {
+  float glyph = texture(uGlyph,vUv).a;
+  if(glyph < .005) discard;
+  float dye = texture(uFlow,vUv).b;
+  // Binary-style opening in the veil exposes the true native film underneath.
+  float opened = smoothstep(.19,.33,dye);
+  vec3 ink = mix(material(uMode,vUv), material(uNextMode,vUv),uMix);
+  float veil = mix(.42,.59,smoothstep(.4,1.5,uMode));
+  outColor = vec4(ink, glyph * veil * (1.0 - .96*opened));
+}`;
+
   class GPUHero {
     constructor(originalCanvas, originalVideo) {
       this.original = originalCanvas;
@@ -208,7 +235,7 @@ void main() {
       host.appendChild(this.canvas);
 
       const gl = this.canvas.getContext('webgl2', {
-        alpha: false, antialias: false, depth: false, stencil: false,
+        alpha: true, premultipliedAlpha: false, antialias: false, depth: false, stencil: false,
         preserveDrawingBuffer: false, powerPreference: 'high-performance'
       });
       if (!gl) {
@@ -227,6 +254,7 @@ void main() {
         this.pressure = this.program(PRESSURE);
         this.project = this.program(PROJECT);
         this.composite = this.program(COMPOSITE);
+        this.overlay = this.program(OVERLAY);
         this.videoTexture = this.texture();
         this.glyphTexture = this.texture();
         this.initializeVideo(host);
@@ -247,9 +275,49 @@ void main() {
       if (error) console.warn('[Kile GPU renderer] ' + message, error);
     }
 
+
+    enableNativeVideo() {
+      if (this.failed || this.nativeMode) return;
+      // CSS masks work on a cross-origin native <video> without reading pixels.
+      // Reuse the original video node: no duplicate decoder/download.
+      this.nativeMode = true;
+      const video = this.originalVideo;
+      this.canvas.parentNode.insertBefore(video,this.canvas);
+      video.classList.add('gpu-native-film');
+      if (this.video) {
+        this.video.pause();
+        this.video.remove();
+        this.video = null;
+      }
+      this.status = 'native video + GPU fluid reveal';
+      this.syncNativeMask();
+    }
+
+    syncNativeMask() {
+      if (!this.nativeMode || !this.maskCanvas) return;
+      const url = this.maskCanvas.toDataURL('image/png');
+      const image = 'url("' + url + '")';
+      const video = this.originalVideo;
+      video.style.webkitMaskImage = image;
+      video.style.maskImage = image;
+      video.style.webkitMaskRepeat = 'no-repeat';
+      video.style.maskRepeat = 'no-repeat';
+      video.style.webkitMaskSize = '100% 100%';
+      video.style.maskSize = '100% 100%';
+    }
+
     initializeVideo(host) {
       // Cross-origin video cannot be uploaded into WebGL without CORS.
       // A second, CORS-enabled video avoids breaking the original 2D fallback.
+      const src = this.originalVideo?.getAttribute('src') ||
+                  this.originalVideo?.currentSrc || '';
+      // Production footage is served from another origin. Its browser CORS
+      // response was inconsistent despite permissive headers to a CLI probe.
+      // Keep video as native media and compose WebGL alpha over it.
+      if (src && new URL(src, location.href).origin !== location.origin) {
+        this.enableNativeVideo();
+        return;
+      }
       const v = document.createElement('video');
       v.className = 'gpu-source-video';
       v.muted = true;
@@ -377,6 +445,8 @@ void main() {
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA,
                            this.gl.RGBA, this.gl.UNSIGNED_BYTE,maskCanvas);
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, false);
+        this.maskCanvas = maskCanvas;
+        this.syncNativeMask();
         if (this.gl.getError() !== this.gl.NO_ERROR) {
           throw new Error('Uploading glyph mask failed');
         }
@@ -465,6 +535,31 @@ void main() {
 
     render(options) {
       if(this.failed || !this.gl || !this.width) return false;
+      if (this.nativeMode) {
+        try {
+          const gl=this.gl;
+          this.simulate(options.now,options.pointer,options.dt,options.reducedMotion);
+          gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+          gl.viewport(0,0,this.canvas.width,this.canvas.height);
+          gl.disable(gl.BLEND);
+          gl.clearColor(0,0,0,0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          this.bindTextures(this.glyphTexture,this.flow[0].texture);
+          this.use(this.overlay,{
+            uGlyph:0,uFlow:1,
+            uMode:options.mode,uNextMode:options.nextMode,
+            uMix:options.mix,uTime:options.now*.001
+          });
+          gl.drawArrays(gl.TRIANGLES,0,3);
+          if (gl.getError()!==gl.NO_ERROR) throw new Error('Native video fluid pass failed');
+          this.canvas.style.display='block';
+          this.status='native video + GPU fluid reveal active';
+          return true;
+        } catch(error) {
+          this.fail('Native-video GPU render failed',error);
+          return false;
+        }
+      }
       const v=this.video;
       if (!v || v.readyState<2 || !v.videoWidth || !v.videoHeight) return false;
       const gl=this.gl;
@@ -504,7 +599,7 @@ void main() {
 
     diagnostic() {
       return {
-        status:this.status,active:!this.failed && this.status==='active',
+        status:this.status,active:!this.failed && (this.status==='active' || this.status==='native video + GPU fluid reveal active'),
         simSize:this.simSize,source:'CORS-enabled duplicate of original MP4'
       };
     }
