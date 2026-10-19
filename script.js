@@ -25,9 +25,9 @@
   const MODE_SECONDS = 5.8;
   const TRANSITION_SECONDS = 1.10;
   const MODE_NAMES = [
-    'ARCHIVAL VIDEO',
-    'FLUID BLUE FOIL',
-    'FLUID SILVER'
+    'FILM / CURSOR REVEAL',
+    'FLUID COBALT',
+    'LIQUID SILVER'
   ];
   const state = {
     w: 0,
@@ -73,6 +73,7 @@
   setupCursor();
   setupVideo();
   resize();
+  document.fonts?.ready.then(() => { if(state.running) resize(); });
   addEventListener('resize', debounce(resize, 80), { passive: true });
   document.addEventListener('visibilitychange', () => {
     state.running = !document.hidden;
@@ -129,7 +130,7 @@
     video.muted = true;
     video.loop = true;
     video.playsInline = true;
-    const tryPlay = () => video.play().catch(() => {});
+    const tryPlay = () => { if (!reduceMotion) video.play().catch(() => {}); };
     video.addEventListener('canplay', tryPlay, { once: true });
     tryPlay();
     ['pointerdown', 'touchstart', 'keydown'].forEach((name) => addEventListener(name, tryPlay, { once: true, passive: true }));
@@ -211,7 +212,7 @@
 
     // Noth.in-style monumental grotesque, keeping your name and the two lines.
     // Actual glyph bounds, not a reduced 3D image, define the entire artwork.
-    const family = '"Arial Black","Helvetica Neue",Arial,sans-serif';
+    const family = '"Archivo Black","Arial Black","Helvetica Neue",Arial,sans-serif';
     const horizontal = state.mobile ? .92 : .94;
     const targetW = state.w * .975 / horizontal;
     const top = fitFont(g, 'KILE B.', family, 900, targetW,
@@ -352,7 +353,7 @@
   // reveal on top, rather than another full-screen flat illustration.
   function drawFluidOverlay(g, t, material, opacity) {
     const fluid = window.KBJEnvironment?.render(material,state.w,state.h,t,
-      pointer.nx,pointer.ny,pointer.active && !reduceMotion);
+      pointer.nx,pointer.ny,pointer.active && pointer.overCanvas && !reduceMotion,!reduceMotion);
     if(!fluid) return;
     g.save();
     g.globalAlpha=opacity;
