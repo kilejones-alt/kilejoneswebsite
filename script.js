@@ -69,6 +69,9 @@
   const sceneB = document.createElement('canvas');
   const sceneBCtx = sceneB.getContext('2d');
 
+  // Progressive GPU stage; the established 2D/video renderer stays intact.
+  const gpuRenderer = window.KBJGpuRenderer?.create(canvas, video) || null;
+
   setupUI();
   setupCursor();
   setupVideo();
@@ -148,6 +151,8 @@
       pointer.nx = state.w ? (x / state.w) * 2 - 1 : 0;
       pointer.ny = state.h ? (y / state.h) * 2 - 1 : 0;
       pointer.active = true;
+      // Works even while the underlying fallback canvas is hidden.
+      pointer.overCanvas = !!(e.target?.closest?.('.hero'));
 
       if (finePointer && cursorRoot && cursorDot) {
         cursorRoot.classList.add('is-visible');
@@ -200,6 +205,7 @@
     });
 
     buildMask();
+    gpuRenderer?.resize(state.w, state.h, state.dpr, maskCanvas);
   }
 
   function buildMask() {
@@ -279,6 +285,30 @@
     state.last = now;
     const t = (now - state.start) / 1000;
     updateMode(now);
+
+    // The GPU draws the actual glyph mask and footage without readback.
+    // If the CDN blocks CORS or WebGL fails, the original pipeline runs.
+    const gpuActive = !!gpuRenderer?.render({
+      now, dt, pointer, mode:state.mode, nextMode:state.nextMode,
+      mix:state.mix, reducedMotion:reduceMotion
+    });
+    if (gpuActive) {
+      canvas.style.visibility = 'hidden';
+      state.frames++;
+      if (now - state.fpsMark >= 1000) {
+        state.fps = Math.round(state.frames * 1000 / (now - state.fpsMark));
+        state.frames = 0;
+        state.fpsMark = now;
+      }
+      window.__KBJ_DIAGNOSTICS = {
+        renderer:'WebGL2 GPU',fps:state.fps,
+        mode:MODE_NAMES[state.mode],nextMode:MODE_NAMES[state.nextMode],
+        mix:+state.mix.toFixed(3), dpr:+state.dpr.toFixed(2),
+        videoReady:true,gpu:gpuRenderer.diagnostic()
+      };
+      return;
+    }
+    canvas.style.visibility = 'visible';
 
     ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
     ctx.globalCompositeOperation = 'source-over';
