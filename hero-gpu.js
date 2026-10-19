@@ -279,6 +279,10 @@ void main() {
         return;
       }
       this.gl = gl;
+      // Preserve velocity and pressure precision where the device supports
+      // renderable float textures; RGBA8 remains a safe WebGL2 fallback.
+      this.floatSim = !!gl.getExtension('EXT_color_buffer_float');
+      this.floatLinear = !!gl.getExtension('OES_texture_float_linear');
       this.vao = gl.createVertexArray();
       gl.bindVertexArray(this.vao);
 
@@ -435,12 +439,13 @@ void main() {
       return {program, locations: Object.create(null)};
     }
 
-    texture() {
+    texture(filter) {
       const gl = this.gl;
       const texture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      const mode = filter || gl.LINEAR;
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mode);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, mode);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       return texture;
@@ -448,9 +453,11 @@ void main() {
 
     target(size, neutral=false) {
       const gl = this.gl;
-      const texture = this.texture();
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, size, size,
-                    0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      const useFloat = this.floatSim;
+      const texture = this.texture(useFloat && !this.floatLinear ? gl.NEAREST : gl.LINEAR);
+      gl.texImage2D(gl.TEXTURE_2D, 0, useFloat ? gl.RGBA16F : gl.RGBA8,
+                    size, size, 0, gl.RGBA,
+                    useFloat ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE, null);
       const framebuffer = gl.createFramebuffer();
       gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,
@@ -658,7 +665,7 @@ void main() {
     diagnostic() {
       return {
         status:this.status,active:!this.failed && (this.status==='active' || this.status==='native video + GPU fluid reveal active'),
-        simSize:this.simSize,source:this.nativeMode ? 'original native MP4 + stable letter aperture' : 'same-origin GPU video texture',
+        simSize:this.simSize,fluidFormat:this.floatSim ? 'RGBA16F' : 'RGBA8',source:this.nativeMode ? 'original native MP4 + stable letter aperture' : 'same-origin GPU video texture',
         scenes:window.KBJScenes?.diagnostics?.() || null
       };
     }
