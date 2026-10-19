@@ -513,6 +513,8 @@ void main() {
   window.KBJGpuRenderer={
     create(originalCanvas,originalVideo) {
       if(!originalCanvas || !originalVideo) return null;
+      // Keep the original reduced-motion behavior (static/non-autoplay fallback).
+      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return null;
       try{return new GPUHero(originalCanvas,originalVideo);}
       catch(error){console.warn('GPU renderer disabled',error);return null;}
     }
