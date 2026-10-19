@@ -22,3 +22,23 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run check
       - run: npm run test:gpu
+      - name: Diagnose production video CORS (non-blocking)
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const html=fs.readFileSync('index.html','utf8');
+          const video=html.match(/<video[^>]*src="(https:[^"]+)"/s)?.[1];
+          if(!video){console.log('Video src not found');process.exit(0);}
+          try{
+            const res=await fetch(video,{
+              headers:{Origin:'https://kilebardenjones.com',Range:'bytes=0-0'},
+              signal:AbortSignal.timeout(10000)
+            });
+            console.log(JSON.stringify({
+              videoHttpStatus:res.status,
+              allowOrigin:res.headers.get('access-control-allow-origin'),
+              contentType:res.headers.get('content-type')
+            }));
+            await res.body?.cancel();
+          }catch(e){console.log('CDN probe unavailable:',String(e));}
+          NODE
