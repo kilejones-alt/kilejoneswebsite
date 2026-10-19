@@ -25,10 +25,9 @@
   const MODE_SECONDS = 5.8;
   const TRANSITION_SECONDS = 1.10;
   const MODE_NAMES = [
-    'ORBITING BLUE FOIL STARS',
-    'BLACK INFLATABLE IMPOSSIBLE STAIRCASE',
-    'SILVER MYLAR LETTERFORMS',
-    'ARCHIVAL VIDEO'
+    'ARCHIVAL VIDEO',
+    'FLUID BLUE FOIL',
+    'FLUID SILVER'
   ];
   const state = {
     w: 0,
@@ -336,10 +335,9 @@
     g.clearRect(0, 0, state.w, state.h);
 
     switch (mode) {
-      case 0: drawStars(g, t); break;
-      case 1: drawStaircase(g, t); break;
-      case 2: drawWordMetal(g, t); break;
-      case 3: drawVideo(g, t); break;
+      case 0: drawVideo(g, t); break;
+      case 1: drawFoilWorld(g, t); break;
+      case 2: drawLiquidSilver(g, t); break;
     }
   }
 
@@ -772,6 +770,17 @@
     g.fillStyle=chrome;g.fillText(txt,0,0);
     g.lineWidth=size*.009;g.strokeStyle='rgba(255,255,255,.68)';g.strokeText(txt,0,0);
     g.restore();
+  }
+
+  function drawLiquidSilver(g, t) {
+    const fluid=window.KBJEnvironment?.render(2,state.w,state.h,t,pointer.nx,pointer.ny);
+    if(fluid){
+      g.drawImage(fluid,0,0,state.w,state.h);
+    }else{
+      drawVideo(g,t);
+      g.fillStyle='rgba(218,225,236,.14)';
+      g.fillRect(0,0,state.w,state.h);
+    }
   }
 
   function drawVideo(g, t) {
