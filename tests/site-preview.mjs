@@ -33,7 +33,7 @@ try{
     {name:'desktop',width:1440,height:900,isMobile:false,deviceScaleFactor:1},
     {name:'mobile',width:390,height:844,isMobile:true,deviceScaleFactor:2}
   ]){
-    const context=await browser.newContext({viewport:spec,
+    const context=await browser.newContext({viewport:{width:spec.width,height:spec.height},
       isMobile:spec.isMobile,deviceScaleFactor:spec.deviceScaleFactor,
       hasTouch:spec.isMobile});
     const page=await context.newPage();
