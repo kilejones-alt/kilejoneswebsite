@@ -345,6 +345,8 @@
       pointer: [Math.round(pointer.x), Math.round(pointer.y)],
       rawPointerInput: 'onpointerrawupdate' in window,
       videoReady: !!video && video.readyState >= 2,
+      renderer: 'original Canvas 2D fallback',
+      gpu: gpuRenderer?.diagnostic() || {status:'not supported or reduced motion'},
     };
   }
 
