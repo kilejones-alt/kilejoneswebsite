@@ -166,6 +166,21 @@ function cone(){
   tri([0,-1,0],v(.4,-1,q),v(.4,-1,p),[0,-1,0]);
  }return new Float32Array(a);
 }
+
+function leg(){
+  // Four tapering weight-bearing rhino legs. A cylinder silhouette avoids
+  // the wheel/balloon appearance of four stacked ellipsoid paws.
+  const {a,tri,quad}=geometry();
+  const sides=32;
+  for(let i=0;i<sides;i++){
+    const t=TAU*i/sides,q=TAU*(i+1)/sides;
+    const v=(rad,y,angle)=>[rad*Math.cos(angle),y,rad*Math.sin(angle)];
+    quad(v(.32,-1,t),v(.32,-1,q),v(.46,1,q),v(.46,1,t));
+    tri([0,-1,0],v(.32,-1,q),v(.32,-1,t),[0,-1,0]);
+    tri([0,1,0],v(.46,1,t),v(.46,1,q),[0,1,0]);
+  }
+  return new Float32Array(a);
+}
 const material={star:0,pink:1,black:2,foil:3,white:4,dark:5};
 function objects(){
  let worlds=[[],[],[],[],[],[]];
@@ -205,8 +220,8 @@ function objects(){
  rhino('sphere',[1.64,-.66,.0],[.56,.27,.33],[0,0,-.08]);
  rhino('sphere',[1.80,-.86,0],[.24,.14,.28]);
  for(let x of [-.95,.73])for(let z of [-.39,.39]){
-  rhino('sphere',[x,-.84,z],[.30,.51,.26],[0,0,x>0?.10:-.05]);
-  rhino('sphere',[x,-1.23,z],[.29,.18,.28]);}
+  rhino('leg',[x,-.80,z],[.75,.48,.66],[0,0,x>0?.09:-.035]);
+  rhino('sphere',[x+.055,-1.28,z],[.215,.090,.205]);}
  rhino('cone',[1.53,-.19,.05],[.28,.67,.29],[0,0,-.55],grey);
  rhino('cone',[1.13,.04,.08],[.19,.34,.20],[0,0,-.26],grey);
  rhino('cone',[1.0,.63,.28],[.14,.24,.14],[0,0,-.19]);
@@ -252,7 +267,7 @@ class Stage{
   this.program=program(vert,frag);
   this.bgProgram=program(bgV,bgF);
   this.meshes={};
-  for(let [name,data] of Object.entries({sphere:sphere(),star:star(),ring:torus(),cone:cone()})){
+  for(let [name,data] of Object.entries({sphere:sphere(),star:star(),ring:torus(),cone:cone(),leg:leg()})){
     const vao=gl.createVertexArray(),buffer=gl.createBuffer();
     gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
     gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
