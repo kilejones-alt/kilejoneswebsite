@@ -43,7 +43,11 @@ void main(){
  vec3 col=uBase*(.23+diff*1.09);
  if(uType<.5){col+=vec3(.28,.48,.91)*(spec*1.5+band*.34+rim*.30);}
  else if(uType<1.5){col+=vec3(1.,.83,.94)*(spec*2.1+band*.26)+uBase*rim*.33;}
- else if(uType<2.5){col+=vec3(.30,.40,.52)*(spec*.27+band*.18+rim*.16);}
+ else if(uType<2.5){
+   // Matte-black velvet/plaster reads through bright edge and softbox lights,
+   // not artificial gloss. Silhouette stays black on a lighter studio field.
+   col+=vec3(.45,.55,.68)*(spec*.38+band*.37+rim*.75);
+ }
  else if(uType<3.5){
    vec3 foil=mix(vec3(.33,.40,.47),vec3(.95,.96,.97),.5+.5*wrinkle);
    col=foil*(.22+diff*.78)+vec3(1.)*(spec*1.55+band*.94)+vec3(.31,.40,.51)*rim*.65;
@@ -70,7 +74,7 @@ vec3 background(float scene,vec2 p){
  if(scene<.5)return mix(vec3(.002,.004,.023),vec3(.02,.052,.14),v);
  if(scene<1.5)return mix(vec3(.037,.015,.026),vec3(.17,.077,.119),v*.72);
  if(scene<2.5)return mix(vec3(.006,.009,.016),vec3(.066,.074,.092),v);
- if(scene<3.5)return mix(vec3(.002,.003,.006),vec3(.047,.049,.056),v);
+ if(scene<3.5)return mix(vec3(.12,.145,.175),vec3(.29,.32,.37),v);
  if(scene<4.5)return mix(vec3(.20,.26,.31),vec3(.55,.59,.63),v);
  return mix(vec3(.011,.017,.023),vec3(.073,.085,.10),v);
 }
@@ -278,34 +282,70 @@ class Stage{
   }return true;
  }
  matrix(o,t,mobile,scene){
-  let p=[...o.p],sc=[...o.sc],rot=[...o.rot];
+  const p=[...o.p],sc=[...o.sc],rot=[...o.rot];
   const phase=o.phase||o.seed,x=this.pointer[0],y=this.pointer[1];
   if(o.kind==='star'){
+   // 3D star field: each sculpture has its own position, rotation and drift.
    p[0]+=Math.sin(t*.19+phase)*.22*o.dir;
    p[1]+=Math.cos(t*.27+phase)*.18;
    p[2]+=Math.sin(t*.31+phase)*.41;
    rot[1]+=t*o.spin*o.dir;rot[0]+=t*o.spin*.78;rot[2]+=t*o.spin*.45;
-   if(mobile)p[0]*=.52;
+   if(mobile){p[0]*=.52;p[1]*=.66;}
   }else if(o.kind==='rabbit'){
-   p[1]+=Math.sin(t*.61)*.17;p[0]+=Math.sin(t*.35)*.12;
-   rot[1]+=Math.sin(t*.34)*.19;rot[2]+=Math.sin(t*.19)*.039;
+   // Orbit the connected balloon assembly around one common origin.
+   const yaw=Math.sin(t*.34)*.22;
+   const xx=p[0],zz=p[2];
+   p[0]=xx*Math.cos(yaw)+zz*Math.sin(yaw);
+   p[2]=zz*Math.cos(yaw)-xx*Math.sin(yaw);
+   p[1]+=Math.sin(t*.61)*.14;
+   rot[1]+=yaw;rot[2]+=Math.sin(t*.19)*.036;
+   if(mobile){
+     p[0]*=.55;p[1]*=.30;sc[0]*=.55;sc[1]*=.30;sc[2]*=.57;
+     p[1]+=.43;
+   }else{
+     p[0]*=1.33;p[1]*=.65;sc[0]*=1.33;sc[1]*=.65;
+     p[1]+=1.34;p[0]-=.39;
+   }
   }else if(o.kind==='rhino'){
-   p[0]+=Math.sin(t*.19)*.06;rot[1]+=Math.sin(t*.26)*.17;
-   if(mobile){p[0]*=.66;sc[0]*=.66;sc[1]*=.82;sc[2]*=.82;}
+   const yaw=Math.sin(t*.25)*.20;
+   const xx=p[0],zz=p[2];
+   p[0]=xx*Math.cos(yaw)+zz*Math.sin(yaw);
+   p[2]=zz*Math.cos(yaw)-xx*Math.sin(yaw);
+   p[0]+=Math.sin(t*.19)*.055;
+   rot[1]+=yaw;
+   if(mobile){
+     p[0]*=.47;p[1]*=.30;sc[0]*=.47;sc[1]*=.30;sc[2]*=.53;
+     p[1]+=.43;
+   }else{
+     p[0]*=1.27;p[1]*=.74;sc[0]*=1.27;sc[1]*=.74;
+     p[1]+=1.36;p[0]-=.46;
+   }
   }else if(o.kind==='foil'){
-   const k=o.letter;
-   p[1]+=Math.sin(t*(.37+k*.07)+k*1.50)*.16;
-   p[2]+=Math.sin(t*(.24+k*.09)+k*2.30)*.34;
-   rot[1]+=Math.sin(t*(.29+k*.07)+k*.68)*.23;
-   rot[2]+=Math.sin(t*(.19+k*.06)+k)*.08;
-   if(mobile){p[0]*=.43;sc[0]*=.43;sc[1]*=.73;sc[2]*=.73;}
+   // Separate letter actors, with each welded set of inflated strokes
+   // rotating together around its letter's center (not individually).
+   const k=o.letter,cx=[-2.03,-.06,1.78][k];
+   const yaw=Math.sin(t*(.29+k*.07)+k*.68)*.25;
+   const dx=p[0]-cx,dz=p[2];
+   p[0]=cx+dx*Math.cos(yaw)+dz*Math.sin(yaw);
+   p[2]=dz*Math.cos(yaw)-dx*Math.sin(yaw);
+   p[1]+=Math.sin(t*(.37+k*.07)+k*1.50)*.13;
+   p[2]+=Math.sin(t*(.24+k*.09)+k*2.30)*.28;
+   rot[1]+=yaw;rot[2]+=Math.sin(t*(.19+k*.06)+k)*.07;
+   if(mobile){
+     p[0]*=.43;p[1]*=.34;sc[0]*=.43;sc[1]*=.34;sc[2]*=.65;
+     p[1]+=.44;
+   }else{
+     p[0]*=1.18;p[1]*=.72;sc[0]*=1.18;sc[1]*=.72;
+     p[1]+=1.44;p[0]-=.29;
+   }
   }else{
    p[1]+=Math.sin(t*.24+phase)*.20;p[2]+=Math.cos(t*.21+phase)*.28;
    rot[0]+=t*.045;rot[1]+=t*.05*o.dir;
-   if(mobile)p[0]*=.55;
+   if(mobile){p[0]*=.55;p[1]*=.55;}
   }
-  p[0]-=x*.35;p[1]+=y*.23;
-  p[0]+=Math.sin(t*.11+scene)*.025;
+  const perspective=1+p[2]*.068;
+  p[0]-=x*.39*perspective;p[1]+=y*.26*perspective;
+  p[0]+=Math.sin(t*.11+scene)*.035;
   return model(p,sc,rot);
  }
  drawScene(index,t,alpha,mobile){
