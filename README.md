@@ -57,11 +57,11 @@ GitHub Actions uses software/virtualized graphics, not physical iPhone or deskto
 | Scene | Distinct geometry | Motion and staging |
 | --- | --- | --- |
 | 0 — Midnight stars | Fourteen beveled/extruded, metallic midnight-blue stars | Every star has independent position, depth, drift direction and continuous three-axis rotation. |
-| 1 — Pink balloon rabbit | A joined, 12-component glossy hot-pink rabbit, including long inflated loop ears | Gentle buoyancy, group-level yaw and independent mouse-responsive parallax. The sole pink hero. |
+| 1 — Pink balloon rabbit | A joined, 15-component upright glossy hot-pink rabbit, including long inflated loop ears | Gentle buoyancy, group-level yaw and independent mouse-responsive parallax. The sole pink hero. |
 | 2 — Black studio | Five soft-edged black graphite shapes/loops | Low-contrast, slower independent rotations and motion. |
 | 3 — Matte-black rhino | One unified, smooth implicit-surface black rhino mesh (body, shoulders, muzzle and four legs) plus five separately sculpted accents (horns, ears and eye) | Heavy camera/orbit illusion, restrained group yaw, bright side-lit gray studio. Not pink. |
 | 4 — Translucent white | Four suspended white pearl/frosted forms | Continuous slow float, independent rotation and soft studio contrasts. |
-| 5 — Foil ZIO | Three separate uppercase inflated letter assemblies, with Z made of three strokes, I of three, and O of one loop | Different depth drift/yaw for Z, I and O. Each letter moves as one assembly rather than its pieces disconnecting. Crinkled foil material highlight shader. |
+| 5 — Foil ZIO | Three continuous uppercase metallic foil glyph volumes: extruded polygon Z, extruded polygon I, and inflatable torus O | Different depth drift/yaw for Z, I and O. Each letter moves as one assembly rather than its pieces disconnecting. Crinkled foil material highlight shader. |
 
 The original MP4 is automatically suppressed when the fully procedurally rendered 3D stage is available. **The original MP4 and unchanged Canvas-2D renderer remain in the repo as fallbacks and are not replaced.** There are no AI-generated image assets, no unlicensed external 3D models, no imported Noth.in source, and no new visible navigation text.
 
@@ -80,3 +80,13 @@ The title's existing pixel-accurate two-line glyph texture remains a *fixed mask
 ### Continuous-rhino improvement
 
 The rhino torso, head, shoulder and leg volumes are joined using a smooth signed-distance-field union sampled into an original normal-interpolated surface mesh. The two horns, ears and tiny eye remain separately modeled so their material edges remain distinct. The resulting silhouette is visually smoother and no longer contains four conspicuous spherical 'wheel' feet. The mesh is generated directly in-browser without any model downloads or AI-generated visual assets. This increases CPU work during startup, which is one reason physical mobile device profiling is still required.
+
+### Stage 4 — camera, readability and foil/bunny refinement
+
+- **Real perspective projection**, 30.3-degree vertical field of view with camera at z=12. World-space forward/back motion now changes object size naturally. Previous ortho camera made depth movement visually flat.
+- The stars are actively art-directed so most beveled faces stay visible to visitors. A few stars complete slow true 3D axial revolutions; the majority spin around the visible face while gently wobbling through depth. No repeated star stickers.
+- Original hot-pink balloon rabbit rebuilt as a sitting upright sculptural subject with recognizable pinched neck, haunch, round head/muzzle, long hollow balloon-loop ears, tail, and four inflated paws, moved cohesively as one hero.
+- The Z and I are now **solid, contiguous, bevelled uppercase 3D mesh glyphs**, triangulated via ear clipping with proper concave boundaries, not groups of disconnected balloon bars. O remains a continuous inflated ring. All three letters animate separately in true XYZ depth, with O having a slow independent axial turn.
+- The foil shader perturbs actual lighting normals with procedural multi-frequency creases for crinkled reflective helium wrapping, instead of merely coloring gray circles onto the surface. Pink-latex softbox shading and midnight-star specular highlights are stronger. Restraint is maintained on the background studio haze.
+- Rhino legs updated from ellipsoid wheel-looking forms to smooth-unioned, weight-bearing columns with flatter bottom profiles; main horn raised and made more visually distinct, with satin-black graphite staging.
+- End-to-end screenshots are generated for all four desktop and mobile 3D hero worlds, plus isolated object scenes and cursor reveal, in GitHub Actions artifact `gpu-renderer-preview`. Hardware Safari and genuinely photoreal artist-authored models still require validation.
