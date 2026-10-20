@@ -7,12 +7,12 @@
   'use strict';
 
   const SCENES = Object.freeze([
-    {name:'FILM / REVEAL',        zoom:1.08, x:-.016,y:-.014,roll:-.30,tilt:.65,  bright:1.13,contrast:1.10,sat:1.02,gray:0},
-    {name:'DEEP COBALT',          zoom:1.16, x:.021, y:-.020,roll:.42, tilt:-1.2, bright:1.08,contrast:1.20,sat:1.30,gray:.15},
-    {name:'MERCURY / STUDIO',     zoom:1.11, x:-.028,y:.012, roll:-.45,tilt:1.65,bright:1.24,contrast:1.31,sat:.34,gray:.78},
-    {name:'MONOCHROME / CLOSE',   zoom:1.23, x:.018, y:.024, roll:.52, tilt:-1.2, bright:1.23,contrast:1.27,sat:0,gray:1},
-    {name:'HIGH KEY / MOTION',    zoom:1.10, x:-.011,y:.018, roll:-.28,tilt:.85, bright:1.40,contrast:1.08,sat:.62,gray:.45},
-    {name:'FILM / OPEN WORLD',    zoom:1.14, x:.020, y:-.009,roll:.31, tilt:-.75,bright:1.18,contrast:1.10,sat:.95,gray:0}
+    {name:'MIDNIGHT / STARS',zoom:1.04,x:0,y:0,roll:0,tilt:0,bright:1.14,contrast:1.08,sat:1,gray:0},
+    {name:'PINK / BALLOON RABBIT',zoom:1.04,x:0,y:0,roll:0,tilt:0,bright:1.14,contrast:1.08,sat:1,gray:0},
+    {name:'DARK / SCULPTURE',zoom:1.04,x:0,y:0,roll:0,tilt:0,bright:1.14,contrast:1.08,sat:1,gray:0},
+    {name:'MATTE BLACK / RHINO',zoom:1.04,x:0,y:0,roll:0,tilt:0,bright:1.14,contrast:1.08,sat:1,gray:0},
+    {name:'WHITE / TRANSLUCENT',zoom:1.04,x:0,y:0,roll:0,tilt:0,bright:1.14,contrast:1.08,sat:1,gray:0},
+    {name:'FOIL / ZIO',zoom:1.04,x:0,y:0,roll:0,tilt:0,bright:1.14,contrast:1.08,sat:1,gray:0},
   ]);
 
   const lerp = (a,b,t)=>a+(b-a)*t;
