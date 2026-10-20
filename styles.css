@@ -142,3 +142,10 @@ body{font-family:"IBM Plex Mono","SFMono-Regular",Menlo,Consolas,monospace}
 @media (max-width:700px){
   #hero-video.gpu-native-film{height:clamp(340px,58svh,540px);object-fit:cover;}
 }
+
+/* Optional approved scene assets live inside the stationary glyph mask. */
+.hero-film-window .scene-depth-layer{
+  position:absolute;inset:-6%;width:112%;height:112%;z-index:3;
+  object-fit:cover;pointer-events:none;opacity:0;
+  max-width:none;max-height:none;will-change:opacity,transform;
+}
