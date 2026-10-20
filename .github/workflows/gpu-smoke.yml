@@ -1,0 +1,53 @@
+name: GPU renderer smoke test
+on:
+  push:
+    branches: [nothin-gpu-renderer-v1]
+  pull_request:
+    paths:
+      - 'hero-gpu.js'
+      - 'script.js'
+      - 'index.html'
+      - 'tests/**'
+      - 'package.json'
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check
+      - run: npm run test:gpu
+      - name: Diagnose production video CORS (non-blocking)
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const html=fs.readFileSync('index.html','utf8');
+          const video=html.match(/<video[^>]*src="(https:[^"]+)"/s)?.[1];
+          if(!video){console.log('Video src not found');process.exit(0);}
+          try{
+            const res=await fetch(video,{
+              headers:{Origin:'https://kilebardenjones.com',Range:'bytes=0-0'},
+              signal:AbortSignal.timeout(10000)
+            });
+            console.log(JSON.stringify({
+              videoHttpStatus:res.status,
+              allowOrigin:res.headers.get('access-control-allow-origin'),
+              contentType:res.headers.get('content-type')
+            }));
+            await res.body?.cancel();
+          }catch(e){console.log('CDN probe unavailable:',String(e));}
+          NODE
+      - name: Inspect live-layout GPU fallback and capture previews
+        continue-on-error: true
+        run: node tests/site-preview.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gpu-renderer-preview
+          path: qa-screenshots/
+          if-no-files-found: ignore

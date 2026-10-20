@@ -114,3 +114,45 @@ body{font-family:"IBM Plex Mono","SFMono-Regular",Menlo,Consolas,monospace}
  .mobile-drawer.is-open a{animation:none!important}
  .page-plane{animation:none!important}
 }
+
+/* Progressive WebGL2 layer sits above the preserved Canvas 2D fallback. */
+.hero-gpu-layer{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;display:block}
+.gpu-source-video{position:absolute;left:-2px;top:-2px;width:1px;height:1px;opacity:.001;pointer-events:none}
+
+/* Cross-origin-safe path: original browser-decoded video stays inside glyphs. */
+/* The parent holds the pixel-perfect word mask, the native video moves
+   inside it as a perspective camera plane. The mask never moves. */
+.hero-film-window {
+  position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none;
+  -webkit-mask-position:center;mask-position:center;
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  isolation:isolate;
+}
+#hero-video.gpu-native-film{
+  position:absolute;left:0;top:50%;width:100%;height:100%;
+  opacity:1;display:block;object-fit:cover;object-position:center;
+  max-width:none;max-height:none;
+  transform-origin:50% 50%;will-change:transform,filter;
+  z-index:1;pointer-events:none;
+}
+
+/* Mobile letter block is much shorter than the full screen. Avoid magnifying
+   4:3 footage to 844px tall when only the center lettering needs imagery. */
+@media (max-width:700px){
+  #hero-video.gpu-native-film{height:clamp(340px,58svh,540px);object-fit:cover;}
+}
+
+/* Optional approved scene assets live inside the stationary glyph mask. */
+.hero-film-window .scene-depth-layer{
+  position:absolute;inset:-6%;width:112%;height:112%;z-index:3;
+  object-fit:cover;pointer-events:none;opacity:0;
+  max-width:none;max-height:none;will-change:opacity,transform;
+}
+
+/* Real WebGL2 polygon worlds are rendered into the pre-existing fixed
+   wordmark aperture, never into the nav or editorial page. */
+.hero-film-window .hero-object-canvas{
+ position:absolute;inset:0;width:100%;height:100%;display:block;
+ z-index:5;pointer-events:none;contain:strict;
+}

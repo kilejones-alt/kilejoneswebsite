@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check script.js && node --check hero-gpu.js && node --check hero-webgl.js",
+    "test:gpu": "node tests/gpu-smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.57.0"
+  }
+}

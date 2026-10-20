@@ -22,12 +22,11 @@
 
   const PAPER = '#f3f5f7';
   const INK = '#09090a';
-  const MODE_SECONDS = 5.8;
-  const TRANSITION_SECONDS = 1.10;
-  const MODE_NAMES = [
-    'FILM / CURSOR REVEAL',
-    'FLUID COBALT',
-    'LIQUID SILVER'
+  const MODE_SECONDS = window.KBJScenes?.duration || 5.2;
+  const TRANSITION_SECONDS = window.KBJScenes?.transition || 1.65;
+  const MODE_NAMES = window.KBJScenes?.names || [
+    'FILM / REVEAL', 'DEEP COBALT', 'MERCURY / STUDIO',
+    'MONOCHROME / CLOSE', 'HIGH KEY / MOTION', 'FILM / OPEN WORLD'
   ];
   const state = {
     w: 0,
@@ -68,6 +67,9 @@
   const sceneACtx = sceneA.getContext('2d');
   const sceneB = document.createElement('canvas');
   const sceneBCtx = sceneB.getContext('2d');
+
+  // Progressive GPU stage; the established 2D/video renderer stays intact.
+  const gpuRenderer = window.KBJGpuRenderer?.create(canvas, video) || null;
 
   setupUI();
   setupCursor();
@@ -148,6 +150,8 @@
       pointer.nx = state.w ? (x / state.w) * 2 - 1 : 0;
       pointer.ny = state.h ? (y / state.h) * 2 - 1 : 0;
       pointer.active = true;
+      // Works even while the underlying fallback canvas is hidden.
+      pointer.overCanvas = !!(e.target?.closest?.('.hero'));
 
       if (finePointer && cursorRoot && cursorDot) {
         cursorRoot.classList.add('is-visible');
@@ -200,6 +204,7 @@
     });
 
     buildMask();
+    gpuRenderer?.resize(state.w, state.h, state.dpr, maskCanvas);
   }
 
   function buildMask() {
@@ -251,6 +256,15 @@
   }
 
   function updateMode(now) {
+    // QA-only diagnostic world selection; no visible controls on the website.
+    const force=window.__KBJ_FORCE_SCENE;
+    if(Number.isInteger(force) && force>=0 && force<MODE_NAMES.length){
+      state.mode=force;
+      state.nextMode=(force+1)%MODE_NAMES.length;
+      state.mix=0;
+      state.modeStart=now;
+      return;
+    }
     const elapsed = (now - state.modeStart) / 1000;
     const transitionStart = MODE_SECONDS - TRANSITION_SECONDS;
     if (elapsed < transitionStart) {
@@ -279,6 +293,30 @@
     state.last = now;
     const t = (now - state.start) / 1000;
     updateMode(now);
+
+    // The GPU draws the actual glyph mask and footage without readback.
+    // If the CDN blocks CORS or WebGL fails, the original pipeline runs.
+    const gpuActive = !!gpuRenderer?.render({
+      now, dt, pointer, mode:state.mode, nextMode:state.nextMode,
+      mix:state.mix, reducedMotion:reduceMotion
+    });
+    if (gpuActive) {
+      canvas.style.visibility = 'hidden';
+      state.frames++;
+      if (now - state.fpsMark >= 1000) {
+        state.fps = Math.round(state.frames * 1000 / (now - state.fpsMark));
+        state.frames = 0;
+        state.fpsMark = now;
+      }
+      window.__KBJ_DIAGNOSTICS = {
+        renderer:'WebGL2 GPU',fps:state.fps,
+        mode:MODE_NAMES[state.mode],nextMode:MODE_NAMES[state.nextMode],
+        mix:+state.mix.toFixed(3), dpr:+state.dpr.toFixed(2),
+        videoReady:true,gpu:gpuRenderer.diagnostic()
+      };
+      return;
+    }
+    canvas.style.visibility = 'visible';
 
     ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
     ctx.globalCompositeOperation = 'source-over';
@@ -315,6 +353,8 @@
       pointer: [Math.round(pointer.x), Math.round(pointer.y)],
       rawPointerInput: 'onpointerrawupdate' in window,
       videoReady: !!video && video.readyState >= 2,
+      renderer: 'original Canvas 2D fallback',
+      gpu: gpuRenderer?.diagnostic() || {status:'not supported or reduced motion'},
     };
   }
 
@@ -324,10 +364,12 @@
     g.globalAlpha = 1;
     g.clearRect(0, 0, state.w, state.h);
 
-    switch (mode) {
+    // The native Canvas2D safety path must cover all six object stages and
+    // never show the previously rejected liquid-metal treatment.
+    switch (mode % 3) {
       case 0: drawVideo(g, t); drawFluidOverlay(g, t, 0, .52); break;
       case 1: drawFoilWorld(g, t); break;
-      case 2: drawLiquidSilver(g, t); break;
+      case 2: drawVideo(g, t); drawFluidOverlay(g, t, 0, .42); break;
     }
   }
 
