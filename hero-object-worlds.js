@@ -295,12 +295,18 @@ function rhinoBody(){
   [[-1.20,-.09,0],[.51,.61,.57]],
   [[1.20,-.39,0],[.72,.49,.48]],
   [[1.62,-.65,0],[.53,.30,.34]],
-  [[1.81,-.79,0],[.20,.15,.28]],
-  [[-.97,-.82,-.43],[.31,.56,.28]],
-  [[-.97,-.82,.43],[.31,.56,.28]],
-  [[.72,-.79,-.43],[.31,.56,.28]],
-  [[.72,-.79,.43],[.31,.56,.28]]
+  [[1.81,-.79,0],[.20,.15,.28]]
  ];
+ // Flat-foot, weight-bearing legs instead of ellipsoid "wheel" hooves.
+ const legs=[[-.99,-.43],[.71,-.43],[-.99,.43],[.71,.43]];
+ function sdRhinoLeg(p,x,z){
+   const h=.44,cy=-.86,dy=p[1]-cy;
+   const tapered=.258+.065*clamp((dy+h)/(2*h),0,1);
+   const radial=Math.hypot(p[0]-x,p[2]-z)-tapered;
+   const cap=Math.abs(dy)-h;
+   return Math.min(Math.max(radial,cap),0)+
+     Math.hypot(Math.max(radial,0),Math.max(cap,0));
+ }
  function sdEllipse(p,center,radius){
    const dx=p[0]-center[0],dy=p[1]-center[1],dz=p[2]-center[2];
    const x=dx/radius[0],y=dy/radius[1],z=dz/radius[2];
@@ -316,7 +322,8 @@ function rhinoBody(){
  function field(p){
    let d=sdEllipse(p,...forms[0]);
    for(let j=1;j<forms.length;j++)
-     d=combine(d,sdEllipse(p,...forms[j]),.21);
+     d=combine(d,sdEllipse(p,...forms[j]),.24);
+   for(const [x,z] of legs)d=combine(d,sdRhinoLeg(p,x,z),.19);
    return d;
  }
  const nx=46,ny=30,nz=28;
@@ -395,8 +402,9 @@ function objects(){
   const sz=.38+(i%4)*.19;
   add(0,'star',0,i%3?[.027,.089,.29]:[.075,.17,.49],
    [Math.cos(t)*r,Math.sin(t)*r*.80,-1.8+(i%5)*.80],
-   [sz,sz,sz],[.11*i,.24*i,.20*i],
-   {kind:'star',phase:i*1.73,spin:.04+(i%4)*.045,dir:i%2?1:-1});
+   [sz,sz,sz],[.12*Math.sin(i*1.3),.30*Math.sin(i*2.1),.42*i],
+   {kind:'star',phase:i*1.73,spin:.04+(i%4)*.045,
+     dir:i%2?1:-1,axial:i%5===0});
  }
  const pink=[.98,.015,.27],dark=[.064,.070,.075],grey=[.11,.12,.13];
  // Upright sculptural balloon rabbit: recognizable arched back, haunch,
@@ -430,11 +438,12 @@ function objects(){
  // Unified body, head, shoulders, muzzle and four weight-bearing legs.
  // Only horns, ears and a tiny dark eye stay as separate sculpted accents.
  rhino('rhinoBody',[0,0,0],[1,1,1]);
- rhino('cone',[1.53,-.19,.05],[.28,.67,.29],[0,0,-.55],grey);
- rhino('cone',[1.13,.04,.08],[.19,.34,.20],[0,0,-.26],grey);
- rhino('cone',[1.0,.63,.28],[.14,.24,.14],[0,0,-.19]);
- rhino('cone',[1.02,.59,-.28],[.14,.22,.14],[0,0,.16]);
- rhino('sphere',[1.47,-.30,.42],[.050,.034,.026],[0,0,-.39],grey);
+ // Two prominent rhino horns rooted on the nose.
+ rhino('cone',[1.57,-.11,.06],[.36,.67,.34],[0,0,-.31],[.27,.29,.30]);
+ rhino('cone',[1.19,.27,.055],[.22,.40,.22],[0,0,-.17],[.24,.26,.28]);
+ rhino('cone',[.90,.68,.30],[.13,.25,.16],[0,0,-.16]);
+ rhino('cone',[.98,.66,-.30],[.13,.25,.16],[0,0,.14]);
+ rhino('sphere',[1.43,-.28,.43],[.072,.050,.034],[0,0,-.30],[.33,.36,.38]);
  for(let i=0;i<4;i++)add(4,i%2?'ring':'sphere',4,[.77,.85,.90],
  [(i-1.5)*1.19,i%2?.48:-.41,-1+i*.61],
  i%2?[.66,.95,.78]:[.49,.82,.49],
@@ -511,7 +520,10 @@ class Stage{
    p[0]+=Math.sin(t*.19+phase)*.22*o.dir;
    p[1]+=Math.cos(t*.27+phase)*.18;
    p[2]+=Math.sin(t*.31+phase)*.41;
-   rot[1]+=t*o.spin*o.dir;rot[0]+=t*o.spin*.78;rot[2]+=t*o.spin*.45;
+   // Most stars remain front-facing; a few rotate through real XYZ angles.
+   rot[1]+=(o.axial?t*.18*o.dir:Math.sin(t*.26+phase)*.32);
+   rot[0]+=Math.sin(t*.32+phase)*.18;
+   rot[2]+=t*o.spin*o.dir;
    if(mobile){p[0]*=.52;p[1]*=.66;}
   }else if(o.kind==='rabbit'){
    // Orbit the connected balloon assembly around one common origin.
