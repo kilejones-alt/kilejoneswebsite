@@ -133,6 +133,20 @@ try{
     if(errors.length) throw new Error('Browser errors: '+errors.join('; '));
     await context.close();
   }
+  // Legacy fallback is a committed feature, not theoretical. Ensure the
+  // explicit diagnostic bypass actually loads visible Canvas 2D animation.
+  const fallbackContext=await browser.newContext({
+    viewport:{width:1000,height:650},deviceScaleFactor:1
+  });
+  const fallbackPage=await fallbackContext.newPage();
+  await fallbackPage.goto(url+'?renderer=legacy',{waitUntil:'domcontentloaded'});
+  await fallbackPage.waitForTimeout(1000);
+  const fallback=await fallbackPage.evaluate(()=>window.__KBJ_DIAGNOSTICS);
+  if(!fallback || fallback.renderer!=='original Canvas 2D fallback'){
+    throw new Error('Legacy Canvas 2D fallback failed '+JSON.stringify(fallback));
+  }
+  console.log(JSON.stringify({device:'legacy',renderer:fallback.renderer}));
+  await fallbackContext.close();
 }finally{
   await browser.close();
   await new Promise(resolve=>server.close(resolve));
