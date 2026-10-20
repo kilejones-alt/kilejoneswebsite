@@ -74,10 +74,37 @@ try{
       await page.evaluate(value=>window.__KBJ_FORCE_SCENE=value,index);
       await page.waitForTimeout(950);
       await page.screenshot({path:'qa-screenshots/'+spec.name+'-'+label+'.png'});
+      if(!spec.isMobile){
+        const original=await page.evaluate(()=>{
+          const w=document.querySelector('.hero-film-window');
+          const previous=w.style.maskImage;
+          w.style.maskImage='none';w.style.webkitMaskImage='none';
+          return previous;
+        });
+        await page.waitForTimeout(200);
+        await page.screenshot({path:'qa-screenshots/world-'+label+'.png'});
+        await page.evaluate(original=>{
+          const w=document.querySelector('.hero-film-window');
+          w.style.maskImage=original;w.style.webkitMaskImage=original;
+        },original);
+      }
       const active=await page.evaluate(()=>window.__KBJ_DIAGNOSTICS?.gpu?.objectWorlds);
       if(!active?.active)throw new Error('3D scene became inactive '+label);
     }
     await page.evaluate(()=>window.__KBJ_FORCE_SCENE=undefined);
+    if(!spec.isMobile){
+      // Confirm the fluid opening comes out of a real opaque letter, rather
+      // than forming an unrelated black blob in the white page gutter.
+      await page.mouse.move(91,208);
+      await page.waitForTimeout(800);
+      const cursor=await page.evaluate(()=>{
+        const w=document.querySelector('.hero-film-window');
+        return !!w && w.style.maskImage.includes('radial-gradient');
+      });
+      console.log(JSON.stringify({device:'desktop',cursorFluidRevealFromGlyph:cursor}));
+      if(!cursor)throw new Error('Pointer over K did not open cursor reveal');
+      await page.screenshot({path:'qa-screenshots/desktop-fluid-reveal.png'});
+    }
     const expected=[
       ['Inverted World','https://kilejones.substack.com/subscribe'],
       ['Unlikely Zio','https://kilejones-alt.github.io/the-unlikely-zionists/'],
