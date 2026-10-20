@@ -30,6 +30,20 @@ uniform vec3 uEye;
 uniform float uType,uAlpha,uTime,uSeed;
 void main(){
  vec3 n=normalize(vNormal),v=normalize(uEye-vPosition);
+ // Procedural foil creases alter the actual shading normal, not merely
+ // the painted color. Two frequencies form different scales of crumpling.
+ if(uType>2.5 && uType<3.5){
+   vec3 p=vLocal;
+   float a=p.x*24.0+p.z*15.0+uSeed*6.1;
+   float b=p.y*31.0-p.x*17.0;
+   float c=p.x*63.0-p.z*48.0+p.y*19.0+uSeed*4.4;
+   vec3 bend=vec3(
+     cos(a)*sin(b)*24.0-sin(a)*cos(b)*17.0,
+     sin(a)*cos(b)*31.0,
+     cos(a)*sin(b)*15.0);
+   bend+=vec3(63.0,-19.0,-48.0)*cos(c)*.23;
+   n=normalize(n+bend*.010);
+ }
  vec3 l1=normalize(vec3(-.73,.89,1.1)),l2=normalize(vec3(.9,.38,.62));
  vec3 l3=normalize(vec3(.15,-.9,.83));
  float diff=.52*max(dot(n,l1),0.)+.35*max(dot(n,l2),0.)+
@@ -41,16 +55,26 @@ void main(){
  float wrinkle=sin(vLocal.x*21.+vLocal.z*47.+uSeed*7.)*
                 sin(vLocal.y*33.-vLocal.x*14.+uTime*.12);
  vec3 col=uBase*(.23+diff*1.09);
- if(uType<.5){col+=vec3(.28,.48,.91)*(spec*1.5+band*.34+rim*.30);}
- else if(uType<1.5){col+=vec3(1.,.83,.94)*(spec*2.1+band*.26)+uBase*rim*.33;}
+ if(uType<.5){
+   col+=vec3(.35,.62,1.0)*(spec*1.9+band*.52+rim*.60);
+   col+=vec3(.03,.10,.24)*soft*.35;
+ }
+ else if(uType<1.5){
+   // Glossy hot-pink latex under two broad photographic softboxes.
+   col=uBase*(.34+diff*.94)+vec3(1.,.87,.95)*
+       (spec*2.6+band*.38+soft*.19)+uBase*rim*.30;
+ }
  else if(uType<2.5){
    // Matte-black velvet/plaster reads through bright edge and softbox lights,
    // not artificial gloss. Silhouette stays black on a lighter studio field.
    col=uBase*(.33+diff*.91)+vec3(.38,.47,.60)*(spec*.12+band*.20+rim*.48);
  }
  else if(uType<3.5){
-   vec3 foil=mix(vec3(.33,.40,.47),vec3(.95,.96,.97),.5+.5*wrinkle);
-   col=foil*(.22+diff*.78)+vec3(1.)*(spec*1.55+band*.94)+vec3(.31,.40,.51)*rim*.65;
+   float dither=.5+.5*wrinkle;
+   vec3 foil=mix(vec3(.30,.35,.41),vec3(.92,.94,.98),dither);
+   float panel=pow(max(dot(reflect(-v,n),normalize(vec3(-.76,.35,.55))),0.),8.0);
+   col=foil*(.27+diff*.93)+vec3(1.,.99,.98)*
+       (spec*2.2+band*1.1+panel*.44)+vec3(.41,.53,.69)*rim*.61;
  }
  else if(uType<4.5){col+=vec3(.84,.95,1.)*(spec*.81+rim*.51+soft*.24);}
  else {col+=vec3(.31,.38,.49)*(spec*.55+rim*.27);}
@@ -80,6 +104,19 @@ vec3 background(float scene,vec2 p){
 }
 void main(){
  vec3 c=mix(background(uScene,uv),background(uNext,uv),uMix);
+ // Moving softbox strips and photographic haze create spatial depth
+ // across both letter lines while leaving the hero object dominant.
+ vec2 p=uv*2.-1.;
+ float strip=exp(-pow((p.x-.37*sin(uTime*.12)-.17)*5.2,2.0));
+ float softbox=strip*exp(-pow((p.y-.15)*1.02,2.0));
+ float haze=exp(-dot(p+vec2(.40,-.33),p+vec2(.40,-.33))*2.2);
+ float sceneLight=mix(uScene,uNext,uMix);
+ vec3 lightTint=sceneLight<.5?vec3(.075,.14,.40):
+   sceneLight<1.5?vec3(.16,.025,.06):
+   sceneLight<2.5?vec3(.037,.042,.057):
+   sceneLight<3.5?vec3(.043,.048,.055):
+   sceneLight<4.5?vec3(.12,.13,.14):vec3(.085,.10,.15);
+ c+=lightTint*(softbox*.32+haze*.13);
  float n=fract(sin(dot(floor(uv*vec2(1001.,601.)+uTime*2.),
  vec2(12.9898,78.233)))*43758.5453);
  color=vec4(c+(n-.5)*.006,1.);
