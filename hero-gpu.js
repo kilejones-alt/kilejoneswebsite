@@ -319,6 +319,7 @@ void main() {
         video.classList.remove('gpu-native-film');
         video.style.removeProperty('transform');
         video.style.removeProperty('filter');
+        video.style.removeProperty('opacity');
         const parent = this.originalVideoParent || document.body;
         parent.insertBefore(video,
           this.originalVideoNext?.parentNode === parent ? this.originalVideoNext : null);
