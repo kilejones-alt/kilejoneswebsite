@@ -135,8 +135,18 @@ const ry=t=>{let a=id(),c=Math.cos(t),s=Math.sin(t);
 const rz=t=>{let a=id(),c=Math.cos(t),s=Math.sin(t);
  a[0]=c;a[1]=s;a[4]=-s;a[5]=c;return a};
 const model=(p,s,r)=>mm(trans(...p),mm(ry(r[1]),mm(rx(r[0]),mm(rz(r[2]),scale(...s)))));
-const ortho=(aspect)=>new Float32Array([1/(3.25*aspect),0,0,0,
- 0,1/3.25,0,0,0,0,-1/25,0,0,0,-12/25,1]);
+// True physical camera perspective: at z=0 the framing matches the
+// previous 3.25-unit orthographic half-height, but forward objects now grow
+// and distant objects recede. This makes XYZ parallax actual depth motion.
+const perspective=(aspect)=>{
+ const f=1/Math.tan((30.3*PI/180)*.5),n=.10,far=55;
+ const proj=new Float32Array([
+   f/aspect,0,0,0,
+   0,f,0,0,
+   0,0,(far+n)/(n-far),-1,
+   0,0,(2*far*n)/(n-far),0]);
+ return mm(proj,trans(0,0,-12));
+};
 function geometry(){
  let a=[];
  function tri(p,q,r,n){
@@ -532,6 +542,7 @@ class Stage{
    p[0]=xx*Math.cos(yaw)+zz*Math.sin(yaw);
    p[2]=zz*Math.cos(yaw)-xx*Math.sin(yaw);
    p[1]+=Math.sin(t*.61)*.14;
+   p[2]+=Math.sin(t*.38)*.38; // gently approach / recede
    rot[1]+=yaw;rot[2]+=Math.sin(t*.19)*.036;
    if(mobile){
      // Tall silhouettes are slightly compressed behind the phone wordmark.
@@ -549,6 +560,7 @@ class Stage{
    p[0]=xx*Math.cos(yaw)+zz*Math.sin(yaw);
    p[2]=zz*Math.cos(yaw)-xx*Math.sin(yaw);
    p[0]+=Math.sin(t*.19)*.055;
+   p[2]+=Math.sin(t*.18)*.22; // much heavier and slower
    rot[1]+=yaw;
    if(mobile){
      p[0]*=.47;p[1]*=.30;sc[0]*=.47;sc[1]*=.30;sc[2]*=.53;
@@ -567,7 +579,8 @@ class Stage{
    p[2]=dz*Math.cos(yaw)-dx*Math.sin(yaw);
    p[1]+=Math.sin(t*(.37+k*.07)+k*1.50)*.13;
    p[2]+=Math.sin(t*(.24+k*.09)+k*2.30)*.28;
-   rot[1]+=yaw;rot[2]+=Math.sin(t*(.19+k*.06)+k)*.07;
+   rot[1]+=yaw+(k===2?t*.16:0); // O turns continuously on its 3D axis
+   rot[2]+=Math.sin(t*(.19+k*.06)+k)*.07;
    if(mobile){
      p[0]*=.43;p[1]*=.34;sc[0]*=.43;sc[1]*=.34;sc[2]*=.65;
      p[1]+=.44;
@@ -611,7 +624,7 @@ class Stage{
    this.pointer[0]=lerp(this.pointer[0],p.active?p.nx:0,a);
    this.pointer[1]=lerp(this.pointer[1],p.active?p.ny:0,a);
    const aspect=this.width/this.height,mobile=aspect<.76;
-   this.vp=ortho(aspect);
+   this.vp=perspective(aspect);
    const scene=options.mode%6,next=options.nextMode%6,mix=ease(options.mix||0);
    gl.viewport(0,0,this.width,this.height);
    gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);
@@ -650,6 +663,7 @@ class Stage{
   return {active:this.ready,frames:this.frames,worlds:names,
    objectsByScene:this.items.map(x=>x.length),
    proceduralMeshes:Object.keys(this.meshes),
+   camera:'true perspective, 30.3deg FOV',
    canvas:[this.width,this.height],fault:this.fault};
  }
 }
