@@ -48,3 +48,31 @@ Chromium read the original video at **320x240 pixels**, reported in actual page 
 ### Benchmark limits
 
 GitHub Actions uses software/virtualized graphics, not physical iPhone or desktop GPU testing. Chromium screenshots and diagnostic FPS establish functionality only, not deployment-grade frame rate, perceived fidelity to Noth.in, or iOS Safari compatibility. The branch must stay draft until real-device profiling and final asset curation.
+
+
+## Stage 3 — original, animated 3D object worlds (supersedes the video-only modes above)
+
+**Main hero objects have been implemented, not merely specified.** The development branch now includes \`hero-object-worlds.js\`, an original browser-native WebGL2 renderer that constructs four 3D hero subjects and two supporting worlds from programmatically generated triangle meshes:
+
+| Scene | Distinct geometry | Motion and staging |
+| --- | --- | --- |
+| 0 — Midnight stars | Fourteen beveled/extruded, metallic midnight-blue stars | Every star has independent position, depth, drift direction and continuous three-axis rotation. |
+| 1 — Pink balloon rabbit | A joined, 12-component glossy hot-pink rabbit, including long inflated loop ears | Gentle buoyancy, group-level yaw and independent mouse-responsive parallax. The sole pink hero. |
+| 2 — Black studio | Five soft-edged black graphite shapes/loops | Low-contrast, slower independent rotations and motion. |
+| 3 — Matte-black rhino | A 19-component 3D rhino sculpture, including large body, shoulder, four legs, head and horns | Heavy camera/orbit illusion, restrained group yaw, bright side-lit gray studio. Not pink. |
+| 4 — Translucent white | Four suspended white pearl/frosted forms | Continuous slow float, independent rotation and soft studio contrasts. |
+| 5 — Foil ZIO | Three separate uppercase inflated letter assemblies, with Z made of three strokes, I of three, and O of one loop | Different depth drift/yaw for Z, I and O. Each letter moves as one assembly rather than its pieces disconnecting. Crinkled foil material highlight shader. |
+
+The original MP4 is automatically suppressed when the fully procedurally rendered 3D stage is available. **The original MP4 and unchanged Canvas-2D renderer remain in the repo as fallbacks and are not replaced.** There are no AI-generated image assets, no unlicensed external 3D models, no imported Noth.in source, and no new visible navigation text.
+
+The title's existing pixel-accurate two-line glyph texture remains a *fixed mask*. Moving actors are rendered in actual XYZ positions inside this mask, with per-scene responsive framing on desktop and phone. The native video is kept in the masked container for reversible fallback. The cursor-driven fluid overlay continues to use iterative pressure solving, and desktop mouse motion can open an additional three-lobed reveal beside the letters so large objects are more visually understandable.
+
+### QA / visual-review directions
+
+1. Open GitHub Actions \`gpu-renderer-preview\` artifacts from the latest successful run. It contains default \`desktop.png\` / \`mobile.png\`, plus \`desktop-stars.png\`, \`desktop-rabbit.png\`, \`desktop-rhino.png\`, \`desktop-zio.png\`, and phone-sized equivalents.
+2. \`window.__KBJ_DIAGNOSTICS.gpu.objectWorlds\` reports the active renderer, each scene's object component count, GPU resolution and failure status.
+3. The automated test asserts all six object scenes are constructed with expected component counts, and checks fixed mask, legacy video, Music/Menu and all five links.
+4. The development-only JS \`window.__KBJ_FORCE_SCENE = 0..5\` freezes a particular world for inspection; set it back to \`undefined\` to resume normal five-second sequencing. It is not a visible UI control.
+5. Desktop pointer reveals around letters should be tested in hardware Safari/Chrome/Firefox. Phone and reduced-motion preferences keep the static glyph aperture.
+
+**Visual limitation:** These are genuine 3D polygon actors, **not final physically-based photorealistic Blender/Cycles renders**. The rabbit and rhino are assembled procedurally from spheres/rings/cones; their sculptural silhouette can be improved further by replacing the assemblies with licensed high-detail glTF assets or custom high-quality sculpted geometry. Reflective foil is a GPU approximation with procedural wrinkles, not a physically accurate foil simulation. CI runs WebGL through software rendering; its FPS measurements are not representative of actual desktop or iPhone hardware. The live site is unchanged. Keep the PR in draft until actual design review.
