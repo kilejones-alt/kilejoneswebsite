@@ -364,10 +364,12 @@
     g.globalAlpha = 1;
     g.clearRect(0, 0, state.w, state.h);
 
-    switch (mode) {
+    // The native Canvas2D safety path must cover all six object stages and
+    // never show the previously rejected liquid-metal treatment.
+    switch (mode % 3) {
       case 0: drawVideo(g, t); drawFluidOverlay(g, t, 0, .52); break;
       case 1: drawFoilWorld(g, t); break;
-      case 2: drawLiquidSilver(g, t); break;
+      case 2: drawVideo(g, t); drawFluidOverlay(g, t, 0, .42); break;
     }
   }
 
