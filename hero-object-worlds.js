@@ -579,7 +579,11 @@ class Stage{
    p[2]=dz*Math.cos(yaw)-dx*Math.sin(yaw);
    p[1]+=Math.sin(t*(.37+k*.07)+k*1.50)*.13;
    p[2]+=Math.sin(t*(.24+k*.09)+k*2.30)*.28;
-   rot[1]+=yaw+(k===2?t*.16:0); // O turns continuously on its 3D axis
+   // O should never disappear edge-on while the word ZIO is displayed.
+   // A restrained wobble in XYZ preserves readable lettering; other stars
+   // carry the full slow axial spins of the surrounding sequence.
+   rot[1]+=yaw+(k===2?Math.sin(t*.17)*.17:0);
+   rot[0]+=(k===2?Math.sin(t*.28)*.095:0);
    rot[2]+=Math.sin(t*(.19+k*.06)+k)*.07;
    if(mobile){
      p[0]*=.43;p[1]*=.34;sc[0]*=.43;sc[1]*=.34;sc[2]*=.65;
