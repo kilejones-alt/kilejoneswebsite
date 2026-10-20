@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "scenes": [
+    {
+      "name": "FILM / REVEAL",
+      "layers": []
+    },
+    {
+      "name": "DEEP COBALT",
+      "layers": []
+    },
+    {
+      "name": "MERCURY / STUDIO",
+      "layers": []
+    },
+    {
+      "name": "MONOCHROME / CLOSE",
+      "layers": []
+    },
+    {
+      "name": "HIGH KEY / MOTION",
+      "layers": []
+    },
+    {
+      "name": "FILM / OPEN WORLD",
+      "layers": []
+    }
+  ]
+}
