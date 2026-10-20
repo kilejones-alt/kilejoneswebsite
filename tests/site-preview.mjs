@@ -62,6 +62,28 @@ try{
     });
     await page.screenshot({path:'qa-screenshots/'+spec.name+'.png'});
     console.log(JSON.stringify({device:spec.name,diagnostic,errors}));
+    const expected=[
+      ['Inverted World','https://kilejones.substack.com/subscribe'],
+      ['Unlikely Zio','https://kilejones-alt.github.io/the-unlikely-zionists/'],
+      ['Glossary','https://kilejones-alt.github.io/TheAntizionistGlossary/'],
+      ['AZ Detector','https://antizionistdetector.netlify.app/'],
+      ['Media',new URL('media.html',url).href]
+    ];
+    await page.locator('#menu-toggle').click();
+    const links=await page.locator('#mobile-drawer a').evaluateAll(
+      els=>els.map(x=>[x.textContent.trim(),x.href])
+    );
+    if(JSON.stringify(links)!==JSON.stringify(expected)) {
+      throw new Error('Menu/link mismatch '+JSON.stringify(links));
+    }
+    if(await page.locator('#menu-toggle').getAttribute('aria-expanded')!=='true') {
+      throw new Error('Menu refused to open');
+    }
+    await page.keyboard.press('Escape');
+    if(await page.locator('#menu-toggle').getAttribute('aria-expanded')!=='false') {
+      throw new Error('Menu refused to close on Escape');
+    }
+
     if(!diagnostic?.gpu?.active) throw new Error('GPU not active for '+spec.name);
     if(!diagnostic?.parentMask) throw new Error('Native letter mask missing for '+spec.name);
     if((diagnostic?.gpu?.scenes?.numberOfCameraTreatments||0)!==6) throw new Error('Expected six scene camera treatments');
