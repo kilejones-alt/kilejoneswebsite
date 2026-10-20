@@ -181,6 +181,109 @@ function leg(){
   }
   return new Float32Array(a);
 }
+
+/* Anatomically staged one-piece rhino sculpture from a continuous smooth
+ * union of volume primitives, meshed with marching tetrahedra.
+ * Eliminates the obvious 'balloon wheels' and floating intersecting spheres.
+ * Real triangles and interpolated surface normals, no generated raster art.
+ */
+function rhinoBody(){
+ const forms=[
+  [[-.22,-.14,0],[1.35,.70,.68]],
+  [[.53,.13,0],[.67,.84,.66]],
+  [[-1.20,-.09,0],[.51,.61,.57]],
+  [[1.20,-.39,0],[.72,.49,.48]],
+  [[1.62,-.65,0],[.53,.30,.34]],
+  [[1.81,-.79,0],[.20,.15,.28]],
+  [[-.97,-.82,-.43],[.31,.56,.28]],
+  [[-.97,-.82,.43],[.31,.56,.28]],
+  [[.72,-.79,-.43],[.31,.56,.28]],
+  [[.72,-.79,.43],[.31,.56,.28]]
+ ];
+ function sdEllipse(p,center,radius){
+   const dx=p[0]-center[0],dy=p[1]-center[1],dz=p[2]-center[2];
+   const x=dx/radius[0],y=dy/radius[1],z=dz/radius[2];
+   const a=Math.hypot(x,y,z),
+     b=Math.hypot(dx/(radius[0]*radius[0]),
+       dy/(radius[1]*radius[1]),dz/(radius[2]*radius[2]));
+   return b<1e-7 ? -Math.min(...radius) : a*(a-1)/b;
+ }
+ function combine(a,b,k){
+   const h=Math.max(k-Math.abs(a-b),0)/k;
+   return Math.min(a,b)-h*h*k*.25;
+ }
+ function field(p){
+   let d=sdEllipse(p,...forms[0]);
+   for(let j=1;j<forms.length;j++)
+     d=combine(d,sdEllipse(p,...forms[j]),.21);
+   return d;
+ }
+ const nx=46,ny=30,nz=28;
+ const min=[-2.20,-1.55,-1.24],max=[2.20,1.22,1.24];
+ const step=[(max[0]-min[0])/nx,(max[1]-min[1])/ny,(max[2]-min[2])/nz];
+ const idx=(x,y,z)=>(x*(ny+1)+y)*(nz+1)+z;
+ const num=(nx+1)*(ny+1)*(nz+1);
+ const scalar=new Float32Array(num),grad=new Float32Array(num*3);
+ for(let x=0;x<=nx;x++)for(let y=0;y<=ny;y++)for(let z=0;z<=nz;z++){
+   scalar[idx(x,y,z)]=field([
+     min[0]+step[0]*x,min[1]+step[1]*y,min[2]+step[2]*z]);
+ }
+ for(let x=0;x<=nx;x++)for(let y=0;y<=ny;y++)for(let z=0;z<=nz;z++){
+   const i=idx(x,y,z),dx=(scalar[idx(Math.min(nx,x+1),y,z)]-
+     scalar[idx(Math.max(0,x-1),y,z)])/((x===0||x===nx)?step[0]:2*step[0]);
+   const dy=(scalar[idx(x,Math.min(ny,y+1),z)]-
+     scalar[idx(x,Math.max(0,y-1),z)])/((y===0||y===ny)?step[1]:2*step[1]);
+   const dz=(scalar[idx(x,y,Math.min(nz,z+1))]-
+     scalar[idx(x,y,Math.max(0,z-1))])/((z===0||z===nz)?step[2]:2*step[2]);
+   const n=Math.hypot(dx,dy,dz)||1;
+   grad[i*3]=dx/n;grad[i*3+1]=dy/n;grad[i*3+2]=dz/n;
+ }
+ const corners=[[0,0,0],[1,0,0],[1,1,0],[0,1,0],
+   [0,0,1],[1,0,1],[1,1,1],[0,1,1]];
+ const tetra=[[0,5,1,6],[0,1,2,6],[0,2,3,6],
+              [0,3,7,6],[0,7,4,6],[0,4,5,6]];
+ const data=[];
+ function vertex(a,b){
+   const t=clamp(a.d/(a.d-b.d),0,1);
+   const p=a.p.map((v,i)=>lerp(v,b.p[i],t));
+   const n=a.n.map((v,i)=>lerp(v,b.n[i],t));
+   const l=Math.hypot(...n)||1;
+   return [...p,...n.map(v=>v/l)];
+ }
+ function tri(a,b,c){data.push(...a,...b,...c)}
+ for(let x=0;x<nx;x++)for(let y=0;y<ny;y++)for(let z=0;z<nz;z++){
+   const c=corners.map(([a,b,d])=>{
+     const ix=x+a,iy=y+b,iz=z+d,i=idx(ix,iy,iz);
+     return {d:scalar[i],p:[min[0]+ix*step[0],
+             min[1]+iy*step[1],min[2]+iz*step[2]],
+             n:[grad[i*3],grad[i*3+1],grad[i*3+2]]};
+   });
+   let insideCount=c.reduce((a,p)=>a+(p.d<0?1:0),0);
+   if(insideCount===0||insideCount===8)continue;
+   for(const ids of tetra){
+     const inside=ids.filter(k=>c[k].d<0),
+           outside=ids.filter(k=>c[k].d>=0);
+     if(inside.length===1){
+       let i=inside[0];
+       tri(vertex(c[i],c[outside[0]]),
+           vertex(c[i],c[outside[1]]),
+           vertex(c[i],c[outside[2]]));
+     }else if(inside.length===3){
+       let o=outside[0];
+       tri(vertex(c[o],c[inside[2]]),
+           vertex(c[o],c[inside[1]]),
+           vertex(c[o],c[inside[0]]));
+     }else if(inside.length===2){
+       let a=vertex(c[inside[0]],c[outside[0]]),
+           b=vertex(c[inside[0]],c[outside[1]]),
+           cc=vertex(c[inside[1]],c[outside[0]]),
+           d=vertex(c[inside[1]],c[outside[1]]);
+       tri(a,b,cc);tri(b,d,cc);
+     }
+   }
+ }
+ return new Float32Array(data);
+}
 const material={star:0,pink:1,black:2,foil:3,white:4,dark:5};
 function objects(){
  let worlds=[[],[],[],[],[],[]];
@@ -212,21 +315,16 @@ function objects(){
  i%2?[.48,.73,.63]:[.47,.74,.39],
  [i*.32,i*.24,i*.17],{kind:'support',phase:i*1.1,dir:i%2?1:-1});
  }
- const rhino=(geo,p,s,r=[0,0,0],color=dark)=>add(3,geo,2,color,p,s,r,{kind:'rhino'});
- rhino('sphere',[-.21,-.18,0],[1.32,.73,.70]);
- rhino('sphere',[.52,.17,-.04],[.68,.85,.66],[0,0,-.20]);
- rhino('sphere',[-1.22,.03,0],[.43,.54,.55]);
- rhino('sphere',[1.22,-.43,0],[.69,.49,.44],[0,0,-.41]);
- rhino('sphere',[1.64,-.66,.0],[.56,.27,.33],[0,0,-.08]);
- rhino('sphere',[1.80,-.86,0],[.24,.14,.28]);
- for(let x of [-.95,.73])for(let z of [-.39,.39]){
-  rhino('leg',[x,-.80,z],[.75,.48,.66],[0,0,x>0?.09:-.035]);
-  rhino('sphere',[x+.055,-1.28,z],[.215,.090,.205]);}
+ const rhino=(geo,p,sz,r=[0,0,0],color=dark)=>
+  add(3,geo,2,color,p,sz,r,{kind:'rhino'});
+ // Unified body, head, shoulders, muzzle and four weight-bearing legs.
+ // Only horns, ears and a tiny dark eye stay as separate sculpted accents.
+ rhino('rhinoBody',[0,0,0],[1,1,1]);
  rhino('cone',[1.53,-.19,.05],[.28,.67,.29],[0,0,-.55],grey);
  rhino('cone',[1.13,.04,.08],[.19,.34,.20],[0,0,-.26],grey);
  rhino('cone',[1.0,.63,.28],[.14,.24,.14],[0,0,-.19]);
  rhino('cone',[1.02,.59,-.28],[.14,.22,.14],[0,0,.16]);
- rhino('sphere',[1.47,-.30,.41],[.050,.034,.026],[0,0,-.39],grey);
+ rhino('sphere',[1.47,-.30,.42],[.050,.034,.026],[0,0,-.39],grey);
  for(let i=0;i<4;i++)add(4,i%2?'ring':'sphere',4,[.77,.85,.90],
  [(i-1.5)*1.19,i%2?.48:-.41,-1+i*.61],
  i%2?[.66,.95,.78]:[.49,.82,.49],
@@ -267,7 +365,7 @@ class Stage{
   this.program=program(vert,frag);
   this.bgProgram=program(bgV,bgF);
   this.meshes={};
-  for(let [name,data] of Object.entries({sphere:sphere(),star:star(),ring:torus(),cone:cone(),leg:leg()})){
+  for(let [name,data] of Object.entries({sphere:sphere(),star:star(),ring:torus(),cone:cone(),leg:leg(),rhinoBody:rhinoBody()})){
     const vao=gl.createVertexArray(),buffer=gl.createBuffer();
     gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
     gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
