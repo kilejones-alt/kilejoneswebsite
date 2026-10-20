@@ -96,7 +96,7 @@ uniform float uScene,uNext,uMix,uTime;
 vec3 background(float scene,vec2 p){
  vec2 d=p*2.-1.;float v=exp(-dot(d,d)*.86);
  if(scene<.5)return mix(vec3(.002,.004,.023),vec3(.02,.052,.14),v);
- if(scene<1.5)return mix(vec3(.037,.015,.026),vec3(.17,.077,.119),v*.72);
+ if(scene<1.5)return mix(vec3(.065,.013,.046),vec3(.28,.051,.16),v*.80);
  if(scene<2.5)return mix(vec3(.006,.009,.016),vec3(.066,.074,.092),v);
  if(scene<3.5)return mix(vec3(.12,.145,.175),vec3(.29,.32,.37),v);
  if(scene<4.5)return mix(vec3(.20,.26,.31),vec3(.55,.59,.63),v);
@@ -550,15 +550,18 @@ class Stage{
      // Tall silhouettes are slightly compressed behind the phone wordmark.
      // Fit the upright rabbit largely within the upper phone word,
      // rather than putting the head in KILE and its feet in JONES.
-     p[0]*=.65;p[1]*=.36;sc[0]*=.65;sc[1]*=.36;sc[2]*=.69;
-     p[1]+=.93;p[0]-=.80;
+     // Use both stacked lines for a large moving inflatable subject.
+     // A reduced field of view in the previous pass hid the hero almost
+     // entirely behind a single 'L' stroke on phones.
+     p[0]*=.78;p[1]*=.76;sc[0]*=.78;sc[1]*=.76;sc[2]*=.74;
+     p[1]+=.26;p[0]-=.18;
    }else{
      // The ears penetrate the upper word and the inflated haunch reaches
      // toward the lower word; pointer reveal exposes the full silhouette.
      // Front-biased portrait sits behind the upper KILE letters:
      // ears/head/body can share one continuous viewing aperture.
-     p[0]*=1.04;p[1]*=.53;sc[0]*=1.04;sc[1]*=.53;
-     p[1]+=1.47;p[0]-=1.06;
+     p[0]*=1.23;p[1]*=.92;sc[0]*=1.23;sc[1]*=.92;
+     p[1]+=.43;p[0]-=.43;
    }
   }else if(o.kind==='rhino'){
    // Rhino: look toward camera in a restrained 3/4 profile, leaving
@@ -571,11 +574,11 @@ class Stage{
    p[2]+=Math.sin(t*.18)*.22; // much heavier and slower
    rot[1]+=yaw;
    if(mobile){
-     p[0]*=.50;p[1]*=.37;sc[0]*=.50;sc[1]*=.37;sc[2]*=.62;
-     p[1]+=.90;p[0]-=.63;
+     p[0]*=.53;p[1]*=.50;sc[0]*=.53;sc[1]*=.50;sc[2]*=.62;
+     p[1]+=.58;p[0]-=.22;
    }else{
-     p[0]*=1.17;p[1]*=.73;sc[0]*=1.17;sc[1]*=.73;
-     p[1]+=1.38;p[0]-=.95;
+     p[0]*=1.27;p[1]*=.78;sc[0]*=1.27;sc[1]*=.78;
+     p[1]+=.94;p[0]-=.53;
    }
   }else if(o.kind==='foil'){
    // Separate letter actors, with each welded set of inflated strokes
