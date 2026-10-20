@@ -62,6 +62,21 @@ try{
     });
     await page.screenshot({path:'qa-screenshots/'+spec.name+'.png'});
     console.log(JSON.stringify({device:spec.name,diagnostic,errors}));
+    const world=diagnostic?.gpu?.objectWorlds;
+    if (!world?.active || world.frames < 1 ||
+        JSON.stringify(world.objectsByScene)!==JSON.stringify([14,12,5,19,4,7])) {
+      throw new Error('Expected all real 3D object worlds to be active');
+    }
+    // Inspect each actual object world on desktop and phone, rather than
+    // accidentally validating only whichever random 5-second mode is active.
+    for(const [index,label] of [[0,'stars'],[1,'rabbit'],[3,'rhino'],[5,'zio']]){
+      await page.evaluate(value=>window.__KBJ_FORCE_SCENE=value,index);
+      await page.waitForTimeout(950);
+      await page.screenshot({path:'qa-screenshots/'+spec.name+'-'+label+'.png'});
+      const active=await page.evaluate(()=>window.__KBJ_DIAGNOSTICS?.gpu?.objectWorlds);
+      if(!active?.active)throw new Error('3D scene became inactive '+label);
+    }
+    await page.evaluate(()=>window.__KBJ_FORCE_SCENE=undefined);
     const expected=[
       ['Inverted World','https://kilejones.substack.com/subscribe'],
       ['Unlikely Zio','https://kilejones-alt.github.io/the-unlikely-zionists/'],
