@@ -8,10 +8,10 @@ Example:
 
 \`\`\`json
 {
-  "name":"MERCURY / STUDIO",
+  "name":"FOIL / ZIO",
   "layers":[
-    {"src":"assets/studio-chrome-foreground.webp","type":"image","depth":1.2,"scale":1.08,"x":0,"y":0},
-    {"src":"assets/studio-chrome-background.webm","type":"video","depth":0.45,"scale":1.04,"x":0,"y":0}
+    {"src":"assets/helium-foil-foreground.webp","type":"image","depth":1.2,"scale":1.08,"x":0,"y":0},
+    {"src":"assets/helium-foil-background.webm","type":"video","depth":0.45,"scale":1.04,"x":0,"y":0}
   ]
 }
 \`\`\`
