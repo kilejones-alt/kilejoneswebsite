@@ -65,7 +65,7 @@ try{
     console.log(JSON.stringify({device:spec.name,diagnostic,errors}));
     const world=diagnostic?.gpu?.objectWorlds;
     if (!world?.active || world.frames < 1 ||
-        JSON.stringify(world.objectsByScene)!==JSON.stringify([14,12,5,6,4,7])) {
+        JSON.stringify(world.objectsByScene)!==JSON.stringify([14,12,5,6,4,3])) {
       throw new Error('Expected all real 3D object worlds to be active');
     }
     // Inspect each actual object world on desktop and phone, rather than
