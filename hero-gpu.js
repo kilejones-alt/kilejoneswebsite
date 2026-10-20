@@ -319,6 +319,7 @@ void main() {
         const parent = this.originalVideoParent || document.body;
         parent.insertBefore(video,
           this.originalVideoNext?.parentNode === parent ? this.originalVideoNext : null);
+        window.KBJStage?.detach();
         this.filmWindow?.remove();
         this.filmWindow = null;
         this.nativeMode = false;
@@ -346,6 +347,7 @@ void main() {
         this.video = null;
       }
       this.status = 'native video + GPU fluid reveal';
+      window.KBJStage?.attach(filmWindow);
       this.syncNativeMask();
     }
 
@@ -600,6 +602,7 @@ void main() {
       if (this.nativeMode) {
         try {
           window.KBJScenes?.apply(this.originalVideo,options);
+          window.KBJStage?.update(options);
           const gl=this.gl;
           this.simulate(options.now,options.pointer,options.dt,options.reducedMotion);
           gl.bindFramebuffer(gl.FRAMEBUFFER,null);
@@ -666,7 +669,8 @@ void main() {
       return {
         status:this.status,active:!this.failed && (this.status==='active' || this.status==='native video + GPU fluid reveal active'),
         simSize:this.simSize,fluidFormat:this.floatSim ? 'RGBA16F' : 'RGBA8',source:this.nativeMode ? 'original native MP4 + stable letter aperture' : 'same-origin GPU video texture',
-        scenes:window.KBJScenes?.diagnostics?.() || null
+        scenes:window.KBJScenes?.diagnostics?.() || null,
+        extraMedia:window.KBJStage?.diagnostics?.() || null
       };
     }
   }
