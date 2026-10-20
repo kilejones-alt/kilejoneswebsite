@@ -167,6 +167,70 @@ function cone(){
  }return new Float32Array(a);
 }
 
+/* Balloon-foil text is sculpted as three continuous extruded glyph
+ * volumes, not as loose ellipsoid bars. Z and I use exact polygon outlines.
+ * Rounded edges catch narrow studio highlights; O is an inflated torus.
+ */
+function foilGlyph(shape){
+ const outlines={
+   Z:[[-.79,.79],[.79,.79],[.79,.43],[-.19,-.43],
+       [.79,-.43],[.79,-.79],[-.79,-.79],[-.79,-.43],
+       [.19,.43],[-.79,.43]],
+   I:[[-.56,.79],[.56,.79],[.56,.47],[.19,.47],
+       [.19,-.47],[.56,-.47],[.56,-.79],[-.56,-.79],
+       [-.56,-.47],[-.19,-.47],[-.19,.47],[-.56,.47]]
+ };
+ const pts=outlines[shape];
+ const {a,tri,quad}=geometry();
+ // Ear clipping ensures the diagonal cut of Z and recessed sides of I do
+ // not get filled by a convex fan. Winding is normalized CCW.
+ let area=0;for(let i=0;i<pts.length;i++){
+   const u=pts[i],v=pts[(i+1)%pts.length];
+   area+=u[0]*v[1]-v[0]*u[1];
+ }
+ const outline=area>0?pts:[...pts].reverse();
+ function face(z,forward){
+   const p=[...outline.keys()];
+   function cross(i,j,k){
+     const a=outline[i],b=outline[j],c=outline[k];
+     return (b[0]-a[0])*(c[1]-a[1])-
+       (b[1]-a[1])*(c[0]-a[0]);
+   }
+   function inside(pt,A,B,C){
+     const det=(p,q,r)=>(q[0]-p[0])*(r[1]-p[1])-
+       (q[1]-p[1])*(r[0]-p[0]);
+     return det(A,B,pt)>=0 && det(B,C,pt)>=0 && det(C,A,pt)>=0;
+   }
+   let limit=0;
+   while(p.length>=3 && limit++<100){
+     let clipped=false;
+     for(let i=0;i<p.length;i++){
+       const i0=p[(i+p.length-1)%p.length],i1=p[i],
+         i2=p[(i+1)%p.length];
+       if(cross(i0,i1,i2)<1e-6)continue;
+       if(p.some(q=>q!==i0&&q!==i1&&q!==i2&&
+           inside(outline[q],outline[i0],outline[i1],outline[i2])))continue;
+       const v=j=>[...outline[j],z];
+       if(forward)tri(v(i0),v(i1),v(i2),[0,0,1]);
+       else tri(v(i2),v(i1),v(i0),[0,0,-1]);
+       p.splice(i,1);clipped=true;break;
+     }
+     if(!clipped)break;
+   }
+ }
+ face(.255,true);face(-.255,false);
+ const rings=[[-.255,.93],[-.225,.98],[-.14,1],
+              [.14,1],[.225,.98],[.255,.93]];
+ for(let j=0;j<rings.length-1;j++){
+   const [z,f]=rings[j],[nz,g]=rings[j+1];
+   for(let i=0;i<outline.length;i++){
+     const k=(i+1)%outline.length,u=outline[i],v=outline[k];
+     quad([u[0]*f,u[1]*f,z],[v[0]*f,v[1]*f,z],
+       [v[0]*g,v[1]*g,nz],[u[0]*g,u[1]*g,nz]);
+   }
+ }
+ return new Float32Array(a);
+}
 function leg(){
   // Four tapering weight-bearing rhino legs. A cylinder silhouette avoids
   // the wheel/balloon appearance of four stacked ellipsoid paws.
@@ -329,15 +393,14 @@ function objects(){
  [(i-1.5)*1.19,i%2?.48:-.41,-1+i*.61],
  i%2?[.66,.95,.78]:[.49,.82,.49],
  [i*.29,i*.19,i*.18],{kind:'support',phase:i*1.7,dir:i%2?-1:1});
- const foil=(letter,geo,p,s,r=[0,0,0])=>
- add(5,geo,3,[.75,.78,.82],p,s,r,{kind:'foil',letter,phase:letter*1.5});
- foil(0,'sphere',[-2.03,.72,0],[.64,.15,.22]);
- foil(0,'sphere',[-2.03,-.72,0],[.64,.15,.22]);
- foil(0,'sphere',[-2.03,0,0],[.14,.87,.22],[0,0,-.68]);
- foil(1,'sphere',[-.06,.72,0],[.46,.15,.22]);
- foil(1,'sphere',[-.06,0,0],[.15,.76,.22]);
- foil(1,'sphere',[-.06,-.72,0],[.46,.15,.22]);
- foil(2,'ring',[1.78,0,0],[.74,.93,1.16]);
+ // Three complete, readable helium-foil glyph solids. Their
+ // independently changing yaw/position never separates a letter's strokes.
+ const foil=(letter,geo,p,sc)=>
+   add(5,geo,3,[.91,.94,.98],p,sc,[0,0,0],
+     {kind:'foil',letter,phase:letter*1.5});
+ foil(0,'foilZ',[-2.05,0,0],[1.05,1.07,1]);
+ foil(1,'foilI',[-.08,0,0],[.84,1.05,1]);
+ foil(2,'ring',[1.83,0,0],[.90,.97,1.50]);
  return worlds;
 }
 class Stage{
@@ -365,7 +428,7 @@ class Stage{
   this.program=program(vert,frag);
   this.bgProgram=program(bgV,bgF);
   this.meshes={};
-  for(let [name,data] of Object.entries({sphere:sphere(),star:star(),ring:torus(),cone:cone(),leg:leg(),rhinoBody:rhinoBody()})){
+  for(let [name,data] of Object.entries({sphere:sphere(),star:star(),ring:torus(),cone:cone(),leg:leg(),rhinoBody:rhinoBody(),foilZ:foilGlyph('Z'),foilI:foilGlyph('I')})){
     const vao=gl.createVertexArray(),buffer=gl.createBuffer();
     gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
     gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
