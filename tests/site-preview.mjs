@@ -127,6 +127,9 @@ try{
       throw new Error('Menu refused to close on Escape');
     }
 
+    if(diagnostic?.gpu?.objectWorlds?.camera!=='true perspective, 30.3deg FOV') {
+      throw new Error('Object world must use a real perspective projection');
+    }
     if(!diagnostic?.gpu?.active) throw new Error('GPU not active for '+spec.name);
     if(!diagnostic?.parentMask) throw new Error('Native letter mask missing for '+spec.name);
     if((diagnostic?.gpu?.scenes?.numberOfCameraTreatments||0)!==6) throw new Error('Expected six scene camera treatments');
