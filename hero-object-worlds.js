@@ -46,7 +46,7 @@ void main(){
  else if(uType<2.5){
    // Matte-black velvet/plaster reads through bright edge and softbox lights,
    // not artificial gloss. Silhouette stays black on a lighter studio field.
-   col+=vec3(.45,.55,.68)*(spec*.38+band*.37+rim*.75);
+   col=uBase*(.33+diff*.91)+vec3(.38,.47,.60)*(spec*.12+band*.20+rim*.48);
  }
  else if(uType<3.5){
    vec3 foil=mix(vec3(.33,.40,.47),vec3(.95,.96,.97),.5+.5*wrinkle);
