@@ -399,17 +399,26 @@ function objects(){
    {kind:'star',phase:i*1.73,spin:.04+(i%4)*.045,dir:i%2?1:-1});
  }
  const pink=[.98,.015,.27],dark=[.064,.070,.075],grey=[.11,.12,.13];
- const rabbit=(geo,p,s,r=[0,0,0])=>add(1,geo,1,pink,p,s,r,{kind:'rabbit'});
- rabbit('sphere',[-.20,-.21,0],[.99,.43,.47],[0,0,-.10]);
- rabbit('sphere',[.70,.30,.02],[.46,.48,.47]);
- rabbit('sphere',[.29,.03,0],[.37,.29,.29],[0,0,.38]);
- rabbit('sphere',[-1.05,.01,0],[.23,.23,.23]);
- for(let x of [-.74,.39])for(let z of [-.29,.29]){
- rabbit('sphere',[x,-.60,z],[.27,.40,.25],[0,0,x<0?-.12:.13]);}
- rabbit('ring',[.45,1.34,.02],[.25,.82,.96],[0,-.17,.17]);
- rabbit('ring',[.99,1.31,-.03],[.25,.83,.96],[0,.17,-.13]);
- rabbit('sphere',[.47,.65,0],[.19,.18,.24]);
- rabbit('sphere',[.98,.64,0],[.19,.18,.24]);
+ // Upright sculptural balloon rabbit: recognizable arched back, haunch,
+ // head, two inflated loop ears, pinched neck and separate tied paws.
+ // This is one animated hero, not an array of duplicate pink animals.
+ const rabbit=(geo,p,sc,rot=[0,0,0],color=[.98,.015,.27])=>
+   add(1,geo,1,color,p,sc,rot,{kind:'rabbit'});
+ rabbit('sphere',[-.21,-.20,0],[.69,.88,.55],[0,0,-.18]); // upright body
+ rabbit('sphere',[-.46,-.65,.02],[.58,.48,.51]); // round haunch
+ rabbit('sphere',[.22,.11,.18],[.47,.52,.43],[0,0,.21]); // chest
+ rabbit('sphere',[.20,.62,0],[.30,.32,.36]); // balloon neck
+ rabbit('sphere',[.28,.93,0],[.53,.46,.48],[0,0,-.10]); // large head
+ rabbit('sphere',[.63,.78,.28],[.26,.20,.25],[0,0,-.12]); // short muzzle
+ rabbit('sphere',[-.94,-.59,-.04],[.21,.22,.22]); // tail
+ rabbit('ring',[.03,1.88,-.055],[.30,.72,.91],[0,-.06,.13]); // left long ear
+ rabbit('ring',[.59,1.83,-.09],[.30,.69,.91],[0,.07,-.12]); // right long ear
+ rabbit('sphere',[.12,1.26,-.03],[.15,.14,.20]); // ear pinch left
+ rabbit('sphere',[.54,1.23,-.04],[.15,.14,.20]); // ear pinch right
+ for(const z of [-.35,.35]){
+   rabbit('sphere',[-.44,-1.04,z],[.35,.21,.24],[0,0,-.08]);
+   rabbit('sphere',[.38,-.96,z],[.23,.35,.22],[0,0,.22]);
+ }
  for(let i=0;i<5;i++){
  add(2,i%2?'ring':'sphere',5,[.076,.086,.099],
  [(-2+i)*1.08,Math.sin(i*1.78)*.79,-1+i*.56],
@@ -513,11 +522,14 @@ class Stage{
    p[1]+=Math.sin(t*.61)*.14;
    rot[1]+=yaw;rot[2]+=Math.sin(t*.19)*.036;
    if(mobile){
-     p[0]*=.55;p[1]*=.30;sc[0]*=.55;sc[1]*=.30;sc[2]*=.57;
-     p[1]+=.43;
+     // Tall silhouettes are slightly compressed behind the phone wordmark.
+     p[0]*=.74;p[1]*=.73;sc[0]*=.74;sc[1]*=.73;sc[2]*=.74;
+     p[1]+=.24;
    }else{
-     p[0]*=1.33;p[1]*=.65;sc[0]*=1.33;sc[1]*=.65;
-     p[1]+=1.34;p[0]-=.39;
+     // The ears penetrate the upper word and the inflated haunch reaches
+     // toward the lower word; pointer reveal exposes the full silhouette.
+     p[0]*=1.28;p[1]*=1.03;sc[0]*=1.28;sc[1]*=1.03;
+     p[1]+=.13;p[0]-=.24;
    }
   }else if(o.kind==='rhino'){
    const yaw=Math.sin(t*.25)*.20;
