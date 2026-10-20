@@ -256,6 +256,15 @@
   }
 
   function updateMode(now) {
+    // QA-only diagnostic world selection; no visible controls on the website.
+    const force=window.__KBJ_FORCE_SCENE;
+    if(Number.isInteger(force) && force>=0 && force<MODE_NAMES.length){
+      state.mode=force;
+      state.nextMode=(force+1)%MODE_NAMES.length;
+      state.mix=0;
+      state.modeStart=now;
+      return;
+    }
     const elapsed = (now - state.modeStart) / 1000;
     const transitionStart = MODE_SECONDS - TRANSITION_SECONDS;
     if (elapsed < transitionStart) {
