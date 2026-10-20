@@ -376,9 +376,22 @@ void main() {
       // fixed letter aperture. Their strength rises/falls with a smooth
       // response, avoiding a hard jump when the pointer leaves the hero.
       if(!this.filmWindow || !this.originalGlyphImage)return;
-      const eligible=!!pointer?.overCanvas && !!pointer?.active &&
+      let eligible=!!pointer?.overCanvas && !!pointer?.active &&
         !window.matchMedia('(pointer: coarse)').matches &&
         !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      // A fluid opening should originate from the actual wordmark, not
+      // appear as an unrelated dark ink blot in the empty middle gutter.
+      if(eligible && this.maskCanvas){
+        const mx=Math.round((pointer.nx*.5+.5)*this.maskCanvas.width);
+        const my=Math.round((pointer.ny*.5+.5)*this.maskCanvas.height);
+        if(mx<0||my<0||mx>=this.maskCanvas.width||
+            my>=this.maskCanvas.height)eligible=false;
+        else{
+          const pixel=this.maskCanvas.getContext('2d')
+            .getImageData(mx,my,1,1).data;
+          eligible=pixel[3]>48;
+        }
+      }
       const dt=Math.max(0,Math.min(80,time-(this.lastFluidMaskUpdate||time)));
       if (this.lastFluidMaskUpdate && dt<28)return;
       this.lastFluidMaskUpdate=time;
