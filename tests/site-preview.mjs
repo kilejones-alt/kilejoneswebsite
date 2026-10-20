@@ -56,6 +56,7 @@ try{
         videoDimensions:v ? [v.videoWidth,v.videoHeight] : null,
         filmRect:v ? {w:Math.round(v.getBoundingClientRect().width),h:Math.round(v.getBoundingClientRect().height)} : null,
         parentMask:!!wrapper && getComputedStyle(wrapper).maskImage!=='none',
+        cursorFluidReveal:!!wrapper && (wrapper.style.maskImage||'').includes('radial-gradient'),
         gpuCanvas:gpu ? [gpu.width,gpu.height] : null,
         topLevelControls:[...document.querySelectorAll('.pill-nav button')].map(e=>e.textContent.trim())
       };
