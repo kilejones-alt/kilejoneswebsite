@@ -149,3 +149,10 @@ body{font-family:"IBM Plex Mono","SFMono-Regular",Menlo,Consolas,monospace}
   object-fit:cover;pointer-events:none;opacity:0;
   max-width:none;max-height:none;will-change:opacity,transform;
 }
+
+/* Real WebGL2 polygon worlds are rendered into the pre-existing fixed
+   wordmark aperture, never into the nav or editorial page. */
+.hero-film-window .hero-object-canvas{
+ position:absolute;inset:0;width:100%;height:100%;display:block;
+ z-index:5;pointer-events:none;contain:strict;
+}
