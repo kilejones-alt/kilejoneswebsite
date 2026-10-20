@@ -372,37 +372,43 @@ void main() {
     }
 
     updateFluidCursorMask(pointer,time) {
-      // Native masked window supports a secondary, pointer-generated fluid
-      // aperture: objects become readable in the white space around the
-      // lettering on desktop. On touch and reduced motion, retain pure type.
-      if (!this.filmWindow || !this.originalGlyphImage) return;
+      // Three uneven, independently moving fluid lobes are additive to the
+      // fixed letter aperture. Their strength rises/falls with a smooth
+      // response, avoiding a hard jump when the pointer leaves the hero.
+      if(!this.filmWindow || !this.originalGlyphImage)return;
       const eligible=!!pointer?.overCanvas && !!pointer?.active &&
         !window.matchMedia('(pointer: coarse)').matches &&
         !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (!eligible) {
-        if(this.cursorMaskExpanded) {
+      const dt=Math.max(0,Math.min(80,time-(this.lastFluidMaskUpdate||time)));
+      if (this.lastFluidMaskUpdate && dt<28)return;
+      this.lastFluidMaskUpdate=time;
+      const previous=this.cursorRevealStrength||0;
+      const response=1-Math.exp(-Math.max(dt,16)/220);
+      const amount=this.cursorRevealStrength=previous+
+        ((eligible?1:0)-previous)*response;
+      if(amount<.008){
+        if(this.cursorMaskExpanded){
           this.filmWindow.style.webkitMaskImage=this.originalGlyphImage;
           this.filmWindow.style.maskImage=this.originalGlyphImage;
           this.cursorMaskExpanded=false;
         }
         return;
       }
-      if(this.lastFluidMaskUpdate && time-this.lastFluidMaskUpdate<55) return;
-      this.lastFluidMaskUpdate=time;
       const x=(pointer.nx*.5+.5)*100,y=(pointer.ny*.5+.5)*100;
       const t=time*.001;
-      const radius=Math.min(this.width,this.height)*.19;
+      const radius=Math.min(this.width,this.height)*.22*amount;
       const ellipses=[
         [0,0,1.00,.74],
-        [Math.sin(t*1.23)*.25,-.28,.65,.49],
-        [Math.cos(t*.91)*.32,.25,.58,.62]
+        [Math.sin(t*1.23)*.25,-.28,.68,.50],
+        [Math.cos(t*.91)*.32,.25,.62,.60]
       ];
       const gradients=ellipses.map(([dx,dy,a,b])=>{
         const cx=(x+dx*radius/this.width*100).toFixed(2);
         const cy=(y+dy*radius/this.height*100).toFixed(2);
-        const w=Math.round(radius*a),h=Math.round(radius*b);
+        const w=Math.max(1,Math.round(radius*a));
+        const h=Math.max(1,Math.round(radius*b));
         return 'radial-gradient(ellipse '+w+'px '+h+'px at '+
-          cx+'% '+cy+'%, black 50%, transparent 100%)';
+          cx+'% '+cy+'%, black 55%, transparent 100%)';
       });
       const value=[this.originalGlyphImage,...gradients].join(', ');
       this.filmWindow.style.webkitMaskImage=value;
