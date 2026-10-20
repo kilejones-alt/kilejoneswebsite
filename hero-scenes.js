@@ -1,7 +1,6 @@
-/* Kile B. Jones — cinematic source-footage direction.
- * All scenes currently retain the ORIGINAL video asset. This is genuine
- * camera/grade direction, not an unverified claim of six different 3D worlds.
- * Source media can be expanded only after separate asset review.
+/* Kile B. Jones — scene names and reversible legacy-video treatments.
+ * The primary six actual 3D object worlds are implemented independently in
+ * hero-object-worlds.js. This script remains the source-footage fallback rig.
  */
 (() => {
   'use strict';
@@ -81,7 +80,7 @@
       sourceCount:1,
       originalFootagePreserved:true,
       animatedFrames:frame,
-      kind:'camera+color direction (not distinct source footage)'
+      kind:'legacy video treatment rig; six separate 3D object worlds now render independently'
     })
   };
 })();
