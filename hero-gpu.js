@@ -198,6 +198,7 @@ uniform float uMix;
 uniform float uTime;
 uniform float uIntro;
 uniform vec2 uPointer;
+uniform float uObjects;
 float hash21(vec2 p){
   p=fract(p*vec2(123.34,456.21));
   p+=dot(p,p+45.32);
@@ -239,6 +240,8 @@ void main() {
 
   vec3 ink = mix(material(uMode,vUv),material(uNextMode,vUv),uMix);
   float ambient = mix(.18,.37,smoothstep(.7,3.8,uMode));
+  // Retain the liquid-cursor aperture; do not obscure real sculptural objects.
+  if (uObjects > .5) ambient *= .34;
   // Ink veil thins sharply in the locally fluid-revealed region.
   float alpha = glyph*ambient*(1.0-.985*revealed);
   outColor = vec4(ink,alpha);
@@ -319,6 +322,7 @@ void main() {
         const parent = this.originalVideoParent || document.body;
         parent.insertBefore(video,
           this.originalVideoNext?.parentNode === parent ? this.originalVideoNext : null);
+        window.KBJObjectWorlds?.destroy();
         window.KBJStage?.detach();
         this.filmWindow?.remove();
         this.filmWindow = null;
@@ -348,6 +352,7 @@ void main() {
       }
       this.status = 'native video + GPU fluid reveal';
       window.KBJStage?.attach(filmWindow);
+      this.objectStage = window.KBJObjectWorlds?.create(filmWindow) || null;
       this.syncNativeMask();
     }
 
@@ -603,6 +608,14 @@ void main() {
         try {
           window.KBJScenes?.apply(this.originalVideo,options);
           window.KBJStage?.update(options);
+          const objectActive=!!this.objectStage?.render(options);
+          // Keep original video as an instantly reversible fallback. When the
+          // constructed 3D worlds render successfully, the 320x240 source
+          // is hidden; real objects replace rather than recolor that video.
+          this.originalVideo.style.opacity=objectActive?'0':'1';
+          if(objectActive && !this.originalVideo.paused)this.originalVideo.pause();
+          if(!objectActive && this.originalVideo.paused)
+            this.originalVideo.play().catch(()=>{});
           const gl=this.gl;
           this.simulate(options.now,options.pointer,options.dt,options.reducedMotion);
           gl.bindFramebuffer(gl.FRAMEBUFFER,null);
@@ -616,6 +629,7 @@ void main() {
             uMode:options.mode,uNextMode:options.nextMode,
             uMix:options.mix,uTime:options.now*.001,
             uPointer:[options.pointer.nx,options.pointer.ny],
+            uObjects:objectActive?1:0,
             uIntro:Math.min(1.6,options.now*.001 - this.birthTime)
           });
           gl.drawArrays(gl.TRIANGLES,0,3);
@@ -670,7 +684,8 @@ void main() {
         status:this.status,active:!this.failed && (this.status==='active' || this.status==='native video + GPU fluid reveal active'),
         simSize:this.simSize,fluidFormat:this.floatSim ? 'RGBA16F' : 'RGBA8',source:this.nativeMode ? 'original native MP4 + stable letter aperture' : 'same-origin GPU video texture',
         scenes:window.KBJScenes?.diagnostics?.() || null,
-        extraMedia:window.KBJStage?.diagnostics?.() || null
+        extraMedia:window.KBJStage?.diagnostics?.() || null,
+        objectWorlds:window.KBJObjectWorlds?.diagnostic?.() || null
       };
     }
   }
