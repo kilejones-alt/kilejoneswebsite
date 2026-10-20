@@ -537,7 +537,9 @@ class Stage{
    if(mobile){p[0]*=.52;p[1]*=.66;}
   }else if(o.kind==='rabbit'){
    // Orbit the connected balloon assembly around one common origin.
-   const yaw=Math.sin(t*.34)*.22;
+   // Three-quarter, forward-biased hero pose. Keep the ears and muzzle
+   // facing the camera instead of showing only a narrow side profile.
+   const yaw=-.47+Math.sin(t*.34)*.105;
    const xx=p[0],zz=p[2];
    p[0]=xx*Math.cos(yaw)+zz*Math.sin(yaw);
    p[2]=zz*Math.cos(yaw)-xx*Math.sin(yaw);
@@ -546,16 +548,22 @@ class Stage{
    rot[1]+=yaw;rot[2]+=Math.sin(t*.19)*.036;
    if(mobile){
      // Tall silhouettes are slightly compressed behind the phone wordmark.
-     p[0]*=.74;p[1]*=.73;sc[0]*=.74;sc[1]*=.73;sc[2]*=.74;
-     p[1]+=.24;
+     // Fit the upright rabbit largely within the upper phone word,
+     // rather than putting the head in KILE and its feet in JONES.
+     p[0]*=.65;p[1]*=.36;sc[0]*=.65;sc[1]*=.36;sc[2]*=.69;
+     p[1]+=.93;p[0]-=.80;
    }else{
      // The ears penetrate the upper word and the inflated haunch reaches
      // toward the lower word; pointer reveal exposes the full silhouette.
-     p[0]*=1.28;p[1]*=1.03;sc[0]*=1.28;sc[1]*=1.03;
-     p[1]+=.13;p[0]-=.24;
+     // Front-biased portrait sits behind the upper KILE letters:
+     // ears/head/body can share one continuous viewing aperture.
+     p[0]*=1.04;p[1]*=.53;sc[0]*=1.04;sc[1]*=.53;
+     p[1]+=1.47;p[0]-=1.06;
    }
   }else if(o.kind==='rhino'){
-   const yaw=Math.sin(t*.25)*.20;
+   // Rhino: look toward camera in a restrained 3/4 profile, leaving
+   // both horns and the full weight-bearing body readable.
+   const yaw=-.51+Math.sin(t*.25)*.095;
    const xx=p[0],zz=p[2];
    p[0]=xx*Math.cos(yaw)+zz*Math.sin(yaw);
    p[2]=zz*Math.cos(yaw)-xx*Math.sin(yaw);
@@ -563,17 +571,19 @@ class Stage{
    p[2]+=Math.sin(t*.18)*.22; // much heavier and slower
    rot[1]+=yaw;
    if(mobile){
-     p[0]*=.47;p[1]*=.30;sc[0]*=.47;sc[1]*=.30;sc[2]*=.53;
-     p[1]+=.43;
+     p[0]*=.50;p[1]*=.37;sc[0]*=.50;sc[1]*=.37;sc[2]*=.62;
+     p[1]+=.90;p[0]-=.63;
    }else{
-     p[0]*=1.27;p[1]*=.74;sc[0]*=1.27;sc[1]*=.74;
-     p[1]+=1.36;p[0]-=.46;
+     p[0]*=1.17;p[1]*=.73;sc[0]*=1.17;sc[1]*=.73;
+     p[1]+=1.38;p[0]-=.95;
    }
   }else if(o.kind==='foil'){
    // Separate letter actors, with each welded set of inflated strokes
    // rotating together around its letter's center (not individually).
    const k=o.letter,cx=[-2.03,-.06,1.78][k];
-   const yaw=Math.sin(t*(.29+k*.07)+k*.68)*.25;
+   // "ZIO" must always face forward. A slight per-letter 3D turn
+   // maintains material reflection without letting glyphs disappear.
+   const yaw=Math.sin(t*(.29+k*.07)+k*.68)*.11;
    const dx=p[0]-cx,dz=p[2];
    p[0]=cx+dx*Math.cos(yaw)+dz*Math.sin(yaw);
    p[2]=dz*Math.cos(yaw)-dx*Math.sin(yaw);
@@ -582,7 +592,7 @@ class Stage{
    // O should never disappear edge-on while the word ZIO is displayed.
    // A restrained wobble in XYZ preserves readable lettering; other stars
    // carry the full slow axial spins of the surrounding sequence.
-   rot[1]+=yaw+(k===2?Math.sin(t*.17)*.17:0);
+   rot[1]+=yaw+(k===2?Math.sin(t*.17)*.065:0);
    rot[0]+=(k===2?Math.sin(t*.28)*.095:0);
    rot[2]+=Math.sin(t*(.19+k*.06)+k)*.07;
    if(mobile){
