@@ -361,6 +361,7 @@ void main() {
       if (!this.nativeMode || !this.maskCanvas) return;
       const url = this.maskCanvas.toDataURL('image/png');
       const image = 'url("' + url + '")';
+      this.originalGlyphImage = image;
       const filmWindow = this.filmWindow;
       filmWindow.style.webkitMaskImage = image;
       filmWindow.style.maskImage = image;
@@ -368,6 +369,49 @@ void main() {
       filmWindow.style.maskRepeat = 'no-repeat';
       filmWindow.style.webkitMaskSize = '100% 100%';
       filmWindow.style.maskSize = '100% 100%';
+    }
+
+    updateFluidCursorMask(pointer,time) {
+      // Native masked window supports a secondary, pointer-generated fluid
+      // aperture: objects become readable in the white space around the
+      // lettering on desktop. On touch and reduced motion, retain pure type.
+      if (!this.filmWindow || !this.originalGlyphImage) return;
+      const eligible=!!pointer?.overCanvas && !!pointer?.active &&
+        !window.matchMedia('(pointer: coarse)').matches &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!eligible) {
+        if(this.cursorMaskExpanded) {
+          this.filmWindow.style.webkitMaskImage=this.originalGlyphImage;
+          this.filmWindow.style.maskImage=this.originalGlyphImage;
+          this.cursorMaskExpanded=false;
+        }
+        return;
+      }
+      if(this.lastFluidMaskUpdate && time-this.lastFluidMaskUpdate<55) return;
+      this.lastFluidMaskUpdate=time;
+      const x=(pointer.nx*.5+.5)*100,y=(pointer.ny*.5+.5)*100;
+      const t=time*.001;
+      const radius=Math.min(this.width,this.height)*.19;
+      const ellipses=[
+        [0,0,1.00,.74],
+        [Math.sin(t*1.23)*.25,-.28,.65,.49],
+        [Math.cos(t*.91)*.32,.25,.58,.62]
+      ];
+      const gradients=ellipses.map(([dx,dy,a,b])=>{
+        const cx=(x+dx*radius/this.width*100).toFixed(2);
+        const cy=(y+dy*radius/this.height*100).toFixed(2);
+        const w=Math.round(radius*a),h=Math.round(radius*b);
+        return 'radial-gradient(ellipse '+w+'px '+h+'px at '+
+          cx+'% '+cy+'%, black 50%, transparent 100%)';
+      });
+      const value=[this.originalGlyphImage,...gradients].join(', ');
+      this.filmWindow.style.webkitMaskImage=value;
+      this.filmWindow.style.maskImage=value;
+      this.filmWindow.style.webkitMaskComposite='source-over';
+      this.filmWindow.style.maskComposite='add';
+      this.filmWindow.style.webkitMaskRepeat='no-repeat';
+      this.filmWindow.style.maskRepeat='no-repeat';
+      this.cursorMaskExpanded=true;
     }
 
     initializeVideo(host) {
@@ -609,6 +653,7 @@ void main() {
         try {
           window.KBJScenes?.apply(this.originalVideo,options);
           window.KBJStage?.update(options);
+          this.updateFluidCursorMask(options.pointer,options.now);
           const objectActive=!!this.objectStage?.render(options);
           // Keep original video as an instantly reversible fallback. When the
           // constructed 3D worlds render successfully, the 320x240 source
