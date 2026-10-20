@@ -30,3 +30,21 @@ The fluid algorithm is a new bespoke implementation informed by public research 
 ### Verified browser finding
 
 Chromium rejected direct WebGL video texture loading from the original CDN on 2026-10-19, even though a separate HTTP Range probe returned Access-Control-Allow-Origin: *. The native-video plus GPU-alpha route was added specifically to address this rather than assuming the synthetic-video shader test covered production conditions.
+
+
+## Stage 2 — cinematic wordmark, true fluid precision and mobile framing
+
+- \`hero-scenes.js\` adds six **cinematic treatments of the same original footage**, with smooth camera drift, pointer-responsive perspective motion, distinct grades, and a 5.2-second cycle. It does not invent extra visual assets or pretend these are six photoreal scenes. The original media URL remains unchanged.
+- Native video now moves *inside a stationary masked parent*, so the enormous letters remain pinned to the viewport while the footage travels behind them.
+- The fluid reveal boundary uses two scales of animated procedural breakup combined with the physically advected fluid field. It remains approximately binary: an ink veil opens to reveal the original video rather than a fake material substituting for it.
+- Renderable floating-point RGBA16F fluid and pressure buffers are used when \`EXT_color_buffer_float\` is present. Otherwise RGBA8 remains available. The old 2D engine is still intact.
+- The native film is framed more generously on narrow viewports, so the 4:3 source does not need to fill an entire tall phone screen. High-DPR GPU ink is capped independently of the browser-decoded video, improving fill-rate.
+- \`?renderer=legacy\` gives a reversible development-only comparison with the original path; the default is unchanged.
+
+### Blocking media-quality finding
+
+Chromium read the original video at **320x240 pixels**, reported in actual page testing on Oct 19, 2026. It is being substantially magnified to fill the typography. That lack of picture detail cannot be repaired by WebGL, CSS, fluid mathematics, or ordinary resizing. Only genuinely higher-resolution original footage (ideally 1920x1080 or higher) or additional licensed high-quality real/photo-rendered media can close this quality gap with Noth.in. No AI-generated images were added, and no existing video or graphic was deleted.
+
+### Benchmark limits
+
+GitHub Actions uses software/virtualized graphics, not physical iPhone or desktop GPU testing. Chromium screenshots and diagnostic FPS establish functionality only, not deployment-grade frame rate, perceived fidelity to Noth.in, or iOS Safari compatibility. The branch must stay draft until real-device profiling and final asset curation.
