@@ -103,6 +103,27 @@ try{
       });
       console.log(JSON.stringify({device:'desktop',cursorFluidRevealFromGlyph:cursor}));
       if(!cursor)throw new Error('Pointer over K did not open cursor reveal');
+      const enlarged=await page.evaluate(()=>({
+        scale:window.__KBJ_DIAGNOSTICS?.letterScale,
+        target:window.__KBJ_DIAGNOSTICS?.letterHover,
+        nativeScale:window.__KBJ_DIAGNOSTICS?.gpu?.nativeLetterScale,
+        nativeMaskSize:document.querySelector('.hero-film-window')?.style.maskSize||''
+      }));
+      if(enlarged.scale<1.11||enlarged.nativeScale<1.11||
+         !enlarged.nativeMaskSize.includes('11')) {
+         throw new Error('Letter-only native and GPU hover enlargement failed: '+JSON.stringify(enlarged));
+      }
+      console.log(JSON.stringify({device:'desktop',wordmarkHover:enlarged}));
+      await page.screenshot({path:'qa-screenshots/desktop-hover-expanded.png'});
+      // Fade fully out on genuine hover leave; the rest of the page must stay fixed.
+      await page.mouse.move(710,26);
+      await page.waitForTimeout(900);
+      const reset=await page.evaluate(()=>window.__KBJ_DIAGNOSTICS?.letterScale);
+      if(!reset||reset>1.02)throw new Error('Hover zoom failed to reverse '+reset);
+      console.log(JSON.stringify({device:'desktop',wordmarkAfterLeave:reset}));
+      await page.screenshot({path:'qa-screenshots/desktop-hover-reset.png'});
+      await page.mouse.move(91,208);
+      await page.waitForTimeout(550);
       await page.screenshot({path:'qa-screenshots/desktop-fluid-reveal.png'});
     }
     const expected=[
