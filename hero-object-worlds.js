@@ -27,6 +27,7 @@ in vec3 vNormal,vPosition,vLocal;
 out vec4 color;
 uniform vec3 uBase;
 uniform vec3 uEye;
+uniform vec2 uMouse;
 uniform float uType,uAlpha,uTime,uSeed;
 void main(){
  vec3 n=normalize(vNormal),v=normalize(uEye-vPosition);
@@ -44,7 +45,8 @@ void main(){
    bend+=vec3(63.0,-19.0,-48.0)*cos(c)*.23;
    n=normalize(n+bend*.010);
  }
- vec3 l1=normalize(vec3(-.73,.89,1.1)),l2=normalize(vec3(.9,.38,.62));
+ vec3 l1=normalize(vec3(-.73+uMouse.x*.37,.89-uMouse.y*.23,1.1));
+ vec3 l2=normalize(vec3(.9-uMouse.x*.28,.38+uMouse.y*.25,.62));
  vec3 l3=normalize(vec3(.15,-.9,.83));
  float diff=.52*max(dot(n,l1),0.)+.35*max(dot(n,l2),0.)+
  .24*max(dot(n,l3),0.);
@@ -502,7 +504,7 @@ class Stage{
     this.meshes[name]={vao,buffer,count:data.length/6};
   }
   this.bgVao=gl.createVertexArray();
-  this.u={};for(let n of ['uModel','uVP','uBase','uEye','uType','uAlpha','uTime','uSeed'])
+  this.u={};for(let n of ['uModel','uVP','uBase','uEye','uMouse','uType','uAlpha','uTime','uSeed'])
     this.u[n]=gl.getUniformLocation(this.program,n);
   this.bu={};for(let n of ['uScene','uNext','uMix','uTime'])
     this.bu[n]=gl.getUniformLocation(this.bgProgram,n);
@@ -611,7 +613,8 @@ class Stage{
    if(mobile){p[0]*=.55;p[1]*=.55;}
   }
   const perspective=1+p[2]*.068;
-  p[0]-=x*.39*perspective;p[1]+=y*.26*perspective;
+  p[0]-=x*.62*perspective;p[1]+=y*.39*perspective;
+  rot[1]-=x*.075*perspective;rot[0]+=y*.055*perspective;
   p[0]+=Math.sin(t*.11+scene)*.035;
   return model(p,sc,rot);
  }
@@ -621,6 +624,7 @@ class Stage{
   gl.useProgram(this.program);
   gl.uniformMatrix4fv(this.u.uVP,false,this.vp);
   gl.uniform3f(this.u.uEye,0,0,12);
+  gl.uniform2f(this.u.uMouse,this.pointer[0],this.pointer[1]);
   gl.uniform1f(this.u.uTime,t);
   gl.uniform1f(this.u.uAlpha,alpha);
   for(const o of this.items[index]){
@@ -637,7 +641,7 @@ class Stage{
   try{
    if(!this.resize())return false;
    const gl=this.gl,t=options.now*.001;
-   const p=options.pointer||{},a=1-Math.exp(-clamp(options.dt||.016,.001,.05)*9);
+   const p=options.pointer||{},a=1-Math.exp(-clamp(options.dt||.016,.001,.05)*16);
    this.pointer[0]=lerp(this.pointer[0],p.active?p.nx:0,a);
    this.pointer[1]=lerp(this.pointer[1],p.active?p.ny:0,a);
    const aspect=this.width/this.height,mobile=aspect<.76;
