@@ -430,12 +430,16 @@ void main() {
     updateNativeLetterScale(scale) {
       if(!this.filmWindow)return;
       const z=Math.max(1,Math.min(1.17,scale||1));
-      if(Math.abs((this.nativeLetterScale||1)-z)<.0015)return;
+      const layers=this.cursorMaskExpanded?4:1;
+      // Reapply when the set of fluid lobes changes, even at constant zoom.
+      // Otherwise CSS repeats the first mask size onto the gradients.
+      if(Math.abs((this.nativeLetterScale||1)-z)<.0015 &&
+         layers===this.nativeLetterLayers)return;
       this.nativeLetterScale=z;
+      this.nativeLetterLayers=layers;
       // The original mask is sized and zoomed independently of the 3D
       // objects and film: users see MORE object surface inside each letter.
       // The additional pointer-fluid gradient layers retain normal scale.
-      const layers=this.cursorMaskExpanded?4:1;
       const sizes=[(z*100).toFixed(2)+'% '+(z*100).toFixed(2)+'%',
         ...Array.from({length:layers-1},()=> '100% 100%')].join(', ');
       this.filmWindow.style.webkitMaskSize=sizes;
