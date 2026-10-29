@@ -1,0 +1,121 @@
+name: Media page cinematic QA
+on:
+  push:
+    branches: [media-cinematic-interview-20261028]
+    paths: ['media.html','media-interview.js','.github/workflows/media-cinematic-qa.yml']
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Test four viewports, motion, podcast URLs, YouTube player and sound
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import http from 'node:http';
+          import path from 'node:path';
+          import {chromium} from 'playwright';
+          const root=process.cwd();
+          const mime={'.html':'text/html','.css':'text/css','.js':'text/javascript'};
+          const server=http.createServer((req,res)=>{
+            const q=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
+            const filename=path.resolve(root,'.'+(q==='/'?'/media.html':q));
+            if(!filename.startsWith(root+'/')){res.writeHead(403);res.end();return}
+            fs.readFile(filename,(err,b)=>{
+              if(err){res.writeHead(404);res.end();return}
+              res.setHeader('Content-Type',mime[path.extname(filename)]||'application/octet-stream');
+              res.end(b);
+            });
+          });
+          await new Promise(ok=>server.listen(0,'127.0.0.1',ok));
+          const port=server.address().port;
+          const url='http://127.0.0.1:'+port+'/media.html';
+          const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+          fs.mkdirSync('media-qa',{recursive:true});
+          const urls=[
+          'https://www.historyimpossible.com/p/the-ideological-pathology-of-antizionism',
+          'https://podcasts.apple.com/us/podcast/from-anti-zionist-to-pro-israel-why-kile-jones-changed/id1640358972?i=1000786059286',
+          'https://shanameyerson.substack.com/p/cancel-me-im-a-zionist-now-kile-b',
+          'https://shanameyerson.substack.com/p/the-truth-about-israels-ethnostate',
+          'https://www.buzzsprout.com/2318539/episodes/19498447',
+          'https://www.futureofjewish.com/p/i-was-an-anti-zionist-then-i-actually',
+          'https://kilejones.substack.com/p/jonah-platt-on-antizionism-israel',
+          'https://kilejones.substack.com/p/the-nucleus',
+          'https://kilejones.substack.com/p/modern-antizionism-explained'];
+          try{
+            for(const [name,width,height] of [
+              ['phone',375,812],['tablet',768,1024],
+              ['laptop',1366,768],['desktop',1920,1080]]){
+              const context=await browser.newContext({viewport:{width,height},
+                 isMobile:name==='phone',deviceScaleFactor:1});
+              const page=await context.newPage();
+              const errors=[];
+              page.on('pageerror',e=>errors.push(e.message));
+              await page.goto(url,{waitUntil:'domcontentloaded'});
+              await page.waitForTimeout(1900);
+              const details=await page.evaluate(()=>{
+                const els=[...document.querySelectorAll('.media-listen')];
+                const f=document.querySelector('#media-feature-player');
+                const header=document.querySelector('body > header');
+                return {
+                  originalHeader:header?.textContent?.replace(/\s+/g,' ').trim(),
+                  links:els.map(a=>a.getAttribute('href')),
+                  targets:els.map(a=>a.target),
+                  rels:els.map(a=>a.rel),
+                  iframe:f?.src,
+                  button:document.querySelector('#media-feature-sound')?.textContent,
+                  horizontalOverflow:document.documentElement.scrollWidth>innerWidth+2,
+                  filmWidth:Math.round(f.getBoundingClientRect().width),
+                  pageBackground:getComputedStyle(document.body).backgroundColor,
+                  bodyScrollHeight:document.documentElement.scrollHeight
+                };
+              });
+              if(details.originalHeader!=='Kile B. Jones Home')throw Error('Changed header');
+              if(JSON.stringify(details.links)!==JSON.stringify(urls))throw Error('Episode links changed');
+              if(details.targets.some(x=>x!=='_blank') ||
+                  details.rels.some(x=>!x.includes('noopener')||!x.includes('noreferrer')))
+                throw Error('Links should open safely in a new tab');
+              if(!details.iframe.includes('m7oJH0S0BhI'))throw Error('Wrong interview video');
+              if(details.horizontalOverflow)throw Error('Horizontal overflow '+name);
+              if(details.filmWidth<200)throw Error('Video too narrow '+name);
+              if(details.pageBackground!=='rgb(243, 245, 247)')throw Error('Unexpected site palette');
+              if(errors.length)throw Error('JS errors '+errors.join('; '));
+              await page.screenshot({path:'media-qa/'+name+'.png',fullPage:true,animations:'disabled'});
+              await page.locator('#media-feature-sound').click();
+              if(await page.locator('#media-feature-sound').innerText()!=='Mute')
+                throw Error('Sound button failed');
+              await page.locator('#media-feature-sound').click();
+              if(await page.locator('#media-feature-sound').innerText()!=='Enable sound')
+                throw Error('Mute button failed');
+              await page.locator('.media-entry').last().scrollIntoViewIfNeeded();
+              await page.waitForTimeout(850);
+              const opacity=await page.locator('.media-entry').last().evaluate(
+                el=>parseFloat(getComputedStyle(el).opacity));
+              if(opacity<.95)throw Error('Scroll reveal stuck '+name+': '+opacity);
+              console.log(JSON.stringify({viewport:name, ...details,scrollRevealOpacity:opacity,errors}));
+              await context.close();
+            }
+            const ctx=await browser.newContext({viewport:{width:390,height:844},
+              reducedMotion:'reduce'});
+            const p=await ctx.newPage();await p.goto(url,{waitUntil:'domcontentloaded'});
+            const reduced=await p.evaluate(()=>({
+              animation:getComputedStyle(document.querySelector('.media-premiere-inner')).animationName,
+              autoplay:new URL(document.querySelector('#media-feature-player').src).searchParams.get('autoplay')
+            }));
+            if(reduced.animation!=='none'||reduced.autoplay!=='0')throw Error('Reduced motion failure');
+            console.log(JSON.stringify({reducedMotion:reduced}));
+            await ctx.close();
+          }finally{await browser.close();await new Promise(ok=>server.close(ok))}
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: media-page-4-viewports
+          path: media-qa/
+          if-no-files-found: ignore
