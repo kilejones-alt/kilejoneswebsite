@@ -114,6 +114,7 @@ uniform sampler2D uFlow;
 uniform vec2 uViewport;
 uniform vec2 uVideoSize;
 uniform vec2 uPointer;
+uniform float uLetterScale;
 uniform float uTime;
 uniform float uMode;
 uniform float uNextMode;
@@ -163,7 +164,7 @@ vec3 world(float mode, float reveal, vec2 uv, vec2 velocity, vec3 normal) {
   return mix(original, altered, reveal * (mode < .5 ? .10 : .92));
 }
 void main() {
-  float glyph = texture(uGlyph, vUv).a;
+  float glyph = texture(uGlyph, vec2(.5)+(vUv-vec2(.5))/max(1.,uLetterScale)).a;
   vec3 paper = vec3(.953,.961,.969);
   if (glyph < .008) {
     outColor = vec4(paper, 1.0);
@@ -198,6 +199,7 @@ uniform float uMix;
 uniform float uTime;
 uniform float uIntro;
 uniform vec2 uPointer;
+uniform float uLetterScale;
 uniform float uObjects;
 float hash21(vec2 p){
   p=fract(p*vec2(123.34,456.21));
@@ -220,7 +222,7 @@ vec3 material(float scene, vec2 uv){
   return vec3(.016,.018,.025);
 }
 void main() {
-  float glyph = texture(uGlyph,vUv).a;
+  float glyph = texture(uGlyph, vec2(.5)+(vUv-vec2(.5))/max(1.,uLetterScale)).a;
   if(glyph<.005) discard;
   vec4 flow = texture(uFlow,vUv);
   float density = flow.b;
@@ -262,6 +264,7 @@ void main() {
       this.height = 0;
       this.readyFrame = false;
       this.birthTime = performance.now()*.001;
+      this.completedFrames = 0;
 
       this.canvas = document.createElement('canvas');
       this.canvas.className = 'hero-gpu-layer';
@@ -381,17 +384,9 @@ void main() {
         !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       // A fluid opening should originate from the actual wordmark, not
       // appear as an unrelated dark ink blot in the empty middle gutter.
-      if(eligible && this.maskCanvas){
-        const mx=Math.round((pointer.nx*.5+.5)*this.maskCanvas.width);
-        const my=Math.round((pointer.ny*.5+.5)*this.maskCanvas.height);
-        if(mx<0||my<0||mx>=this.maskCanvas.width||
-            my>=this.maskCanvas.height)eligible=false;
-        else{
-          const pixel=this.maskCanvas.getContext('2d')
-            .getImageData(mx,my,1,1).data;
-          eligible=pixel[3]>48;
-        }
-      }
+      // The main canvas already performs an inverse-zoomed glyph hit test.
+      // Reuse it to avoid a second pixel readback on each frame.
+      if(eligible) eligible=!!pointer.glyphHover;
       const dt=Math.max(0,Math.min(80,time-(this.lastFluidMaskUpdate||time)));
       if (this.lastFluidMaskUpdate && dt<28)return;
       this.lastFluidMaskUpdate=time;
@@ -409,7 +404,7 @@ void main() {
       }
       const x=(pointer.nx*.5+.5)*100,y=(pointer.ny*.5+.5)*100;
       const t=time*.001;
-      const radius=Math.min(this.width,this.height)*.22*amount;
+      const radius=Math.min(this.width,this.height)*.16*amount;
       const ellipses=[
         [0,0,1.00,.74],
         [Math.sin(t*1.23)*.25,-.28,.68,.50],
@@ -421,7 +416,7 @@ void main() {
         const w=Math.max(1,Math.round(radius*a));
         const h=Math.max(1,Math.round(radius*b));
         return 'radial-gradient(ellipse '+w+'px '+h+'px at '+
-          cx+'% '+cy+'%, black 55%, transparent 100%)';
+          cx+'% '+cy+'%, black 44%, transparent 100%)';
       });
       const value=[this.originalGlyphImage,...gradients].join(', ');
       this.filmWindow.style.webkitMaskImage=value;
@@ -431,6 +426,25 @@ void main() {
       this.filmWindow.style.webkitMaskRepeat='no-repeat';
       this.filmWindow.style.maskRepeat='no-repeat';
       this.cursorMaskExpanded=true;
+    }
+
+    updateNativeLetterScale(scale) {
+      if(!this.filmWindow)return;
+      const z=Math.max(1,Math.min(1.17,scale||1));
+      const layers=this.cursorMaskExpanded?4:1;
+      // Reapply when the set of fluid lobes changes, even at constant zoom.
+      // Otherwise CSS repeats the first mask size onto the gradients.
+      if(Math.abs((this.nativeLetterScale||1)-z)<.0015 &&
+         layers===this.nativeLetterLayers)return;
+      this.nativeLetterScale=z;
+      this.nativeLetterLayers=layers;
+      // The original mask is sized and zoomed independently of the 3D
+      // objects and film: users see MORE object surface inside each letter.
+      // The additional pointer-fluid gradient layers retain normal scale.
+      const sizes=[(z*100).toFixed(2)+'% '+(z*100).toFixed(2)+'%',
+        ...Array.from({length:layers-1},()=> '100% 100%')].join(', ');
+      this.filmWindow.style.webkitMaskSize=sizes;
+      this.filmWindow.style.maskSize=sizes;
     }
 
     initializeVideo(host) {
@@ -673,6 +687,7 @@ void main() {
           window.KBJScenes?.apply(this.originalVideo,options);
           window.KBJStage?.update(options);
           this.updateFluidCursorMask(options.pointer,options.now);
+          this.updateNativeLetterScale(options.letterScale);
           const objectActive=!!this.objectStage?.render(options);
           // Keep original video as an instantly reversible fallback. When the
           // constructed 3D worlds render successfully, the 320x240 source
@@ -694,13 +709,16 @@ void main() {
             uMode:options.mode,uNextMode:options.nextMode,
             uMix:options.mix,uTime:options.now*.001,
             uPointer:[options.pointer.nx,options.pointer.ny],
+            uLetterScale:options.letterScale||1,
             uObjects:objectActive?1:0,
             uIntro:Math.min(1.6,options.now*.001 - this.birthTime)
           });
           gl.drawArrays(gl.TRIANGLES,0,3);
-          if (gl.getError()!==gl.NO_ERROR) throw new Error('Native video fluid pass failed');
+          if((this.completedFrames<3||this.completedFrames%120===0) && gl.getError()!==gl.NO_ERROR)
+             throw new Error('Native video fluid pass failed');
           this.canvas.style.display='block';
           this.status='native video + GPU fluid reveal active';
+           this.completedFrames++;
           return true;
         } catch(error) {
           this.fail('Native-video GPU render failed',error);
@@ -728,6 +746,7 @@ void main() {
           uViewport:[this.width,this.height],
           uVideoSize:[v.videoWidth,v.videoHeight],
           uPointer:[options.pointer.nx,options.pointer.ny],
+          uLetterScale:options.letterScale||1,
           uTime:options.now*.001,
           uMode:options.mode,uNextMode:options.nextMode,
           uMix:options.mix,
@@ -750,7 +769,8 @@ void main() {
         simSize:this.simSize,fluidFormat:this.floatSim ? 'RGBA16F' : 'RGBA8',source:this.nativeMode ? 'original native MP4 + stable letter aperture' : 'same-origin GPU video texture',
         scenes:window.KBJScenes?.diagnostics?.() || null,
         extraMedia:window.KBJStage?.diagnostics?.() || null,
-        objectWorlds:window.KBJObjectWorlds?.diagnostic?.() || null
+        objectWorlds:window.KBJObjectWorlds?.diagnostic?.() || null,
+        nativeLetterScale:this.nativeLetterScale||1
       };
     }
   }

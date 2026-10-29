@@ -1,0 +1,36 @@
+name: Wordmark hover interaction QA
+on:
+  push:
+    branches: [hero-interactive-zoom-refinement-20261029]
+    paths:
+      - 'script.js'
+      - 'hero-gpu.js'
+      - 'hero-object-worlds.js'
+      - 'tests/site-preview.mjs'
+      - '.github/workflows/wordmark-hover-qa.yml'
+jobs:
+  interaction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Syntax check
+        run: |
+          node --check script.js
+          node --check hero-gpu.js
+          node --check hero-object-worlds.js
+      - run: npm run check
+      - run: npm run test:gpu
+      - name: Test real glyph hover zoom, desktop/mobile and scene previews
+        run: node tests/site-preview.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hover-wordmark-qa
+          path: qa-screenshots/
+          if-no-files-found: ignore

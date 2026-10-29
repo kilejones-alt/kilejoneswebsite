@@ -44,6 +44,9 @@
     fps: 60,
     frames: 0,
     fpsMark: performance.now(),
+    // Optical 17% wordmark enlargement only on intentional desktop glyph hover.
+    letterScale: 1,
+    letterHoverUntil: 0,
   };
 
   const pointer = {
@@ -59,6 +62,7 @@
     active: false,
     down: false,
     overCanvas: false,
+    glyphHover: false,
   };
 
   const maskCanvas = document.createElement('canvas');
@@ -255,6 +259,31 @@
     return lo;
   }
 
+  function updateLetterHover(now,dt) {
+    // Hit-test the real offscreen letter mask, never the whole hero rectangle.
+    // While zooming, invert the current zoom to avoid hover flicker on an
+    // enlarged letter edge. Hold very briefly while crossing counters/gaps.
+    let hit=false;
+    if (finePointer && !reduceMotion && pointer.active && pointer.overCanvas &&
+        pointer.x>=0 && pointer.x<state.w && pointer.y>=0 && pointer.y<state.h) {
+      const z=state.letterScale;
+      const x=((pointer.x/state.w-.5)/z+.5)*maskCanvas.width;
+      const y=((pointer.y/state.h-.5)/z+.5)*maskCanvas.height;
+      const bx= Math.floor(x),by=Math.floor(y);
+      if (bx>=0 && bx<maskCanvas.width && by>=0 && by<maskCanvas.height) {
+        // One RGBA pixel per redraw, no WebGL readback or texture upload.
+        hit=maskCtx.getImageData(bx,by,1,1).data[3]>38;
+      }
+    }
+    if(hit)state.letterHoverUntil=now+150;
+    const target=finePointer && !reduceMotion &&
+       pointer.overCanvas && now<state.letterHoverUntil ? 1.17 : 1;
+    const ease=1-Math.exp(-dt*(target>state.letterScale?9.0:7.2));
+    state.letterScale+=(target-state.letterScale)*ease;
+    if(Math.abs(state.letterScale-target)<.0007)state.letterScale=target;
+    pointer.glyphHover=hit;
+  }
+
   function updateMode(now) {
     // QA-only diagnostic world selection; no visible controls on the website.
     const force=window.__KBJ_FORCE_SCENE;
@@ -289,16 +318,22 @@
     if (now - state.lastDraw < interval) return;
     state.lastDraw = now;
 
-    const dt = Math.min(0.05, Math.max(0.001, (now - state.last) / 1000));
+    const elapsed = Math.max(0.001, (now - state.last) / 1000);
+    // Fluid simulation clamps to 50ms for numerical stability; the visual
+    // hover spring must instead use real wall time so the title still returns
+    // smoothly under low FPS, software WebGL or heavy mobile GPU load.
+    const dt = Math.min(0.05, elapsed);
     state.last = now;
     const t = (now - state.start) / 1000;
+    updateLetterHover(now,Math.min(.4,elapsed));
     updateMode(now);
 
     // The GPU draws the actual glyph mask and footage without readback.
     // If the CDN blocks CORS or WebGL fails, the original pipeline runs.
     const gpuActive = !!gpuRenderer?.render({
       now, dt, pointer, mode:state.mode, nextMode:state.nextMode,
-      mix:state.mix, reducedMotion:reduceMotion
+      mix:state.mix, reducedMotion:reduceMotion,
+      letterScale:state.letterScale
     });
     if (gpuActive) {
       canvas.style.visibility = 'hidden';
@@ -312,7 +347,10 @@
         renderer:'WebGL2 GPU',fps:state.fps,
         mode:MODE_NAMES[state.mode],nextMode:MODE_NAMES[state.nextMode],
         mix:+state.mix.toFixed(3), dpr:+state.dpr.toFixed(2),
-        videoReady:true,gpu:gpuRenderer.diagnostic()
+        videoReady:true,
+        letterScale:+state.letterScale.toFixed(4),
+        letterHover:pointer.glyphHover,
+        gpu:gpuRenderer.diagnostic()
       };
       return;
     }
@@ -326,7 +364,12 @@
 
     // Constant black letter body keeps the name readable between moving objects.
     ctx.fillStyle = INK;
+    ctx.save();
+    ctx.translate(state.w/2,state.h/2);
+    ctx.scale(state.letterScale,state.letterScale);
+    ctx.translate(-state.w/2,-state.h/2);
     ctx.drawImage(maskCanvas, 0, 0, state.w, state.h);
+    ctx.restore();
 
     renderMode(sceneACtx, state.mode, t, dt);
     compositeMasked(sceneA, 1 - state.mix);
@@ -351,6 +394,8 @@
       dpr: +state.dpr.toFixed(2),
       viewport: [state.w, state.h],
       pointer: [Math.round(pointer.x), Math.round(pointer.y)],
+      letterScale:+state.letterScale.toFixed(4),
+      letterHover:pointer.glyphHover,
       rawPointerInput: 'onpointerrawupdate' in window,
       videoReady: !!video && video.readyState >= 2,
       renderer: 'original Canvas 2D fallback',
@@ -379,6 +424,9 @@
     g.save();
     g.globalCompositeOperation = 'destination-in';
     g.globalAlpha = 1;
+    g.translate(state.w/2,state.h/2);
+    g.scale(state.letterScale,state.letterScale);
+    g.translate(-state.w/2,-state.h/2);
     g.drawImage(maskCanvas, 0, 0, state.w, state.h);
     g.restore();
 

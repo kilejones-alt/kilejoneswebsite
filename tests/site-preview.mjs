@@ -31,6 +31,8 @@ fs.mkdirSync('qa-screenshots',{recursive:true});
 try{
   for(const spec of [
     {name:'desktop',width:1440,height:900,isMobile:false,deviceScaleFactor:1},
+    {name:'laptop',width:1280,height:800,isMobile:false,deviceScaleFactor:1},
+    {name:'tablet',width:820,height:1180,isMobile:false,deviceScaleFactor:1},
     {name:'mobile',width:390,height:844,isMobile:true,deviceScaleFactor:2}
   ]){
     const context=await browser.newContext({viewport:{width:spec.width,height:spec.height},
@@ -92,7 +94,7 @@ try{
       if(!active?.active)throw new Error('3D scene became inactive '+label);
     }
     await page.evaluate(()=>window.__KBJ_FORCE_SCENE=undefined);
-    if(!spec.isMobile){
+    if(spec.name==='desktop'){
       // Confirm the fluid opening comes out of a real opaque letter, rather
       // than forming an unrelated black blob in the white page gutter.
       await page.mouse.move(91,208);
@@ -103,6 +105,27 @@ try{
       });
       console.log(JSON.stringify({device:'desktop',cursorFluidRevealFromGlyph:cursor}));
       if(!cursor)throw new Error('Pointer over K did not open cursor reveal');
+      const enlarged=await page.evaluate(()=>({
+        scale:window.__KBJ_DIAGNOSTICS?.letterScale,
+        target:window.__KBJ_DIAGNOSTICS?.letterHover,
+        nativeScale:window.__KBJ_DIAGNOSTICS?.gpu?.nativeLetterScale,
+        nativeMaskSize:document.querySelector('.hero-film-window')?.style.maskSize||''
+      }));
+      if(enlarged.scale<1.11||enlarged.nativeScale<1.11||
+         !enlarged.nativeMaskSize.includes('11')) {
+         throw new Error('Letter-only native and GPU hover enlargement failed: '+JSON.stringify(enlarged));
+      }
+      console.log(JSON.stringify({device:'desktop',wordmarkHover:enlarged}));
+      await page.screenshot({path:'qa-screenshots/desktop-hover-expanded.png'});
+      // Fade fully out on genuine hover leave; the rest of the page must stay fixed.
+      await page.mouse.move(710,26);
+      await page.waitForTimeout(900);
+      const reset=await page.evaluate(()=>window.__KBJ_DIAGNOSTICS?.letterScale);
+      if(!reset||reset>1.02)throw new Error('Hover zoom failed to reverse '+reset);
+      console.log(JSON.stringify({device:'desktop',wordmarkAfterLeave:reset}));
+      await page.screenshot({path:'qa-screenshots/desktop-hover-reset.png'});
+      await page.mouse.move(91,208);
+      await page.waitForTimeout(550);
       await page.screenshot({path:'qa-screenshots/desktop-fluid-reveal.png'});
     }
     const expected=[
@@ -132,6 +155,18 @@ try{
     }
     if(!diagnostic?.gpu?.active) throw new Error('GPU not active for '+spec.name);
     if(!diagnostic?.parentMask) throw new Error('Native letter mask missing for '+spec.name);
+    const bounds=await page.evaluate(()=>{
+      const c=document.querySelector('#hero-canvas');
+      const nav=document.querySelector('.site-header');
+      const cr=c?.getBoundingClientRect();
+      const nr=nav?.getBoundingClientRect();
+      return {canvas:[cr?.width,cr?.height],navRight:nr?.right,
+        scrollWidth:document.documentElement.scrollWidth,
+        innerWidth:window.innerWidth,
+        mask:!!document.querySelector('.hero-film-window')};
+    });
+    if(bounds.scrollWidth>bounds.innerWidth+2 || bounds.navRight>bounds.innerWidth+2)
+      throw new Error('Viewport overflow '+spec.name+': '+JSON.stringify(bounds));
     if((diagnostic?.gpu?.scenes?.numberOfCameraTreatments||0)!==6) throw new Error('Expected six scene camera treatments');
     if(errors.length) throw new Error('Browser errors: '+errors.join('; '));
     await context.close();
