@@ -43,7 +43,7 @@ void main(){
      sin(a)*cos(b)*31.0,
      cos(a)*sin(b)*15.0);
    bend+=vec3(63.0,-19.0,-48.0)*cos(c)*.23;
-   n=normalize(n+bend*.010);
+   n=normalize(n+bend*.0065);
  }
  vec3 l1=normalize(vec3(-.73+uMouse.x*.37,.89-uMouse.y*.23,1.1));
  vec3 l2=normalize(vec3(.9-uMouse.x*.28,.38+uMouse.y*.25,.62));
@@ -97,12 +97,12 @@ out vec4 color;
 uniform float uScene,uNext,uMix,uTime;
 vec3 background(float scene,vec2 p){
  vec2 d=p*2.-1.;float v=exp(-dot(d,d)*.86);
- if(scene<.5)return mix(vec3(.002,.004,.023),vec3(.02,.052,.14),v);
- if(scene<1.5)return mix(vec3(.065,.013,.046),vec3(.28,.051,.16),v*.80);
+ if(scene<.5)return mix(vec3(.008,.021,.062),vec3(.050,.115,.265),v);
+ if(scene<1.5)return mix(vec3(.140,.027,.075),vec3(.34,.074,.18),v*.80);
  if(scene<2.5)return mix(vec3(.006,.009,.016),vec3(.066,.074,.092),v);
- if(scene<3.5)return mix(vec3(.12,.145,.175),vec3(.29,.32,.37),v);
+ if(scene<3.5)return mix(vec3(.255,.279,.308),vec3(.47,.49,.53),v);
  if(scene<4.5)return mix(vec3(.20,.26,.31),vec3(.55,.59,.63),v);
- return mix(vec3(.011,.017,.023),vec3(.073,.085,.10),v);
+ return mix(vec3(.034,.047,.061),vec3(.14,.17,.20),v);
 }
 void main(){
  vec3 c=mix(background(uScene,uv),background(uNext,uv),uMix);
