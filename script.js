@@ -22,8 +22,8 @@
 
   const PAPER = '#f3f5f7';
   const INK = '#09090a';
-  const MODE_SECONDS = window.KBJScenes?.duration || 5.2;
-  const TRANSITION_SECONDS = window.KBJScenes?.transition || 1.65;
+  const MODE_SECONDS = 8.2;
+  const TRANSITION_SECONDS = 2.3;
   const MODE_NAMES = window.KBJScenes?.names || [
     'FILM / REVEAL', 'DEEP COBALT', 'MERCURY / STUDIO',
     'MONOCHROME / CLOSE', 'HIGH KEY / MOTION', 'FILM / OPEN WORLD'
@@ -44,7 +44,7 @@
     fps: 60,
     frames: 0,
     fpsMark: performance.now(),
-    // Optical 17% wordmark enlargement only on intentional desktop glyph hover.
+    // Restrained 8.5% glyph-only hover; no whole-image zoom.
     letterScale: 1,
     letterHoverUntil: 0,
   };
@@ -92,8 +92,20 @@
   requestAnimationFrame(frame);
 
   function setupUI() {
+    let menuCloseTimer=0;
+    const cancelMenuClose=()=>{clearTimeout(menuCloseTimer);menuCloseTimer=0;};
+    const closeAfterPointerLeave=(delay=230)=>{
+      if(!finePointer)return;
+      cancelMenuClose();
+      menuCloseTimer=setTimeout(()=>{
+        if(mobileDrawer?.classList.contains('is-open')){
+          setMenu(false);
+        }
+      },delay);
+    };
     const setMenu = (open) => {
       if (!menuToggle || !mobileDrawer) return;
+      if(!open)cancelMenuClose();
       menuToggle.setAttribute('aria-expanded', String(open));
       mobileDrawer.classList.toggle('is-open', open);
       mobileDrawer.setAttribute('aria-hidden', String(!open));
@@ -101,6 +113,15 @@
     };
 
     menuToggle?.addEventListener('click', () => setMenu(menuToggle.getAttribute('aria-expanded') !== 'true'));
+    if(finePointer){
+      // Delayed briefly for the gap between pill and dropdown. Mouse leaving
+      // either control eventually dismisses it; re-entry cancels that close.
+      menuToggle?.addEventListener('pointerenter',cancelMenuClose,{passive:true});
+      menuToggle?.addEventListener('pointerleave',()=>closeAfterPointerLeave(300),{passive:true});
+      mobileDrawer?.addEventListener('pointerenter',cancelMenuClose,{passive:true});
+      mobileDrawer?.addEventListener('pointerleave',()=>closeAfterPointerLeave(180),{passive:true});
+      window.addEventListener('blur',()=>setMenu(false));
+    }
     document.addEventListener('click', (e) => {
       if (!menuToggle || !mobileDrawer) return;
       if (menuToggle.contains(e.target) || mobileDrawer.contains(e.target)) return;
@@ -143,45 +164,28 @@
   }
 
   function setupCursor() {
-    const updatePointer = (e) => {
-      const x = e.clientX;
-      const y = e.clientY;
-      pointer.vx = x - pointer.x;
-      pointer.vy = y - pointer.y;
-      pointer.speed = Math.min(1, Math.hypot(pointer.vx, pointer.vy) / 52);
-      pointer.x = x;
-      pointer.y = y;
-      pointer.nx = state.w ? (x / state.w) * 2 - 1 : 0;
-      pointer.ny = state.h ? (y / state.h) * 2 - 1 : 0;
-      pointer.active = true;
-      // Works even while the underlying fallback canvas is hidden.
-      pointer.overCanvas = !!(e.target?.closest?.('.hero'));
-
-      if (finePointer && cursorRoot && cursorDot) {
-        cursorRoot.classList.add('is-visible');
-        cursorDot.style.transform = `translate3d(${x}px,${y}px,0) scale(${1 + pointer.speed * .22})`;
-      }
+    // Keep a native OS cursor: no oversized rings, trails or hover morphs.
+    // Pointer coordinates still drive gentle 3D camera parallax.
+    const updatePointer=(e)=>{
+      if(e.pointerType==='touch')return;
+      const x=e.clientX,y=e.clientY;
+      pointer.vx=x-pointer.x;
+      pointer.vy=y-pointer.y;
+      pointer.speed=Math.min(1,Math.hypot(pointer.vx,pointer.vy)/52);
+      pointer.x=x;pointer.y=y;
+      pointer.nx=state.w?(x/state.w)*2-1:0;
+      pointer.ny=state.h?(y/state.h)*2-1:0;
+      pointer.active=true;
+      pointer.overCanvas=!!e.target?.closest?.('.hero');
     };
-
-    const eventName = 'onpointerrawupdate' in window ? 'pointerrawupdate' : 'pointermove';
-    addEventListener(eventName, updatePointer, { passive: true });
-    canvas.addEventListener('pointerenter', (e) => { pointer.overCanvas = true; updatePointer(e); }, { passive: true });
-    canvas.addEventListener('pointerleave', () => { pointer.overCanvas = false; }, { passive: true });
-    addEventListener('pointerdown', () => { pointer.down = true; cursorRoot?.classList.add('is-down'); }, { passive: true });
-    addEventListener('pointerup', () => { pointer.down = false; cursorRoot?.classList.remove('is-down'); }, { passive: true });
-    document.addEventListener('pointerover', (e) => cursorRoot?.classList.toggle('is-hover', !!e.target.closest('a,button,[role="button"]')));
-    document.addEventListener('pointerout', (e) => { if (!e.relatedTarget) cursorRoot?.classList.remove('is-visible'); });
-
-    if (finePointer && cursorRing) {
-      const ring = () => {
-        pointer.px += (pointer.x - pointer.px) * 0.62;
-        pointer.py += (pointer.y - pointer.py) * 0.62;
-        const angle = Math.atan2(pointer.vy, pointer.vx || 0.001) * 180 / Math.PI;
-        cursorRing.style.transform = `translate3d(${pointer.px}px,${pointer.py}px,0) rotate(${angle}deg) scale(${1 + pointer.speed * .22},${1 - pointer.speed * .07})`;
-        requestAnimationFrame(ring);
-      };
-      requestAnimationFrame(ring);
-    }
+    const eventName='onpointerrawupdate' in window?'pointerrawupdate':'pointermove';
+    addEventListener(eventName,updatePointer,{passive:true});
+    canvas.addEventListener('pointerenter',e=>{
+      pointer.overCanvas=true;updatePointer(e);
+    },{passive:true});
+    canvas.addEventListener('pointerleave',()=>{
+      pointer.overCanvas=false;
+    },{passive:true});
   }
 
   function resize() {
@@ -260,27 +264,25 @@
   }
 
   function updateLetterHover(now,dt) {
-    // Hit-test the real offscreen letter mask, never the whole hero rectangle.
-    // While zooming, invert the current zoom to avoid hover flicker on an
-    // enlarged letter edge. Hold very briefly while crossing counters/gaps.
+    // Crucially, hit-test the ORIGINAL, unscaled glyphs.
+    // Using the zoomed image for hit-testing created a feedback loop:
+    // stationary cursor -> expanding text -> white gap -> shrinking -> repeat.
     let hit=false;
-    if (finePointer && !reduceMotion && pointer.active && pointer.overCanvas &&
-        pointer.x>=0 && pointer.x<state.w && pointer.y>=0 && pointer.y<state.h) {
-      const z=state.letterScale;
-      const x=((pointer.x/state.w-.5)/z+.5)*maskCanvas.width;
-      const y=((pointer.y/state.h-.5)/z+.5)*maskCanvas.height;
-      const bx= Math.floor(x),by=Math.floor(y);
-      if (bx>=0 && bx<maskCanvas.width && by>=0 && by<maskCanvas.height) {
-        // One RGBA pixel per redraw, no WebGL readback or texture upload.
-        hit=maskCtx.getImageData(bx,by,1,1).data[3]>38;
-      }
+    if(finePointer&&!reduceMotion&&pointer.active&&pointer.overCanvas&&
+       pointer.x>=0&&pointer.x<state.w&&pointer.y>=0&&pointer.y<state.h){
+      const bx=Math.floor(pointer.x/state.w*maskCanvas.width);
+      const by=Math.floor(pointer.y/state.h*maskCanvas.height);
+      if(bx>=0&&by>=0&&bx<maskCanvas.width&&by<maskCanvas.height)
+        hit=maskCtx.getImageData(bx,by,1,1).data[3]>42;
     }
-    if(hit)state.letterHoverUntil=now+150;
-    const target=finePointer && !reduceMotion &&
-       pointer.overCanvas && now<state.letterHoverUntil ? 1.17 : 1;
-    const ease=1-Math.exp(-dt*(target>state.letterScale?9.0:7.2));
-    state.letterScale+=(target-state.letterScale)*ease;
-    if(Math.abs(state.letterScale-target)<.0007)state.letterScale=target;
+    if(hit)state.letterHoverUntil=now+240;
+    const target=finePointer&&!reduceMotion&&pointer.overCanvas&&
+       now<state.letterHoverUntil?1.085:1;
+    // Slow, critically damped response independent of render frame rate.
+    const speed=target>state.letterScale?3.0:2.65;
+    state.letterScale+=(target-state.letterScale)*
+      (1-Math.exp(-Math.min(.25,dt)*speed));
+    if(Math.abs(state.letterScale-target)<.0003)state.letterScale=target;
     pointer.glyphHover=hit;
   }
 

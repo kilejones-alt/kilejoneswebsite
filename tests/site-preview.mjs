@@ -95,38 +95,33 @@ try{
     }
     await page.evaluate(()=>window.__KBJ_FORCE_SCENE=undefined);
     if(spec.name==='desktop'){
-      // Confirm the fluid opening comes out of a real opaque letter, rather
-      // than forming an unrelated black blob in the white page gutter.
+      // Hover only the original fixed K glyph, not its changing zoomed edge.
+      // Hold the mouse absolutely stationary to catch the former
+      // shrink/expand/shrink/expand feedback oscillation.
       await page.mouse.move(91,208);
-      await page.waitForTimeout(800);
-      const cursor=await page.evaluate(()=>{
-        const w=document.querySelector('.hero-film-window');
-        return !!w && w.style.maskImage.includes('radial-gradient');
-      });
-      console.log(JSON.stringify({device:'desktop',cursorFluidRevealFromGlyph:cursor}));
-      if(!cursor)throw new Error('Pointer over K did not open cursor reveal');
-      const enlarged=await page.evaluate(()=>({
-        scale:window.__KBJ_DIAGNOSTICS?.letterScale,
-        target:window.__KBJ_DIAGNOSTICS?.letterHover,
+      await page.waitForTimeout(2200);
+      const first=await page.evaluate(()=>window.__KBJ_DIAGNOSTICS?.letterScale);
+      await page.waitForTimeout(1600);
+      const later=await page.evaluate(()=>window.__KBJ_DIAGNOSTICS?.letterScale);
+      const controls=await page.evaluate(()=>({
+        cursor:getComputedStyle(document.querySelector('#hero-canvas')).cursor,
+        customCursor:!!document.querySelector('.elite-cursor'),
+        paintOutside:(document.querySelector('.hero-film-window')?.style.maskImage||'').includes('radial-gradient'),
         nativeScale:window.__KBJ_DIAGNOSTICS?.gpu?.nativeLetterScale,
         nativeMaskSize:document.querySelector('.hero-film-window')?.style.maskSize||''
       }));
-      if(enlarged.scale<1.11||enlarged.nativeScale<1.11||
-         !enlarged.nativeMaskSize.includes('11')) {
-         throw new Error('Letter-only native and GPU hover enlargement failed: '+JSON.stringify(enlarged));
+      if(!(first>1.03 && later>=first-.003 && later<=1.086)){
+        throw new Error('Stationary hover zoom unstable '+JSON.stringify({first,later}));
       }
-      console.log(JSON.stringify({device:'desktop',wordmarkHover:enlarged}));
+      if(controls.customCursor||controls.paintOutside||controls.cursor==='none')
+        throw new Error('Old cursor or paint effect remained '+JSON.stringify(controls));
+      console.log(JSON.stringify({device:'desktop',steadyHover:{first,later,...controls}}));
       await page.screenshot({path:'qa-screenshots/desktop-hover-expanded.png'});
-      // Fade fully out on genuine hover leave; the rest of the page must stay fixed.
       await page.mouse.move(710,26);
-      await page.waitForTimeout(900);
+      await page.waitForTimeout(1600);
       const reset=await page.evaluate(()=>window.__KBJ_DIAGNOSTICS?.letterScale);
-      if(!reset||reset>1.02)throw new Error('Hover zoom failed to reverse '+reset);
-      console.log(JSON.stringify({device:'desktop',wordmarkAfterLeave:reset}));
+      if(!reset||reset>1.025)throw new Error('Hover zoom failed to settle '+reset);
       await page.screenshot({path:'qa-screenshots/desktop-hover-reset.png'});
-      await page.mouse.move(91,208);
-      await page.waitForTimeout(550);
-      await page.screenshot({path:'qa-screenshots/desktop-fluid-reveal.png'});
     }
     const expected=[
       ['Inverted World','https://kilejones.substack.com/subscribe'],
@@ -144,6 +139,36 @@ try{
     }
     if(await page.locator('#menu-toggle').getAttribute('aria-expanded')!=='true') {
       throw new Error('Menu refused to open');
+    }
+    const menuDesign=await page.locator('#mobile-drawer').evaluate(el=>{
+      const a=el.querySelector('a');
+      return {width:el.getBoundingClientRect().width,
+        fontSize:parseFloat(getComputedStyle(a).fontSize),
+        fontWeight:parseInt(getComputedStyle(a).fontWeight,10)};
+    });
+    if(menuDesign.width>320||menuDesign.fontSize>20||menuDesign.fontWeight>600)
+      throw new Error('Menu remains oversized or too bold '+JSON.stringify(menuDesign));
+    await page.waitForTimeout(800);
+    const menuVisibility=await page.locator('#mobile-drawer').evaluate(el=>({
+      visibility:getComputedStyle(el).visibility,
+      opacity:parseFloat(getComputedStyle(el).opacity),
+      y:el.getBoundingClientRect().y
+    }));
+    const stillExpanded=await page.locator('#menu-toggle').getAttribute('aria-expanded');
+    if(stillExpanded!=='true'||menuVisibility.visibility!=='visible'||menuVisibility.opacity<.55)
+      throw new Error('Dropdown did not remain visibly open '+spec.name+': '+JSON.stringify({stillExpanded,...menuVisibility}));
+    await page.screenshot({path:'qa-screenshots/'+spec.name+'-menu.png'});
+    if(!spec.isMobile){
+      // Keep the dropdown open on entry, and close after leaving its region.
+      await page.locator('#mobile-drawer a').first().hover();
+      await page.waitForTimeout(280);
+      if(await page.locator('#menu-toggle').getAttribute('aria-expanded')!=='true')
+        throw new Error('Menu closed while moving into dropdown');
+      await page.mouse.move(8,85);
+      await page.waitForTimeout(850);
+      if(await page.locator('#menu-toggle').getAttribute('aria-expanded')!=='false')
+        throw new Error('Menu stayed open after pointer left');
+      await page.locator('#menu-toggle').click();
     }
     await page.keyboard.press('Escape');
     if(await page.locator('#menu-toggle').getAttribute('aria-expanded')!=='false') {

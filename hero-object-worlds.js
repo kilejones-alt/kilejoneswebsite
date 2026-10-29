@@ -612,9 +612,25 @@ class Stage{
    rot[0]+=t*.045;rot[1]+=t*.05*o.dir;
    if(mobile){p[0]*=.55;p[1]*=.55;}
   }
+  // Increase object size without separating the head, horns, paws or
+  // the three 3D letters. Scale group positions around the staged center.
+  const groups={
+    rabbit: mobile?[-.18,.26,1.16]:[-.43,.43,1.20],
+    rhino:mobile?[-.22,.58,1.15]:[-.53,.94,1.18],
+    foil:mobile?[0,.44,1.12]:[-.29,1.44,1.14]
+  };
+  const group=groups[o.kind];
+  if(group){
+    const [cx,cy,k]=group;
+    p[0]=cx+(p[0]-cx)*k;
+    p[1]=cy+(p[1]-cy)*k;
+    sc[0]*=k;sc[1]*=k;sc[2]*=k;
+  }else if(o.kind==='star'){
+    sc[0]*=1.12;sc[1]*=1.12;sc[2]*=1.12;
+  }
   const perspective=1+p[2]*.068;
-  p[0]-=x*.62*perspective;p[1]+=y*.39*perspective;
-  rot[1]-=x*.075*perspective;rot[0]+=y*.055*perspective;
+  p[0]-=x*.38*perspective;p[1]+=y*.25*perspective;
+  rot[1]-=x*.035*perspective;rot[0]+=y*.025*perspective;
   p[0]+=Math.sin(t*.11+scene)*.035;
   return model(p,sc,rot);
  }
@@ -640,8 +656,8 @@ class Stage{
   if(!this.ready)return false;
   try{
    if(!this.resize())return false;
-   const gl=this.gl,t=options.now*.001;
-   const p=options.pointer||{},a=1-Math.exp(-clamp(options.dt||.016,.001,.05)*16);
+   const gl=this.gl,t=options.now*.001*.62;
+   const p=options.pointer||{},a=1-Math.exp(-clamp(options.dt||.016,.001,.05)*4.8);
    this.pointer[0]=lerp(this.pointer[0],p.active?p.nx:0,a);
    this.pointer[1]=lerp(this.pointer[1],p.active?p.ny:0,a);
    const aspect=this.width/this.height,mobile=aspect<.76;
