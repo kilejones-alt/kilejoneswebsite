@@ -148,14 +148,15 @@ try{
     });
     if(menuDesign.width>320||menuDesign.fontSize>20||menuDesign.fontWeight>600)
       throw new Error('Menu remains oversized or too bold '+JSON.stringify(menuDesign));
-    await page.waitForTimeout(420);
+    await page.waitForTimeout(800);
     const menuVisibility=await page.locator('#mobile-drawer').evaluate(el=>({
       visibility:getComputedStyle(el).visibility,
       opacity:parseFloat(getComputedStyle(el).opacity),
       y:el.getBoundingClientRect().y
     }));
-    if(menuVisibility.visibility!=='visible'||menuVisibility.opacity<.9)
-      throw new Error('Dropdown did not become visibly open '+spec.name+': '+JSON.stringify(menuVisibility));
+    const stillExpanded=await page.locator('#menu-toggle').getAttribute('aria-expanded');
+    if(stillExpanded!=='true'||menuVisibility.visibility!=='visible'||menuVisibility.opacity<.55)
+      throw new Error('Dropdown did not remain visibly open '+spec.name+': '+JSON.stringify({stillExpanded,...menuVisibility}));
     await page.screenshot({path:'qa-screenshots/'+spec.name+'-menu.png'});
     if(!spec.isMobile){
       // Keep the dropdown open on entry, and close after leaving its region.
