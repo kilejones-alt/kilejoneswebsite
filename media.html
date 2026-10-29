@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f3f5f7">
 <meta name="referrer" content="same-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; frame-src 'none'; img-src 'self' data:; script-src 'self'; style-src 'self'; connect-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; frame-src https://www.youtube-nocookie.com https://www.youtube.com; img-src 'self' data:; script-src 'self'; style-src 'self'; connect-src 'self'">
 <title>Media — Kile B. Jones</title>
 <link rel="canonical" href="https://kilebardenjones.com/media.html">
 <meta name="description" content="Interviews, conversations, and appearances by Kile B. Jones.">
@@ -14,24 +14,178 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="stylesheet" href="projects.css?v=20261018a">
 <style>
-/* Scoped to Media only. The existing site's colors, header, and navigation stay unchanged. */
+/* Media page only. Original header, homepage and site palette are unchanged. */
+.media-premiere{
+  padding:clamp(8px,3vw,40px) 0 clamp(72px,9vw,136px);
+  min-height:min(84svh,850px);
+  display:grid;
+  place-items:center;
+  overflow:visible;
+}
+.media-premiere-inner{
+  width:min(100%,1080px);
+  margin-inline:auto;
+  animation:media-film-arrival 1.75s cubic-bezier(.19,1,.22,1) both;
+  transform-origin:center 42%;
+}
+.media-film{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  width:100%;
+  aspect-ratio:16/9;
+  background:#090a0d;
+  border:1px solid #26272b;
+  border-radius:clamp(8px,1.25vw,15px);
+  box-shadow:0 35px 90px rgba(9,9,10,.16),0 6px 20px rgba(9,9,10,.10);
+}
+.media-film iframe{display:block;width:100%;height:100%;border:0;background:#090a0d}
+.media-feature-details{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  gap:24px;padding:clamp(19px,2.2vw,29px) 0 0;
+}
+.media-feature-copy{min-width:0}
+.media-feature-show{
+  margin:0 0 8px;
+  color:#4a4a4f;
+  font-size:clamp(10px,1vw,13px);
+  line-height:1.5;
+  letter-spacing:.035em;
+}
+.media-feature-title{
+  font:700 clamp(20px,2.1vw,31px)/1.18 "Helvetica Neue",Arial,Helvetica,sans-serif;
+  letter-spacing:-.045em;
+  max-width:680px;
+  margin:0;
+}
+.media-sound{
+  min-width:132px;
+  min-height:44px;
+  padding:11px 17px;
+  border:1px solid rgba(11,11,12,.25);
+  border-radius:999px;
+  color:#0b0b0c;
+  background:#fff;
+  font:500 12px/1 "SFMono-Regular",Menlo,Consolas,monospace;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:transform .38s cubic-bezier(.2,.8,.2,1),background .25s,color .25s,border-color .25s;
+}
+.media-sound:hover,.media-sound:focus-visible{
+  transform:translateY(-3px);
+  background:#0b0b0c;
+  border-color:#0b0b0c;
+  color:#fff;
+}
+.media-sound:focus-visible,.media-listen:focus-visible{outline:2px solid #0b0b0c;outline-offset:3px}
+@keyframes media-film-arrival{
+  0%{opacity:0;transform:translate3d(0,11vh,0) scale(.28);filter:blur(12px)}
+  18%{opacity:.98}
+  100%{opacity:1;transform:translate3d(0,0,0) scale(1);filter:blur(0)}
+}
 .media-collections{border-top:1px solid rgba(11,11,12,.25)}
 .media-section{padding:clamp(26px,4vw,54px) 0 clamp(32px,6vw,76px)}
 .media-section+.media-section{border-top:1px solid rgba(11,11,12,.25)}
-.media-section h2{font-family:"Arial Black","Helvetica Neue",Arial,sans-serif;font-size:clamp(30px,4.7vw,66px);line-height:1.02;letter-spacing:-.045em;margin:0 0 clamp(24px,3vw,42px)}
-.media-entry{display:flex;justify-content:space-between;align-items:center;gap:clamp(12px,3vw,36px);padding:clamp(20px,2.5vw,32px) 0;border-top:1px solid rgba(11,11,12,.18)}
+.media-section h2{
+  font-family:"Arial Black","Helvetica Neue",Arial,sans-serif;
+  font-size:clamp(29px,4.7vw,66px);
+  line-height:1.04;letter-spacing:-.052em;
+  margin:0 0 clamp(24px,3vw,42px);
+}
+.media-entry{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:clamp(16px,3vw,36px);
+  padding:clamp(20px,2.5vw,32px) clamp(6px,1vw,16px);
+  border-top:1px solid rgba(11,11,12,.18);
+  border-left:2px solid transparent;
+  transition:opacity .9s cubic-bezier(.2,.8,.2,1),
+    transform .85s cubic-bezier(.18,1,.24,1),
+    border-color .35s ease,background .35s ease,box-shadow .35s ease;
+}
+.media-entry:hover,.media-entry:focus-within{
+  transform:translate3d(8px,-6px,0);
+  border-left-color:#18191b;
+  background:rgba(255,255,255,.67);
+  box-shadow:0 14px 36px rgba(9,9,10,.045);
+}
 .media-entry-copy{min-width:0;flex:1}
-.media-show{margin:0 0 9px;font-size:clamp(11px,1vw,14px);color:#45464b;line-height:1.5}
-.media-episode{margin:0;font-family:"Arial Black","Helvetica Neue",Arial,sans-serif;font-size:clamp(21px,2.8vw,38px);line-height:1.12;letter-spacing:-.04em;overflow-wrap:break-word}
-.media-listen{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-width:90px;min-height:43px;padding:12px 19px;border:1px solid rgba(11,11,12,.25);border-radius:999px;background:#fff;text-decoration:none;font-size:12px;transition:background .2s,color .2s,transform .2s}
-.media-listen:hover,.media-listen:focus-visible{background:#0b0b0c;color:#fff;transform:translateY(-2px)}
-@media(max-width:600px){.media-entry{align-items:flex-start;flex-direction:column;gap:14px}.media-listen{min-height:42px}}
-@media(prefers-reduced-motion:reduce){.media-listen{transition:none}.media-listen:hover{transform:none}}
+.media-show{
+  margin:0 0 10px;
+  font:500 clamp(11px,1.05vw,14px)/1.55 "SFMono-Regular",Menlo,Consolas,monospace;
+  color:#47484d;letter-spacing:-.015em;
+}
+.media-episode{
+  margin:0;
+  font:700 clamp(22px,2.85vw,38px)/1.13 "Helvetica Neue",Arial,Helvetica,sans-serif;
+  letter-spacing:-.05em;overflow-wrap:break-word;
+  text-wrap:pretty;
+}
+.media-listen{
+  display:inline-flex;align-items:center;justify-content:center;
+  flex-shrink:0;min-width:90px;min-height:44px;
+  padding:12px 19px;
+  border:1px solid rgba(11,11,12,.25);
+  border-radius:999px;background:#fff;
+  text-decoration:none;font-size:12px;
+  transition:background .24s,color .24s,transform .38s cubic-bezier(.2,.8,.2,1);
+}
+.media-entry:hover .media-listen,
+.media-listen:focus-visible{background:#0b0b0c;color:#fff;transform:translateY(-2px)}
+/* JS enhancement only. Without JS or IntersectionObserver every entry is visible. */
+.media-enhanced .media-entry:not(.is-visible),
+.media-enhanced .media-section h2:not(.is-visible){
+  opacity:0;transform:translate3d(0,55px,0);
+}
+.media-enhanced .media-entry.is-visible,
+.media-enhanced .media-section h2.is-visible{opacity:1}
+@media(min-width:600px) and (max-width:1000px){
+  .media-premiere{min-height:68svh;padding-bottom:85px}
+  .media-feature-title{font-size:clamp(20px,3.15vw,30px)}
+  .media-entry{gap:20px}
+}
+@media(max-width:600px){
+  .media-premiere{
+    min-height:unset;
+    padding:clamp(25px,9vh,85px) 0 78px;
+  }
+  .media-premiere-inner{width:100%}
+  .media-film{border-radius:8px;box-shadow:0 14px 36px rgba(9,9,10,.16)}
+  .media-feature-details{flex-direction:column;gap:16px;padding-top:19px}
+  .media-feature-title{font-size:clamp(20px,5.8vw,27px)}
+  .media-sound{align-self:flex-start}
+  .media-entry{align-items:flex-start;flex-direction:column;gap:16px;padding:24px 4px}
+  .media-entry:hover,.media-entry:focus-within{transform:translate3d(3px,-3px,0)}
+  .media-listen{min-height:44px}
+}
+@media(hover:none){
+  .media-entry:hover{transform:none;box-shadow:none;background:transparent}
+  .media-sound:hover{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .media-premiere-inner{animation:none}
+  .media-enhanced .media-entry,
+  .media-enhanced .media-section h2{opacity:1!important;transform:none!important}
+  .media-entry,.media-sound,.media-listen{transition:none}
+}
 </style>
 </head>
 <body>
 <header><span>Kile B. Jones</span><a class="home" href="./">Home</a></header>
 <main>
+<section class="media-premiere" aria-labelledby="media-feature-title">
+  <div class="media-premiere-inner">
+    <div class="media-film">
+      <iframe id="media-feature-player" title="From Anti-Zionist to Pro-Israel: Why Kile Jones Changed His Mind" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    </div>
+    <div class="media-feature-details">
+      <div class="media-feature-copy">
+        <p class="media-feature-show">The Fifth Question with Rabbi Daniel Levine</p>
+        <h2 id="media-feature-title" class="media-feature-title">From Anti-Zionist to Pro-Israel: Why Kile Jones Changed His Mind</h2>
+      </div>
+      <button type="button" class="media-sound" id="media-feature-sound" aria-controls="media-feature-player" aria-pressed="false">Enable sound</button>
+    </div>
+  </div>
+</section>
 <h1 class="title">MEDIA</h1>
 <p class="media-note">Interviews, conversations, and appearances.</p>
 <div class="media-collections">
@@ -106,5 +260,6 @@
   </section>
 </div>
 </main>
+<script src="media-interview.js" defer></script>
 </body>
 </html>
