@@ -264,6 +264,7 @@ void main() {
       this.height = 0;
       this.readyFrame = false;
       this.birthTime = performance.now()*.001;
+      this.completedFrames = 0;
 
       this.canvas = document.createElement('canvas');
       this.canvas.className = 'hero-gpu-layer';
@@ -713,9 +714,11 @@ void main() {
             uIntro:Math.min(1.6,options.now*.001 - this.birthTime)
           });
           gl.drawArrays(gl.TRIANGLES,0,3);
-          if (gl.getError()!==gl.NO_ERROR) throw new Error('Native video fluid pass failed');
+          if((this.completedFrames<3||this.completedFrames%120===0) && gl.getError()!==gl.NO_ERROR)
+             throw new Error('Native video fluid pass failed');
           this.canvas.style.display='block';
           this.status='native video + GPU fluid reveal active';
+           this.completedFrames++;
           return true;
         } catch(error) {
           this.fail('Native-video GPU render failed',error);
