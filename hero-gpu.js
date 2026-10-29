@@ -374,63 +374,21 @@ void main() {
       filmWindow.style.maskSize = '100% 100%';
     }
 
-    updateFluidCursorMask(pointer,time) {
-      // Three uneven, independently moving fluid lobes are additive to the
-      // fixed letter aperture. Their strength rises/falls with a smooth
-      // response, avoiding a hard jump when the pointer leaves the hero.
+    updateFluidCursorMask() {
+      // No pointer-generated CSS radial holes. They painted large colored
+      // blobs around letters and created a second competing cursor effect.
+      // Keep the original fixed glyph artwork and subtle internal movement.
       if(!this.filmWindow || !this.originalGlyphImage)return;
-      let eligible=!!pointer?.overCanvas && !!pointer?.active &&
-        !window.matchMedia('(pointer: coarse)').matches &&
-        !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      // A fluid opening should originate from the actual wordmark, not
-      // appear as an unrelated dark ink blot in the empty middle gutter.
-      // The main canvas already performs an inverse-zoomed glyph hit test.
-      // Reuse it to avoid a second pixel readback on each frame.
-      if(eligible) eligible=!!pointer.glyphHover;
-      const dt=Math.max(0,Math.min(80,time-(this.lastFluidMaskUpdate||time)));
-      if (this.lastFluidMaskUpdate && dt<28)return;
-      this.lastFluidMaskUpdate=time;
-      const previous=this.cursorRevealStrength||0;
-      const response=1-Math.exp(-Math.max(dt,16)/220);
-      const amount=this.cursorRevealStrength=previous+
-        ((eligible?1:0)-previous)*response;
-      if(amount<.008){
-        if(this.cursorMaskExpanded){
-          this.filmWindow.style.webkitMaskImage=this.originalGlyphImage;
-          this.filmWindow.style.maskImage=this.originalGlyphImage;
-          this.cursorMaskExpanded=false;
-        }
-        return;
+      if(this.cursorMaskExpanded){
+        this.filmWindow.style.webkitMaskImage=this.originalGlyphImage;
+        this.filmWindow.style.maskImage=this.originalGlyphImage;
+        this.cursorMaskExpanded=false;
       }
-      const x=(pointer.nx*.5+.5)*100,y=(pointer.ny*.5+.5)*100;
-      const t=time*.001;
-      const radius=Math.min(this.width,this.height)*.16*amount;
-      const ellipses=[
-        [0,0,1.00,.74],
-        [Math.sin(t*1.23)*.25,-.28,.68,.50],
-        [Math.cos(t*.91)*.32,.25,.62,.60]
-      ];
-      const gradients=ellipses.map(([dx,dy,a,b])=>{
-        const cx=(x+dx*radius/this.width*100).toFixed(2);
-        const cy=(y+dy*radius/this.height*100).toFixed(2);
-        const w=Math.max(1,Math.round(radius*a));
-        const h=Math.max(1,Math.round(radius*b));
-        return 'radial-gradient(ellipse '+w+'px '+h+'px at '+
-          cx+'% '+cy+'%, black 44%, transparent 100%)';
-      });
-      const value=[this.originalGlyphImage,...gradients].join(', ');
-      this.filmWindow.style.webkitMaskImage=value;
-      this.filmWindow.style.maskImage=value;
-      this.filmWindow.style.webkitMaskComposite='source-over';
-      this.filmWindow.style.maskComposite='add';
-      this.filmWindow.style.webkitMaskRepeat='no-repeat';
-      this.filmWindow.style.maskRepeat='no-repeat';
-      this.cursorMaskExpanded=true;
     }
 
     updateNativeLetterScale(scale) {
       if(!this.filmWindow)return;
-      const z=Math.max(1,Math.min(1.17,scale||1));
+      const z=Math.max(1,Math.min(1.085,scale||1));
       const layers=this.cursorMaskExpanded?4:1;
       // Reapply when the set of fluid lobes changes, even at constant zoom.
       // Otherwise CSS repeats the first mask size onto the gradients.
