@@ -318,10 +318,14 @@
     if (now - state.lastDraw < interval) return;
     state.lastDraw = now;
 
-    const dt = Math.min(0.05, Math.max(0.001, (now - state.last) / 1000));
+    const elapsed = Math.max(0.001, (now - state.last) / 1000);
+    // Fluid simulation clamps to 50ms for numerical stability; the visual
+    // hover spring must instead use real wall time so the title still returns
+    // smoothly under low FPS, software WebGL or heavy mobile GPU load.
+    const dt = Math.min(0.05, elapsed);
     state.last = now;
     const t = (now - state.start) / 1000;
-    updateLetterHover(now,dt);
+    updateLetterHover(now,Math.min(.4,elapsed));
     updateMode(now);
 
     // The GPU draws the actual glyph mask and footage without readback.
