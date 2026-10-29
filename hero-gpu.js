@@ -404,7 +404,7 @@ void main() {
       }
       const x=(pointer.nx*.5+.5)*100,y=(pointer.ny*.5+.5)*100;
       const t=time*.001;
-      const radius=Math.min(this.width,this.height)*.22*amount;
+      const radius=Math.min(this.width,this.height)*.16*amount;
       const ellipses=[
         [0,0,1.00,.74],
         [Math.sin(t*1.23)*.25,-.28,.68,.50],
@@ -416,7 +416,7 @@ void main() {
         const w=Math.max(1,Math.round(radius*a));
         const h=Math.max(1,Math.round(radius*b));
         return 'radial-gradient(ellipse '+w+'px '+h+'px at '+
-          cx+'% '+cy+'%, black 55%, transparent 100%)';
+          cx+'% '+cy+'%, black 44%, transparent 100%)';
       });
       const value=[this.originalGlyphImage,...gradients].join(', ');
       this.filmWindow.style.webkitMaskImage=value;
