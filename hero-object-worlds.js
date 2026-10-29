@@ -663,7 +663,8 @@ class Stage{
     gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
     this.drawScene(next,t,mix,mobile);gl.disable(gl.BLEND);
    }
-   if(gl.getError()!==gl.NO_ERROR)throw Error('3D draw failed');
+   if((this.frames<3||this.frames%120===0) && gl.getError()!==gl.NO_ERROR)
+     throw Error('3D draw failed');
    this.frames++;return true;
   }catch(error){
    this.ready=false;this.fault=String(error.message||error);
