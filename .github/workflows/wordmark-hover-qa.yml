@@ -1,7 +1,7 @@
-name: Wordmark hover interaction QA
+name: Wordmark, cursor and compact menu QA
 on:
   push:
-    branches: [hero-interactive-zoom-refinement-20261029]
+    branches: [hero-cursor-menu-polish-20261029]
     paths:
       - 'script.js'
       - 'hero-gpu.js'
