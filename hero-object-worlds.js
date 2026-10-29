@@ -560,8 +560,10 @@ class Stage{
      // toward the lower word; pointer reveal exposes the full silhouette.
      // Front-biased portrait sits behind the upper KILE letters:
      // ears/head/body can share one continuous viewing aperture.
-     p[0]*=1.23;p[1]*=.92;sc[0]*=1.23;sc[1]*=.92;
-     p[1]+=.43;p[0]-=.43;
+     // Compose the full bunny inside the upper B rather than straddling
+     // the enormous white gutter between the two wordmark lines.
+     p[0]*=.77;p[1]*=.48;sc[0]*=.77;sc[1]*=.48;
+     p[1]+=.90;p[0]+=2.88;
    }
   }else if(o.kind==='rhino'){
    // Rhino: look toward camera in a restrained 3/4 profile, leaving
@@ -577,8 +579,10 @@ class Stage{
      p[0]*=.53;p[1]*=.50;sc[0]*=.53;sc[1]*=.50;sc[2]*=.62;
      p[1]+=.58;p[0]-=.22;
    }else{
-     p[0]*=1.27;p[1]*=.78;sc[0]*=1.27;sc[1]*=.78;
-     p[1]+=.94;p[0]-=.53;
+     // Give the rhino a wide, low studio stage across JONES so its
+     // silhouette reads through several contiguous bold letter strokes.
+     p[0]*=1.29;p[1]*=.78;sc[0]*=1.29;sc[1]*=.78;
+     p[1]-=.66;p[0]-=.15;
    }
   }else if(o.kind==='foil'){
    // Separate letter actors, with each welded set of inflated strokes
@@ -599,11 +603,14 @@ class Stage{
    rot[0]+=(k===2?Math.sin(t*.28)*.095:0);
    rot[2]+=Math.sin(t*(.19+k*.06)+k)*.07;
    if(mobile){
+     // Phone: use the second row (JONES) as a dedicated foil stage.
      p[0]*=.43;p[1]*=.34;sc[0]*=.43;sc[1]*=.34;sc[2]*=.65;
-     p[1]+=.44;
+     p[1]-=.54;
    }else{
+     // Foil ZIO should travel through JONES rather than hang mostly
+     // above the first line of the name. Give each actor room to turn.
      p[0]*=1.18;p[1]*=.72;sc[0]*=1.18;sc[1]*=.72;
-     p[1]+=1.44;p[0]-=.29;
+     p[1]-=1.76;p[0]-=.29;
    }
   }else{
    p[1]+=Math.sin(t*.24+phase)*.20;p[2]+=Math.cos(t*.21+phase)*.28;
