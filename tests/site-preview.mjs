@@ -70,11 +70,16 @@ try{
         JSON.stringify(world.objectsByScene)!==JSON.stringify([14,15,5,6,4,3])) {
       throw new Error('Expected the scene engine and retained model library');
     }
-    if(world.modelsVisible!==false || world.visualMode!=='cinematic color rollers')
+    if(world.modelsVisible!==false || world.visualMode!=='solid color loop')
       throw new Error('The production homepage must hide unfinished models');
+    const required=['#000000','#FF5A00','#FF00A8','#00E5CD'];
+    if(JSON.stringify(diagnostic.solidColors)!==JSON.stringify(required)||
+       Math.abs(diagnostic.mix)>.001)
+      throw new Error('Solid colors or hard-cut behavior mismatch '+JSON.stringify(diagnostic));
+
     // Inspect each actual object world on desktop and phone, rather than
     // accidentally validating only whichever random 5-second mode is active.
-    for(const [index,label] of [[0,'stars'],[1,'rabbit'],[3,'rhino'],[5,'zio']]){
+    for(const [index,label] of [[0,'black'],[1,'orange'],[2,'pink'],[3,'teal']]){
       await page.evaluate(value=>window.__KBJ_FORCE_SCENE=value,index);
       await page.waitForTimeout(950);
       await page.screenshot({path:'qa-screenshots/'+spec.name+'-'+label+'.png'});
@@ -92,8 +97,16 @@ try{
           w.style.maskImage=original;w.style.webkitMaskImage=original;
         },original);
       }
-      const active=await page.evaluate(()=>window.__KBJ_DIAGNOSTICS?.gpu?.objectWorlds);
-      if(!active?.active)throw new Error('3D scene became inactive '+label);
+      const active=await page.evaluate(()=>({
+        engine:window.__KBJ_DIAGNOSTICS?.gpu?.objectWorlds,
+        mix:window.__KBJ_DIAGNOSTICS?.mix,
+        scene:window.__KBJ_DIAGNOSTICS?.mode
+      }));
+      if(!active.engine?.active || Math.abs(active.mix)>.001)
+        throw new Error('Solid color scene failed '+label);
+      const expectedName=['BLACK','NEON ORANGE','NEON PINK','BRIGHT TEAL'][index];
+      if(active.scene!==expectedName)
+        throw new Error('Wrong order: expected '+expectedName+' got '+active.scene);
     }
     await page.evaluate(()=>window.__KBJ_FORCE_SCENE=undefined);
     if(spec.name==='desktop'){
@@ -209,13 +222,13 @@ try{
     if(!diagnostic?.gpu?.active) throw new Error('GPU not active for '+spec.name);
     if(!diagnostic?.parentMask) throw new Error('Native letter mask missing for '+spec.name);
     if(Math.abs(diagnostic.modeSeconds-5.6)>.001 ||
-       Math.abs(diagnostic.transitionSeconds-1.55)>.001)
-      throw new Error('Cinematic color rotation should take 5.6 seconds');
+       Math.abs(diagnostic.transitionSeconds)>.001)
+      throw new Error('The solid color loop must cut every 5.6 seconds without crossfading');
     const fontInfo=await page.evaluate(()=>({
-      loaded:document.fonts.check('700 24px Syne'),
+      loaded:document.fonts.check('700 24px "Cinzel Decorative"'),
       hasCustom:!![...document.styleSheets].find(x=>x.href?.includes('fonts.googleapis'))
     }));
-    if(!fontInfo.hasCustom)throw new Error('Missing Syne font request');
+    if(!fontInfo.hasCustom)throw new Error('Missing Cinzel Decorative font request');
 
     const bounds=await page.evaluate(()=>{
       const c=document.querySelector('#hero-canvas');
