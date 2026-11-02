@@ -498,10 +498,13 @@ class Stage{
    if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));
    return p;
   };
-  this.program=program(vert,frag);
+  this.modelsVisible=window.__KBJ_PREVIEW_MODELS===true;
+  // Skip heavy vertex generation and animal shaders on a color-only
+  // homepage. Helps iPhone first-load memory, CPU time and GPU pressure.
+  this.program=this.modelsVisible?program(vert,frag):null;
   this.bgProgram=program(bgV,bgF);
   this.meshes={};
-  for(let [name,data] of Object.entries({sphere:sphere(),star:star(),ring:torus(),cone:cone(),leg:leg(),rhinoBody:rhinoBody(),foilZ:foilGlyph('Z'),foilI:foilGlyph('I')})){
+  if(this.modelsVisible)for(let [name,data] of Object.entries({sphere:sphere(),star:star(),ring:torus(),cone:cone(),leg:leg(),rhinoBody:rhinoBody(),foilZ:foilGlyph('Z'),foilI:foilGlyph('I')})){
     const vao=gl.createVertexArray(),buffer=gl.createBuffer();
     gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
     gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
@@ -510,14 +513,13 @@ class Stage{
     this.meshes[name]={vao,buffer,count:data.length/6};
   }
   this.bgVao=gl.createVertexArray();
-  this.u={};for(let n of ['uModel','uVP','uBase','uEye','uMouse','uType','uAlpha','uTime','uSeed'])
+  this.u={};
+  if(this.modelsVisible)for(let n of ['uModel','uVP','uBase','uEye','uMouse','uType','uAlpha','uTime','uSeed'])
     this.u[n]=gl.getUniformLocation(this.program,n);
   this.bu={};for(let n of ['uScene','uNext','uMix','uTime'])
     this.bu[n]=gl.getUniformLocation(this.bgProgram,n);
   this.items=objects();this.pointer=[0,0];this.frames=0;
-  // First production pass: let six fluid color rollers lead visually.
-  // Old procedural meshes remain for later replacement / private QA only.
-  this.modelsVisible=window.__KBJ_PREVIEW_MODELS===true;
+  // Original model definitions remain for later, but are not allocated.
   this.ready=true;this.fault=null;this.width=0;this.height=0;
   this.canvas.addEventListener('webglcontextlost',e=>{
     e.preventDefault();this.ready=false;this.fault='context lost';
