@@ -515,6 +515,9 @@ class Stage{
   this.bu={};for(let n of ['uScene','uNext','uMix','uTime'])
     this.bu[n]=gl.getUniformLocation(this.bgProgram,n);
   this.items=objects();this.pointer=[0,0];this.frames=0;
+  // First production pass: let six fluid color rollers lead visually.
+  // Old procedural meshes remain for later replacement / private QA only.
+  this.modelsVisible=window.__KBJ_PREVIEW_MODELS===true;
   this.ready=true;this.fault=null;this.width=0;this.height=0;
   this.canvas.addEventListener('webglcontextlost',e=>{
     e.preventDefault();this.ready=false;this.fault='context lost';
@@ -679,11 +682,13 @@ class Stage{
    gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
    gl.clearDepth(1);gl.clear(gl.DEPTH_BUFFER_BIT);
    gl.disable(gl.BLEND);
-   this.drawScene(scene,t,1,mobile);
-   if(mix>.005){
-    gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-    this.drawScene(next,t,mix,mobile);gl.disable(gl.BLEND);
+   if(this.modelsVisible){
+     this.drawScene(scene,t,1,mobile);
+     if(mix>.005){
+       gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.BLEND);
+       gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+       this.drawScene(next,t,mix,mobile);gl.disable(gl.BLEND);
+     }
    }
    if((this.frames<3||this.frames%120===0) && gl.getError()!==gl.NO_ERROR)
      throw Error('3D draw failed');
@@ -708,7 +713,9 @@ class Stage{
    objectsByScene:this.items.map(x=>x.length),
    proceduralMeshes:Object.keys(this.meshes),
    camera:'true perspective, 30.3deg FOV',
-   canvas:[this.width,this.height],fault:this.fault};
+   canvas:[this.width,this.height],modelsVisible:this.modelsVisible,
+   visualMode:this.modelsVisible?'procedural preview':'cinematic color rollers',
+   fault:this.fault};
  }
 }
 let current=null;
