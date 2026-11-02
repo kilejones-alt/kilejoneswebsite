@@ -361,8 +361,7 @@
         mix:+state.mix.toFixed(3), dpr:+state.dpr.toFixed(2),
         videoReady:true,
         modeSeconds:MODE_SECONDS,transitionSeconds:TRANSITION_SECONDS,
-        modeSeconds:MODE_SECONDS,transitionSeconds:TRANSITION_SECONDS,
-      letterScale:+state.letterScale.toFixed(4),
+        letterScale:+state.letterScale.toFixed(4),
         letterHover:pointer.glyphHover,
         gpu:gpuRenderer.diagnostic()
       };
@@ -408,6 +407,7 @@
       dpr: +state.dpr.toFixed(2),
       viewport: [state.w, state.h],
       pointer: [Math.round(pointer.x), Math.round(pointer.y)],
+      modeSeconds:MODE_SECONDS,transitionSeconds:TRANSITION_SECONDS,
       letterScale:+state.letterScale.toFixed(4),
       letterHover:pointer.glyphHover,
       rawPointerInput: 'onpointerrawupdate' in window,
