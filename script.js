@@ -23,11 +23,11 @@
   const PAPER = '#f3f5f7';
   const INK = '#09090a';
   const MODE_SECONDS = 5.6;
-  const TRANSITION_SECONDS = 1.55;
-  const MODE_NAMES = window.KBJScenes?.names || [
-    'FILM / REVEAL', 'DEEP COBALT', 'MERCURY / STUDIO',
-    'MONOCHROME / CLOSE', 'HIGH KEY / MOTION', 'FILM / OPEN WORLD'
-  ];
+  const TRANSITION_SECONDS = 0;
+  // Exact repeating order: BLACK -> ORANGE -> PINK -> TEAL -> BLACK.
+  // Four unique frames avoid holding black twice at the loop boundary.
+  const MODE_NAMES = ['BLACK', 'NEON ORANGE', 'NEON PINK', 'BRIGHT TEAL'];
+  const SOLID_COLORS = ['#000000', '#FF5A00', '#FF00A8', '#00E5CD'];
   const state = {
     w: 0,
     h: 0,
@@ -230,11 +230,9 @@
     g.textAlign = 'center';
     g.textBaseline = 'middle';
 
-    // Noth.in-style monumental grotesque, keeping your name and the two lines.
-    // Actual glyph bounds, not a reduced 3D image, define the entire artwork.
-    // Editorial, angular but less bulky than Archivo Black.
-    // Margins stay generous so the material feels framed, not clipped.
-    const family = '"Syne","Helvetica Neue",Arial,sans-serif';
+    // Decorative Roman capitals, with original name and two-line geometry.
+    // Size is fitted to screen so flourishes never extend past viewport.
+    const family = '"Cinzel Decorative","Times New Roman",serif';
     const weight = 700;
     const horizontal = state.mobile ? .93 : .945;
     const targetW = state.w * .912 / horizontal;
@@ -307,18 +305,15 @@
       return;
     }
     const elapsed = (now - state.modeStart) / 1000;
-    const transitionStart = MODE_SECONDS - TRANSITION_SECONDS;
-    if (elapsed < transitionStart) {
-      state.mix = 0;
-      return;
-    }
-    state.mix = smoothstep((elapsed - transitionStart) / TRANSITION_SECONDS);
+    // Hard switch, not a crossfade. Each full color holds for 5.6s.
+    // Carry remainder to keep timing accurate even under low frame rates.
     if (elapsed >= MODE_SECONDS) {
-      state.mode = state.nextMode;
+      const steps = Math.floor(elapsed / MODE_SECONDS);
+      state.mode = (state.mode + steps) % MODE_NAMES.length;
       state.nextMode = (state.mode + 1) % MODE_NAMES.length;
-      state.modeStart = now;
-      state.mix = 0;
+      state.modeStart += steps * MODE_SECONDS * 1000;
     }
+    state.mix = 0;
   }
 
   function frame(now) {
@@ -361,6 +356,7 @@
         mix:+state.mix.toFixed(3), dpr:+state.dpr.toFixed(2),
         videoReady:true,
         modeSeconds:MODE_SECONDS,transitionSeconds:TRANSITION_SECONDS,
+        solidColors:SOLID_COLORS,
         letterScale:+state.letterScale.toFixed(4),
         letterHover:pointer.glyphHover,
         gpu:gpuRenderer.diagnostic()
@@ -408,6 +404,7 @@
       viewport: [state.w, state.h],
       pointer: [Math.round(pointer.x), Math.round(pointer.y)],
       modeSeconds:MODE_SECONDS,transitionSeconds:TRANSITION_SECONDS,
+      solidColors:SOLID_COLORS,
       letterScale:+state.letterScale.toFixed(4),
       letterHover:pointer.glyphHover,
       rawPointerInput: 'onpointerrawupdate' in window,
@@ -423,13 +420,10 @@
     g.globalAlpha = 1;
     g.clearRect(0, 0, state.w, state.h);
 
-    // The native Canvas2D safety path must cover all six object stages and
-    // never show the previously rejected liquid-metal treatment.
-    switch (mode % 3) {
-      case 0: drawVideo(g, t); drawFluidOverlay(g, t, 0, .52); break;
-      case 1: drawFoilWorld(g, t); break;
-      case 2: drawVideo(g, t); drawFluidOverlay(g, t, 0, .42); break;
-    }
+    // Canvas2D accessibility / device fallback matches the live GPU colors.
+    // No 3D objects, videos, gradients, or blending between frames.
+    g.fillStyle = SOLID_COLORS[mode % SOLID_COLORS.length];
+    g.fillRect(0, 0, state.w, state.h);
   }
 
   function compositeMasked(scene, alpha) {

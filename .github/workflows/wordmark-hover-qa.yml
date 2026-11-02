@@ -1,7 +1,7 @@
-name: Editorial wordmark and cinematic roller QA
+name: Cinzel Decorative solid neon color loop QA
 on:
   push:
-    branches: [editorial-wordmark-roller-20261102]
+    branches: [solid-black-neon-cinzel-20261102]
     paths:
       - 'index.html'
       - 'styles.css'
