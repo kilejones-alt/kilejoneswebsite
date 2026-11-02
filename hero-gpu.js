@@ -647,6 +647,24 @@ void main() {
           this.updateFluidCursorMask(options.pointer,options.now);
           this.updateNativeLetterScale(options.letterScale);
           const objectActive=!!this.objectStage?.render(options);
+          // Color-only production mode: the second WebGL canvas is the exact
+          // solid color. Don't run fluid simulation or draw an ink veil over
+          // it; the already-masked 3D-stage canvas gives perfectly flat color.
+          if(this.objectStage && !this.objectStage.modelsVisible){
+            this.originalVideo.style.opacity='0';
+            if(objectActive){
+              if(!this.originalVideo.paused)this.originalVideo.pause();
+              this.canvas.style.display='none';
+              this.status='solid palette through letter mask';
+              this.completedFrames++;
+              return true;
+            }
+            // If stage WebGL is lost, let the Canvas2D solid-color fallback
+            // handle this frame. Never expose the unrelated old footage.
+            this.canvas.style.display='none';
+            this.status='solid palette fallback to Canvas2D';
+            return false;
+          }
           // Keep original video as an instantly reversible fallback. When the
           // constructed 3D worlds render successfully, the 320x240 source
           // is hidden; real objects replace rather than recolor that video.
