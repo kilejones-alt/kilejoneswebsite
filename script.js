@@ -22,8 +22,8 @@
 
   const PAPER = '#f3f5f7';
   const INK = '#09090a';
-  const MODE_SECONDS = 8.2;
-  const TRANSITION_SECONDS = 2.3;
+  const MODE_SECONDS = 5.6;
+  const TRANSITION_SECONDS = 1.55;
   const MODE_NAMES = window.KBJScenes?.names || [
     'FILM / REVEAL', 'DEEP COBALT', 'MERCURY / STUDIO',
     'MONOCHROME / CLOSE', 'HIGH KEY / MOTION', 'FILM / OPEN WORLD'
@@ -112,11 +112,18 @@
       mobileDrawer.inert = !open;
     };
 
-    menuToggle?.addEventListener('click', () => setMenu(menuToggle.getAttribute('aria-expanded') !== 'true'));
+    menuToggle?.addEventListener('click', (event) => {
+      // Mouse hover already opens this menu. A mouse click must not
+      // immediately reverse that opening; touch and keyboard still toggle.
+      const open=menuToggle.getAttribute('aria-expanded')==='true';
+      setMenu(finePointer && event.detail>0 ? true : !open);
+    });
     if(finePointer){
-      // Delayed briefly for the gap between pill and dropdown. Mouse leaving
-      // either control eventually dismisses it; re-entry cancels that close.
-      menuToggle?.addEventListener('pointerenter',cancelMenuClose,{passive:true});
+      // Desktop: open by hovering, without requiring a click.
+      // Keep a small bridge across the gap between pill and dropdown.
+      menuToggle?.addEventListener('pointerenter',()=>{
+        cancelMenuClose();setMenu(true);
+      },{passive:true});
       menuToggle?.addEventListener('pointerleave',()=>closeAfterPointerLeave(300),{passive:true});
       mobileDrawer?.addEventListener('pointerenter',cancelMenuClose,{passive:true});
       mobileDrawer?.addEventListener('pointerleave',()=>closeAfterPointerLeave(180),{passive:true});
@@ -225,13 +232,16 @@
 
     // Noth.in-style monumental grotesque, keeping your name and the two lines.
     // Actual glyph bounds, not a reduced 3D image, define the entire artwork.
-    const family = '"Archivo Black","Arial Black","Helvetica Neue",Arial,sans-serif';
-    const horizontal = state.mobile ? .92 : .94;
-    const targetW = state.w * .975 / horizontal;
-    const top = fitFont(g, 'KILE B.', family, 900, targetW,
-      Math.min(state.w * (state.mobile ? .46 : .60), state.h * (state.mobile ? .28 : .44)));
-    const bottom = fitFont(g, 'JONES', family, 900, targetW,
-      Math.min(state.w * (state.mobile ? .52 : .65), state.h * (state.mobile ? .34 : .49)));
+    // Editorial, angular but less bulky than Archivo Black.
+    // Margins stay generous so the material feels framed, not clipped.
+    const family = '"Syne","Helvetica Neue",Arial,sans-serif';
+    const weight = 700;
+    const horizontal = state.mobile ? .93 : .945;
+    const targetW = state.w * .912 / horizontal;
+    const top = fitFont(g, 'KILE B.', family, weight, targetW,
+      Math.min(state.w * (state.mobile ? .43 : .56), state.h * (state.mobile ? .263 : .415)));
+    const bottom = fitFont(g, 'JONES', family, weight, targetW,
+      Math.min(state.w * (state.mobile ? .49 : .61), state.h * (state.mobile ? .318 : .46)));
 
     // Keep both lines inside the screen, including the actual font ascenders.
     const middle = state.h * (state.mobile ? .52 : .53);
@@ -240,12 +250,12 @@
     g.translate(state.w / 2, 0);
     g.scale(horizontal, 1);
     g.lineJoin = 'round';
-    g.font = `900 ${top}px ${family}`;
-    g.lineWidth = Math.max(1, top * .017);
+    g.font = `${weight} ${top}px ${family}`;
+    g.lineWidth = Math.max(.6, top * .004);
     g.strokeText('KILE B.', 0, middle - separation);
     g.fillText('KILE B.', 0, middle - separation);
-    g.font = `900 ${bottom}px ${family}`;
-    g.lineWidth = Math.max(1, bottom * .017);
+    g.font = `${weight} ${bottom}px ${family}`;
+    g.lineWidth = Math.max(.6, bottom * .004);
     g.strokeText('JONES', 0, middle + separation);
     g.fillText('JONES', 0, middle + separation);
     g.restore();
@@ -278,8 +288,8 @@
     if(hit)state.letterHoverUntil=now+240;
     const target=finePointer&&!reduceMotion&&pointer.overCanvas&&
        now<state.letterHoverUntil?1.085:1;
-    // Slow, critically damped response independent of render frame rate.
-    const speed=target>state.letterScale?3.0:2.65;
+    // Stationary hit-testing prevents pulsing; a long easing tail adds calm.
+    const speed=target>state.letterScale?2.25:2.2;
     state.letterScale+=(target-state.letterScale)*
       (1-Math.exp(-Math.min(.25,dt)*speed));
     if(Math.abs(state.letterScale-target)<.0003)state.letterScale=target;
