@@ -219,7 +219,11 @@ try{
     if(diagnostic?.gpu?.objectWorlds?.camera!=='true perspective, 30.3deg FOV') {
       throw new Error('Object world must use a real perspective projection');
     }
-    if(!diagnostic?.gpu?.active) throw new Error('GPU not active for '+spec.name);
+    // Solid mode intentionally hides the former tinted/fluid overlay,
+    // leaving the active letter-masked WebGL stage underneath.
+    const solidStage=diagnostic?.gpu?.status==='solid palette through letter mask';
+    if(!solidStage || !diagnostic?.gpu?.objectWorlds?.active)
+      throw new Error('Solid WebGL letter stage inactive for '+spec.name);
     if(!diagnostic?.parentMask) throw new Error('Native letter mask missing for '+spec.name);
     if(Math.abs(diagnostic.modeSeconds-5.6)>.001 ||
        Math.abs(diagnostic.transitionSeconds)>.001)
