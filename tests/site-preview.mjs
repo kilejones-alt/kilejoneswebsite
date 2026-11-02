@@ -100,9 +100,11 @@ try{
       // shrink/expand/shrink/expand feedback oscillation.
       const glyphPoint=await page.evaluate(async()=>{
         const css=getComputedStyle(document.querySelector('.hero-film-window')).maskImage;
-        const match=css.match(/url\\(["']?(data:image\\/png;base64,[^"')]+)["']?\\)/);
-        if(!match)return {x:185,y:275,source:'fallback'};
-        const image=new Image();image.src=match[1];
+        const first=css.indexOf('data:image/png;base64,');
+        if(first<0)return {x:185,y:275,source:'fallback'};
+        const end=css.indexOf(')',first);
+        if(end<0)return {x:185,y:275,source:'fallback'};
+        const image=new Image();image.src=css.slice(first,end).replace(/["']$/,'');
         try{await image.decode()}catch{return {x:185,y:275,source:'fallback'}}
         const probe=document.createElement('canvas');
         probe.width=100;probe.height=100;
