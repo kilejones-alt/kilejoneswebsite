@@ -68,8 +68,10 @@ try{
     const world=diagnostic?.gpu?.objectWorlds;
     if (!world?.active || world.frames < 1 ||
         JSON.stringify(world.objectsByScene)!==JSON.stringify([14,15,5,6,4,3])) {
-      throw new Error('Expected all real 3D object worlds to be active');
+      throw new Error('Expected the scene engine and retained model library');
     }
+    if(world.modelsVisible!==false || world.visualMode!=='cinematic color rollers')
+      throw new Error('The production homepage must hide unfinished models');
     // Inspect each actual object world on desktop and phone, rather than
     // accidentally validating only whichever random 5-second mode is active.
     for(const [index,label] of [[0,'stars'],[1,'rabbit'],[3,'rhino'],[5,'zio']]){
