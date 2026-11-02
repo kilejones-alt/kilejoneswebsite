@@ -95,47 +95,13 @@ precision highp float;
 in vec2 uv;
 out vec4 color;
 uniform float uScene,uNext,uMix,uTime;
-vec3 background(float scene,vec2 p){
-  vec2 d=p*2.-1.;float v=exp(-dot(d,d)*.67);
-  // Six cohesive art-directed film environments. Colors stay inside letters.
-  if(scene<.5) return mix(vec3(.004,.011,.030),vec3(.042,.095,.200),v);
-  if(scene<1.5)return mix(vec3(.120,.022,.075),vec3(.390,.063,.205),v*.80);
-  if(scene<2.5)return mix(vec3(.008,.011,.016),vec3(.077,.092,.105),v);
-  if(scene<3.5)return mix(vec3(.215,.230,.251),vec3(.51,.53,.54),v);
-  if(scene<4.5)return mix(vec3(.260,.300,.325),vec3(.58,.62,.65),v);
-  return mix(vec3(.024,.028,.038),vec3(.155,.168,.183),v);
-}
-vec3 sweepTint(float scene){
-  if(scene<.5)return vec3(.17,.26,.45);
-  if(scene<1.5)return vec3(.46,.095,.22);
-  if(scene<2.5)return vec3(.09,.13,.17);
-  if(scene<3.5)return vec3(.14,.16,.18);
-  if(scene<4.5)return vec3(.36,.41,.43);
-  return vec3(.30,.34,.38);
-}
 void main(){
-  // Cinematic lightbox rollers beneath the letter mask, no random shimmer.
-  vec2 p=uv*2.-1.;
-  vec3 c=mix(background(uScene,uv),background(uNext,uv),uMix);
-  vec3 tint=mix(sweepTint(uScene),sweepTint(uNext),uMix);
-  float moving=sin(uTime*.17)*1.09;
-  float broad=exp(-pow((p.x-moving)*2.15,2.));
-  float secondary=exp(-pow((p.x+sin(uTime*.11+1.7)*.92)*3.1,2.));
-  float lightbox=exp(-pow((p.y-.17)*1.04,2.));
-  float haze=exp(-dot(p+vec2(.44,-.34),p+vec2(.44,-.34))*1.7);
-  // Nonrepeating, water-like rolling highlights that are legible through
-  // wide glyph strokes. Soft and slow: no ripples, sparkle noise or halos.
-  float flowline=p.x-.76*sin(uTime*.28+p.y*.91);
-  float silk=exp(-pow(flowline*1.85,2.0));
-  float crease=.5+.5*sin(p.x*3.2-p.y*.63-uTime*.31+
-                        .22*sin(p.y*2.0+uTime*.16));
-  float glint=pow(max(0.,sin(p.x*4.4+p.y*.53-uTime*.41)),6.0);
-  c+=tint*(broad*.24+secondary*.14+silk*.24+crease*.075)*lightbox;
-  c+=vec3(.085,.091,.109)*glint*.36*lightbox+tint*haze*.03;
-  // Stationary fine grain gives texture without temporal strobing.
-  float n=fract(sin(dot(floor(uv*vec2(931.,607.)),
-       vec2(12.9898,78.233)))*43758.5453);
-  color=vec4(clamp(c+(n-.5)*.0025,0.,1.),1.);
+  // Opaque solid pigment through the entire letter mask. No gradients or blends.
+  vec3 c=vec3(0.0,0.0,0.0); // BLACK #000000
+  if(uScene>.5 && uScene<1.5) c=vec3(1.0,0.35294118,0.0); // ORANGE #FF5A00
+  if(uScene>1.5 && uScene<2.5) c=vec3(1.0,0.0,0.65882353); // PINK #FF00A8
+  if(uScene>2.5 && uScene<3.5) c=vec3(0.0,0.89803922,0.80392157); // TEAL #00E5CD
+  color=vec4(c,1.0);
 }`;
 const id=()=>new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
 const mm=(a,b)=>{const o=new Float32Array(16);
@@ -681,7 +647,7 @@ class Stage{
    this.pointer[1]=lerp(this.pointer[1],p.active?p.ny:0,a);
    const aspect=this.width/this.height,mobile=aspect<.76;
    this.vp=perspective(aspect);
-   const scene=options.mode%6,next=options.nextMode%6,mix=ease(options.mix||0);
+   const scene=options.mode%4,next=options.nextMode%4,mix=0;
    gl.viewport(0,0,this.width,this.height);
    gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);
    gl.bindVertexArray(this.bgVao);
@@ -724,7 +690,7 @@ class Stage{
    proceduralMeshes:Object.keys(this.meshes),
    camera:'true perspective, 30.3deg FOV',
    canvas:[this.width,this.height],modelsVisible:this.modelsVisible,
-   visualMode:this.modelsVisible?'procedural preview':'cinematic color rollers',
+   visualMode:this.modelsVisible?'procedural preview':'solid color loop',
    fault:this.fault};
  }
 }
