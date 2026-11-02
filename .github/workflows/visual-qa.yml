@@ -48,7 +48,7 @@ jobs:
           if(!gpu.includes('SIM_SIZE=256') || !gpu.includes('oldState'))throw Error('Fluid simulation missing');
           if(!gpu.includes('float opacity=mix(') || !gpu.includes('float feather=smoothstep('))throw Error('Liquid video reveal missing');
           if(!s.includes('drawFluidOverlay(') || !s.includes('document.fonts?.ready.then'))throw Error('Mask/compositing initialization missing');
-          if(!h.includes('family=Syne:wght@700') || !h.includes('font-src'))throw Error('Display-font loading missing');
+          if(!h.includes('family=Cinzel+Decorative:wght@700') || !h.includes('font-src'))throw Error('Display-font loading missing');
           if((nav.match(/<a /g)||[]).length!==5)throw Error('Navigation contains unapproved items');
           console.log('Navigation, visual engine and accessibility selectors validated.');
           NODE
