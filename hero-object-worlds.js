@@ -123,7 +123,15 @@ void main(){
   float secondary=exp(-pow((p.x+sin(uTime*.11+1.7)*.92)*3.1,2.));
   float lightbox=exp(-pow((p.y-.17)*1.04,2.));
   float haze=exp(-dot(p+vec2(.44,-.34),p+vec2(.44,-.34))*1.7);
-  c+=tint*(broad*.19+secondary*.055)*lightbox+tint*haze*.018;
+  // Nonrepeating, water-like rolling highlights that are legible through
+  // wide glyph strokes. Soft and slow: no ripples, sparkle noise or halos.
+  float flowline=p.x-.76*sin(uTime*.28+p.y*.91);
+  float silk=exp(-pow(flowline*1.85,2.0));
+  float crease=.5+.5*sin(p.x*3.2-p.y*.63-uTime*.31+
+                        .22*sin(p.y*2.0+uTime*.16));
+  float glint=pow(max(0.,sin(p.x*4.4+p.y*.53-uTime*.41)),6.0);
+  c+=tint*(broad*.24+secondary*.14+silk*.24+crease*.075)*lightbox;
+  c+=vec3(.085,.091,.109)*glint*.36*lightbox+tint*haze*.03;
   // Stationary fine grain gives texture without temporal strobing.
   float n=fract(sin(dot(floor(uv*vec2(931.,607.)),
        vec2(12.9898,78.233)))*43758.5453);
