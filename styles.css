@@ -219,3 +219,42 @@ body,body a,body button,#hero-canvas{cursor:default!important}
 @media(prefers-reduced-motion:reduce){
   .mobile-drawer,.mobile-drawer.is-open,.mobile-drawer a{transition:none!important;animation:none!important}
 }
+
+/* Deliberate high-end motion: tactile but quiet navigation, no gimmicks. */
+.menu-pill {
+  transition:transform .46s cubic-bezier(.2,.8,.2,1),
+    border-color .35s ease, box-shadow .4s ease, background .4s ease;
+}
+@media(hover:hover) and (pointer:fine) {
+  .menu-pill:hover,
+  .menu-pill[aria-expanded="true"] {
+    background:rgba(255,255,255,.96);
+    border-color:rgba(9,9,10,.34);
+    transform:translateY(-2px);
+    box-shadow:0 10px 30px rgba(9,9,10,.075);
+  }
+}
+.mobile-drawer {
+  background:rgba(250,250,251,.975);
+  -webkit-font-smoothing:antialiased;
+  border-color:rgba(18,18,20,.14);
+  box-shadow:0 20px 55px rgba(9,9,10,.11);
+  transition:opacity .31s ease,transform .45s cubic-bezier(.19,1,.22,1),visibility .31s step-end;
+}
+.mobile-drawer.is-open{
+  transition:opacity .31s ease,transform .45s cubic-bezier(.19,1,.22,1),visibility 0s;
+}
+.mobile-drawer a {
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:clamp(16px,1.45vw,19px);
+  font-weight:500;
+  letter-spacing:-.022em;
+}
+@media(max-width:700px) {
+  .mobile-drawer a {font-size:17px}
+}
+@media (prefers-reduced-motion:reduce){
+  .menu-pill,.mobile-drawer,.mobile-drawer.is-open,.mobile-drawer a{
+    animation:none!important;transition:none!important;
+  }
+}

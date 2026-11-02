@@ -1,8 +1,11 @@
-name: Wordmark, cursor and compact menu QA
+name: Editorial wordmark and cinematic roller QA
 on:
   push:
-    branches: [hero-cursor-menu-polish-20261029]
+    branches: [editorial-wordmark-roller-20261102]
     paths:
+      - 'index.html'
+      - 'styles.css'
+      - 'hero-scenes.js'
       - 'script.js'
       - 'hero-gpu.js'
       - 'hero-object-worlds.js'

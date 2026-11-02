@@ -68,8 +68,10 @@ try{
     const world=diagnostic?.gpu?.objectWorlds;
     if (!world?.active || world.frames < 1 ||
         JSON.stringify(world.objectsByScene)!==JSON.stringify([14,15,5,6,4,3])) {
-      throw new Error('Expected all real 3D object worlds to be active');
+      throw new Error('Expected the scene engine and retained model library');
     }
+    if(world.modelsVisible!==false || world.visualMode!=='cinematic color rollers')
+      throw new Error('The production homepage must hide unfinished models');
     // Inspect each actual object world on desktop and phone, rather than
     // accidentally validating only whichever random 5-second mode is active.
     for(const [index,label] of [[0,'stars'],[1,'rabbit'],[3,'rhino'],[5,'zio']]){
@@ -98,8 +100,27 @@ try{
       // Hover only the original fixed K glyph, not its changing zoomed edge.
       // Hold the mouse absolutely stationary to catch the former
       // shrink/expand/shrink/expand feedback oscillation.
-      await page.mouse.move(91,208);
-      await page.waitForTimeout(2200);
+      const glyphPoint=await page.evaluate(async()=>{
+        const css=getComputedStyle(document.querySelector('.hero-film-window')).maskImage;
+        const first=css.indexOf('data:image/png;base64,');
+        if(first<0)return {x:185,y:275,source:'fallback'};
+        const end=css.indexOf(')',first);
+        if(end<0)return {x:185,y:275,source:'fallback'};
+        const image=new Image();image.src=css.slice(first,end).replace(/["']$/,'');
+        try{await image.decode()}catch{return {x:185,y:275,source:'fallback'}}
+        const probe=document.createElement('canvas');
+        probe.width=100;probe.height=100;
+        const c=probe.getContext('2d',{willReadFrequently:true});
+        c.drawImage(image,0,0,100,100);
+        const rgba=c.getImageData(0,0,100,100).data;
+        for(let y=17;y<43;y+=3)for(let x=12;x<39;x+=3){
+          if(rgba[(y*100+x)*4+3]>230)
+            return {x:x*innerWidth/100,y:y*innerHeight/100,source:'mask'};
+        }
+        return {x:185,y:275,source:'fallback'};
+      });
+      await page.mouse.move(glyphPoint.x,glyphPoint.y);
+      await page.waitForTimeout(2600);
       const first=await page.evaluate(()=>window.__KBJ_DIAGNOSTICS?.letterScale);
       await page.waitForTimeout(1600);
       const later=await page.evaluate(()=>window.__KBJ_DIAGNOSTICS?.letterScale);
@@ -130,6 +151,13 @@ try{
       ['AZ Detector','https://antizionistdetector.netlify.app/'],
       ['Media',new URL('media.html',url).href]
     ];
+    if(!spec.isMobile){
+      await page.mouse.move(8,86);
+      await page.locator('#menu-toggle').hover();
+      await page.waitForTimeout(230);
+      if(await page.locator('#menu-toggle').getAttribute('aria-expanded')!=='true')
+        throw new Error('Menu must open on mouse hover without clicking');
+    }
     await page.locator('#menu-toggle').click();
     const links=await page.locator('#mobile-drawer a').evaluateAll(
       els=>els.map(x=>[x.textContent.trim(),x.href])
@@ -180,6 +208,15 @@ try{
     }
     if(!diagnostic?.gpu?.active) throw new Error('GPU not active for '+spec.name);
     if(!diagnostic?.parentMask) throw new Error('Native letter mask missing for '+spec.name);
+    if(Math.abs(diagnostic.modeSeconds-5.6)>.001 ||
+       Math.abs(diagnostic.transitionSeconds-1.55)>.001)
+      throw new Error('Cinematic color rotation should take 5.6 seconds');
+    const fontInfo=await page.evaluate(()=>({
+      loaded:document.fonts.check('700 24px Syne'),
+      hasCustom:!![...document.styleSheets].find(x=>x.href?.includes('fonts.googleapis'))
+    }));
+    if(!fontInfo.hasCustom)throw new Error('Missing Syne font request');
+
     const bounds=await page.evaluate(()=>{
       const c=document.querySelector('#hero-canvas');
       const nav=document.querySelector('.site-header');

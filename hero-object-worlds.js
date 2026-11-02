@@ -96,32 +96,46 @@ in vec2 uv;
 out vec4 color;
 uniform float uScene,uNext,uMix,uTime;
 vec3 background(float scene,vec2 p){
- vec2 d=p*2.-1.;float v=exp(-dot(d,d)*.86);
- if(scene<.5)return mix(vec3(.008,.021,.062),vec3(.050,.115,.265),v);
- if(scene<1.5)return mix(vec3(.140,.027,.075),vec3(.34,.074,.18),v*.80);
- if(scene<2.5)return mix(vec3(.006,.009,.016),vec3(.066,.074,.092),v);
- if(scene<3.5)return mix(vec3(.255,.279,.308),vec3(.47,.49,.53),v);
- if(scene<4.5)return mix(vec3(.20,.26,.31),vec3(.55,.59,.63),v);
- return mix(vec3(.034,.047,.061),vec3(.14,.17,.20),v);
+  vec2 d=p*2.-1.;float v=exp(-dot(d,d)*.67);
+  // Six cohesive art-directed film environments. Colors stay inside letters.
+  if(scene<.5) return mix(vec3(.004,.011,.030),vec3(.042,.095,.200),v);
+  if(scene<1.5)return mix(vec3(.120,.022,.075),vec3(.390,.063,.205),v*.80);
+  if(scene<2.5)return mix(vec3(.008,.011,.016),vec3(.077,.092,.105),v);
+  if(scene<3.5)return mix(vec3(.215,.230,.251),vec3(.51,.53,.54),v);
+  if(scene<4.5)return mix(vec3(.260,.300,.325),vec3(.58,.62,.65),v);
+  return mix(vec3(.024,.028,.038),vec3(.155,.168,.183),v);
+}
+vec3 sweepTint(float scene){
+  if(scene<.5)return vec3(.17,.26,.45);
+  if(scene<1.5)return vec3(.46,.095,.22);
+  if(scene<2.5)return vec3(.09,.13,.17);
+  if(scene<3.5)return vec3(.14,.16,.18);
+  if(scene<4.5)return vec3(.36,.41,.43);
+  return vec3(.30,.34,.38);
 }
 void main(){
- vec3 c=mix(background(uScene,uv),background(uNext,uv),uMix);
- // Moving softbox strips and photographic haze create spatial depth
- // across both letter lines while leaving the hero object dominant.
- vec2 p=uv*2.-1.;
- float strip=exp(-pow((p.x-.37*sin(uTime*.12)-.17)*5.2,2.0));
- float softbox=strip*exp(-pow((p.y-.15)*1.02,2.0));
- float haze=exp(-dot(p+vec2(.40,-.33),p+vec2(.40,-.33))*2.2);
- float sceneLight=mix(uScene,uNext,uMix);
- vec3 lightTint=sceneLight<.5?vec3(.075,.14,.40):
-   sceneLight<1.5?vec3(.16,.025,.06):
-   sceneLight<2.5?vec3(.037,.042,.057):
-   sceneLight<3.5?vec3(.043,.048,.055):
-   sceneLight<4.5?vec3(.12,.13,.14):vec3(.085,.10,.15);
- c+=lightTint*(softbox*.32+haze*.13);
- float n=fract(sin(dot(floor(uv*vec2(1001.,601.)+uTime*2.),
- vec2(12.9898,78.233)))*43758.5453);
- color=vec4(c+(n-.5)*.006,1.);
+  // Cinematic lightbox rollers beneath the letter mask, no random shimmer.
+  vec2 p=uv*2.-1.;
+  vec3 c=mix(background(uScene,uv),background(uNext,uv),uMix);
+  vec3 tint=mix(sweepTint(uScene),sweepTint(uNext),uMix);
+  float moving=sin(uTime*.17)*1.09;
+  float broad=exp(-pow((p.x-moving)*2.15,2.));
+  float secondary=exp(-pow((p.x+sin(uTime*.11+1.7)*.92)*3.1,2.));
+  float lightbox=exp(-pow((p.y-.17)*1.04,2.));
+  float haze=exp(-dot(p+vec2(.44,-.34),p+vec2(.44,-.34))*1.7);
+  // Nonrepeating, water-like rolling highlights that are legible through
+  // wide glyph strokes. Soft and slow: no ripples, sparkle noise or halos.
+  float flowline=p.x-.76*sin(uTime*.28+p.y*.91);
+  float silk=exp(-pow(flowline*1.85,2.0));
+  float crease=.5+.5*sin(p.x*3.2-p.y*.63-uTime*.31+
+                        .22*sin(p.y*2.0+uTime*.16));
+  float glint=pow(max(0.,sin(p.x*4.4+p.y*.53-uTime*.41)),6.0);
+  c+=tint*(broad*.24+secondary*.14+silk*.24+crease*.075)*lightbox;
+  c+=vec3(.085,.091,.109)*glint*.36*lightbox+tint*haze*.03;
+  // Stationary fine grain gives texture without temporal strobing.
+  float n=fract(sin(dot(floor(uv*vec2(931.,607.)),
+       vec2(12.9898,78.233)))*43758.5453);
+  color=vec4(clamp(c+(n-.5)*.0025,0.,1.),1.);
 }`;
 const id=()=>new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
 const mm=(a,b)=>{const o=new Float32Array(16);
@@ -492,10 +506,13 @@ class Stage{
    if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));
    return p;
   };
-  this.program=program(vert,frag);
+  this.modelsVisible=window.__KBJ_PREVIEW_MODELS===true;
+  // Skip heavy vertex generation and animal shaders on a color-only
+  // homepage. Helps iPhone first-load memory, CPU time and GPU pressure.
+  this.program=this.modelsVisible?program(vert,frag):null;
   this.bgProgram=program(bgV,bgF);
   this.meshes={};
-  for(let [name,data] of Object.entries({sphere:sphere(),star:star(),ring:torus(),cone:cone(),leg:leg(),rhinoBody:rhinoBody(),foilZ:foilGlyph('Z'),foilI:foilGlyph('I')})){
+  if(this.modelsVisible)for(let [name,data] of Object.entries({sphere:sphere(),star:star(),ring:torus(),cone:cone(),leg:leg(),rhinoBody:rhinoBody(),foilZ:foilGlyph('Z'),foilI:foilGlyph('I')})){
     const vao=gl.createVertexArray(),buffer=gl.createBuffer();
     gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
     gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
@@ -504,11 +521,13 @@ class Stage{
     this.meshes[name]={vao,buffer,count:data.length/6};
   }
   this.bgVao=gl.createVertexArray();
-  this.u={};for(let n of ['uModel','uVP','uBase','uEye','uMouse','uType','uAlpha','uTime','uSeed'])
+  this.u={};
+  if(this.modelsVisible)for(let n of ['uModel','uVP','uBase','uEye','uMouse','uType','uAlpha','uTime','uSeed'])
     this.u[n]=gl.getUniformLocation(this.program,n);
   this.bu={};for(let n of ['uScene','uNext','uMix','uTime'])
     this.bu[n]=gl.getUniformLocation(this.bgProgram,n);
   this.items=objects();this.pointer=[0,0];this.frames=0;
+  // Original model definitions remain for later, but are not allocated.
   this.ready=true;this.fault=null;this.width=0;this.height=0;
   this.canvas.addEventListener('webglcontextlost',e=>{
     e.preventDefault();this.ready=false;this.fault='context lost';
@@ -673,11 +692,13 @@ class Stage{
    gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
    gl.clearDepth(1);gl.clear(gl.DEPTH_BUFFER_BIT);
    gl.disable(gl.BLEND);
-   this.drawScene(scene,t,1,mobile);
-   if(mix>.005){
-    gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-    this.drawScene(next,t,mix,mobile);gl.disable(gl.BLEND);
+   if(this.modelsVisible){
+     this.drawScene(scene,t,1,mobile);
+     if(mix>.005){
+       gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.BLEND);
+       gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+       this.drawScene(next,t,mix,mobile);gl.disable(gl.BLEND);
+     }
    }
    if((this.frames<3||this.frames%120===0) && gl.getError()!==gl.NO_ERROR)
      throw Error('3D draw failed');
@@ -702,7 +723,9 @@ class Stage{
    objectsByScene:this.items.map(x=>x.length),
    proceduralMeshes:Object.keys(this.meshes),
    camera:'true perspective, 30.3deg FOV',
-   canvas:[this.width,this.height],fault:this.fault};
+   canvas:[this.width,this.height],modelsVisible:this.modelsVisible,
+   visualMode:this.modelsVisible?'procedural preview':'cinematic color rollers',
+   fault:this.fault};
  }
 }
 let current=null;
