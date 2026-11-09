@@ -94,14 +94,30 @@ const bgF=`#version 300 es
 precision highp float;
 in vec2 uv;
 out vec4 color;
-uniform float uScene,uNext,uMix,uTime;
+uniform float uScene,uNext,uMix,uTime,uSpeed;
+uniform vec2 uMouse;
+float h(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+34.21);return fract(p.x*p.y);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+ return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
+vec3 palette(float scene,float oil){
+ if(scene<.5)return mix(vec3(.004,.012,.035),vec3(.018,.10,.38),oil*.58);
+ if(scene<1.5)return mix(vec3(.58,.003,.12),vec3(1.,.018,.43),.20+.80*oil);
+ if(scene<2.5)return mix(vec3(.62,.04,0.),vec3(1.,.39,0.),.18+.82*oil);
+ if(scene<3.5)return mix(vec3(.002),vec3(.032,.035,.039),oil*.28);
+ if(scene<4.5)return mix(vec3(0.,.22,.19),vec3(0.,.96,.74),.16+.84*oil);
+ return mix(vec3(.17,.20,.25),vec3(.92,.96,1.),.16+.84*oil);
+}
 void main(){
-  // Opaque solid pigment through the entire letter mask. No gradients or blends.
-  vec3 c=vec3(0.0,0.0,0.0); // BLACK #000000
-  if(uScene>.5 && uScene<1.5) c=vec3(1.0,0.35294118,0.0); // ORANGE #FF5A00
-  if(uScene>1.5 && uScene<2.5) c=vec3(1.0,0.0,0.65882353); // PINK #FF00A8
-  if(uScene>2.5 && uScene<3.5) c=vec3(0.0,0.89803922,0.80392157); // TEAL #00E5CD
-  color=vec4(c,1.0);
+ vec2 mouse=uMouse*.5+.5;
+ float d=length((uv-mouse)*vec2(1.15,1.0));
+ float a=n(uv*3.4+vec2(uTime*.045,-uTime*.031));
+ float b=n(uv.yx*6.1-vec2(uTime*.028,uTime*.054));
+ float wake=exp(-d*d*(5.5+uSpeed*7.0));
+ float oil=.5+.5*sin((uv.x*.95+uv.y*.72+a*.24-b*.17)*10.0+uTime*.22+wake*2.3);
+ oil=clamp(oil + wake*uSpeed*.28,0.,1.);
+ vec3 c0=palette(uScene,oil),c1=palette(uNext,1.-oil*.76);
+ vec3 c=mix(c0,c1,smoothstep(0.,1.,uMix));
+ color=vec4(c,1.0);
 }`;
 const id=()=>new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
 const mm=(a,b)=>{const o=new Float32Array(16);
@@ -472,9 +488,10 @@ class Stage{
    if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));
    return p;
   };
-  this.modelsVisible=window.__KBJ_PREVIEW_MODELS===true;
-  // Skip heavy vertex generation and animal shaders on a color-only
-  // homepage. Helps iPhone first-load memory, CPU time and GPU pressure.
+  // Production is now the full sculptural world. "?simple=1" remains a
+  // diagnostic escape hatch for constrained devices.
+  this.modelsVisible=window.__KBJ_PREVIEW_MODELS!==false &&
+    new URLSearchParams(location.search).get('simple')!=='1';
   this.program=this.modelsVisible?program(vert,frag):null;
   this.bgProgram=program(bgV,bgF);
   this.meshes={};
@@ -490,9 +507,10 @@ class Stage{
   this.u={};
   if(this.modelsVisible)for(let n of ['uModel','uVP','uBase','uEye','uMouse','uType','uAlpha','uTime','uSeed'])
     this.u[n]=gl.getUniformLocation(this.program,n);
-  this.bu={};for(let n of ['uScene','uNext','uMix','uTime'])
+  this.bu={};for(let n of ['uScene','uNext','uMix','uTime','uMouse','uSpeed'])
     this.bu[n]=gl.getUniformLocation(this.bgProgram,n);
-  this.items=objects();this.pointer=[0,0];this.frames=0;
+  this.items=objects();this.pointer=[0,0];this.pointerVel=[0,0];
+  this.pointerEnergy=0;this.parallaxGain=1;this.frames=0;
   // Original model definitions remain for later, but are not allocated.
   this.ready=true;this.fault=null;this.width=0;this.height=0;
   this.canvas.addEventListener('webglcontextlost',e=>{
@@ -501,9 +519,12 @@ class Stage{
   });
  }
  resize(){
-  let rect=this.host.getBoundingClientRect();
-  const dpr=Math.min(window.devicePixelRatio||1,rect.width<700?1:1.12);
-  const w=Math.round(rect.width*dpr),h=Math.round(rect.height*dpr);
+  // clientWidth/Height are intentionally used instead of transformed bounds:
+  // the physical entrance can squash/translate the hero without reallocating
+  // WebGL buffers every animation frame.
+  const cw=this.host.clientWidth||innerWidth,ch=this.host.clientHeight||innerHeight;
+  const dpr=Math.min(window.devicePixelRatio||1,cw<700?1:1.12);
+  const w=Math.round(cw*dpr),h=Math.round(ch*dpr);
   if(!w||!h)return false;
   if(this.width!==w||this.height!==h){
    this.canvas.width=this.width=w;this.canvas.height=this.height=h;
@@ -613,9 +634,10 @@ class Stage{
   }else if(o.kind==='star'){
     sc[0]*=1.12;sc[1]*=1.12;sc[2]*=1.12;
   }
-  const perspective=1+p[2]*.068;
-  p[0]-=x*.38*perspective;p[1]+=y*.25*perspective;
-  rot[1]-=x*.035*perspective;rot[0]+=y*.025*perspective;
+  const perspective=1+p[2]*.068,gain=this.parallaxGain||1;
+  p[0]-=x*.58*perspective*gain;p[1]+=y*.38*perspective*gain;
+  p[2]+=this.pointerEnergy*.34*Math.sin(phase+t*.31);
+  rot[1]-=x*.052*perspective*gain;rot[0]+=y*.038*perspective*gain;
   p[0]+=Math.sin(t*.11+scene)*.035;
   return model(p,sc,rot);
  }
@@ -642,18 +664,30 @@ class Stage{
   try{
    if(!this.resize())return false;
    const gl=this.gl,t=options.now*.001*.62;
-   const p=options.pointer||{},a=1-Math.exp(-clamp(options.dt||.016,.001,.05)*4.8);
-   this.pointer[0]=lerp(this.pointer[0],p.active?p.nx:0,a);
-   this.pointer[1]=lerp(this.pointer[1],p.active?p.ny:0,a);
+   const p=options.pointer||{},dt=clamp(options.dt||.016,.001,.05);
+   this.parallaxGain=options.parallaxGain||1;
+   const tx=p.active?p.nx:Math.sin(t*.12)*.045;
+   const ty=p.active?p.ny:Math.cos(t*.10)*.035;
+   const stiffness=22*this.parallaxGain,damping=8.2;
+   for(let i=0;i<2;i++){
+     const target=i?ty:tx;
+     const impulse=(i?(p.vy||0):(p.vx||0))*0.00065*this.parallaxGain;
+     this.pointerVel[i]+=((target-this.pointer[i])*stiffness-this.pointerVel[i]*damping)*dt+impulse;
+     this.pointer[i]+=this.pointerVel[i]*dt;
+   }
+   const targetEnergy=p.active?Math.min(1,(p.speed||0)*1.18):0;
+   this.pointerEnergy=lerp(this.pointerEnergy,targetEnergy,1-Math.exp(-dt*(targetEnergy>this.pointerEnergy?7.5:2.2)));
    const aspect=this.width/this.height,mobile=aspect<.76;
    this.vp=perspective(aspect);
-   const scene=options.mode%4,next=options.nextMode%4,mix=0;
+   const scene=options.mode%6,next=options.nextMode%6,mix=clamp(options.mix||0,0,1);
    gl.viewport(0,0,this.width,this.height);
    gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);
    gl.bindVertexArray(this.bgVao);
    gl.useProgram(this.bgProgram);
    gl.uniform1f(this.bu.uScene,scene);gl.uniform1f(this.bu.uNext,next);
    gl.uniform1f(this.bu.uMix,mix);gl.uniform1f(this.bu.uTime,t);
+   gl.uniform2f(this.bu.uMouse,this.pointer[0],this.pointer[1]);
+   gl.uniform1f(this.bu.uSpeed,this.pointerEnergy);
    gl.drawArrays(gl.TRIANGLES,0,3);
    gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
    gl.clearDepth(1);gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -690,7 +724,9 @@ class Stage{
    proceduralMeshes:Object.keys(this.meshes),
    camera:'true perspective, 30.3deg FOV',
    canvas:[this.width,this.height],modelsVisible:this.modelsVisible,
-   visualMode:this.modelsVisible?'procedural preview':'solid color loop',
+   visualMode:this.modelsVisible?'full interactive material world':'simplified pigment loop',
+   pointer:[+this.pointer[0].toFixed(3),+this.pointer[1].toFixed(3)],
+   pointerEnergy:+this.pointerEnergy.toFixed(3),
    fault:this.fault};
  }
 }
