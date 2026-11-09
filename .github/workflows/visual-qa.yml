@@ -56,7 +56,7 @@ jobs:
             if(!h.includes(font))throw Error('Missing hero trial font: '+font);
           }
           if(!h.includes('font-src'))throw Error('Font CSP missing');
-          if(!s.includes('HERO_PROFILES') || !s.includes('function updateEntry('))throw Error('Four-way physical entrance missing');
+          if(!s.includes('HERO_PROFILES') || !s.includes('nothin-viscous') || !s.includes('nothin-deep'))throw Error('Try 5/6 parallax profiles missing');
           if(!s.includes('MIDNIGHT GLOSS') || !s.includes('SILVER FOIL'))throw Error('Material-world cycle missing');
           const world=fs.readFileSync('hero-object-worlds.js','utf8');
           const overlay=fs.readFileSync('hero-gpu.js','utf8');
@@ -69,10 +69,12 @@ jobs:
         run: |
           CHROME=$(command -v google-chrome || command -v chromium || true)
           if [ -n "$CHROME" ]; then
-            for TRY in 1 2 3 4; do
+            for TRY in 5 6; do
               "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=1440,900 --virtual-time-budget=10000 --screenshot="desktop-try-$TRY.png" "file://$PWD/index.html?try=$TRY"
             done
-            "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=390,844 --virtual-time-budget=10000 --screenshot=phone-try-1.png "file://$PWD/index.html?try=1"
+            for TRY in 5 6; do
+              "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=390,844 --virtual-time-budget=10000 --screenshot="phone-try-$TRY.png" "file://$PWD/index.html?try=$TRY"
+            done
           else
             echo "Chrome unavailable: browser screenshot tests skipped."
           fi
@@ -81,9 +83,8 @@ jobs:
         with:
           name: responsive-hero-qa
           path: |
-            desktop-try-1.png
-            desktop-try-2.png
-            desktop-try-3.png
-            desktop-try-4.png
-            phone-try-1.png
+            desktop-try-5.png
+            desktop-try-6.png
+            phone-try-5.png
+            phone-try-6.png
           if-no-files-found: ignore
