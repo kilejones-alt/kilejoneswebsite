@@ -29,7 +29,7 @@
   const MODE_NAMES = ['MIDNIGHT GLOSS', 'NEON PINK LATEX', 'HOT ORANGE', 'MATTE BLACK', 'BRIGHT TEAL', 'SILVER FOIL'];
   const SOLID_COLORS = ['#071226', '#FF0668', '#FF5A00', '#050506', '#00D9C6', '#C9D1DD'];
 
-  const HERO_TRY = Math.max(1, Math.min(6, Number(new URLSearchParams(location.search).get('try')) || 1));
+  const HERO_TRY = Math.max(1, Math.min(7, Number(new URLSearchParams(location.search).get('try')) || 1));
   const HERO_PROFILES = {
     1:{name:'soft-mass',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
        gravity:2650,restitution:.23,damping:4.8,squash:.074,wobble:14.2,delay:.26,parallax:1.30},
@@ -42,7 +42,9 @@
     5:{name:'nothin-viscous',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
        gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.15,oil:1.75},
     6:{name:'nothin-deep',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
-       gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.75,oil:2.25}
+       gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.75,oil:2.25},
+    7:{name:'nothin-layered-physics',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
+       gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.42,oil:2.55}
   };
   for(const k of [1,2,3,4]) if(!('oil' in HERO_PROFILES[k])) HERO_PROFILES[k].oil=1.0;
   const HERO_PROFILE = HERO_PROFILES[HERO_TRY];
@@ -87,6 +89,10 @@
     down: false,
     overCanvas: false,
     glyphHover: false,
+    nvx: 0,
+    nvy: 0,
+    speedN: 0,
+    lastT: performance.now(),
   };
 
   const maskCanvas = document.createElement('canvas');
@@ -198,16 +204,28 @@
     // Keep a native OS cursor: no oversized rings, trails or hover morphs.
     // Pointer coordinates still drive gentle 3D camera parallax.
     const updatePointer=(e)=>{
-      const x=e.clientX,y=e.clientY;
-      pointer.vx=x-pointer.x;
-      pointer.vy=y-pointer.y;
-      pointer.speed=Math.min(1,Math.hypot(pointer.vx,pointer.vy)/28);
+      const x=e.clientX,y=e.clientY,now=performance.now();
+      const seconds=Math.max(.004,Math.min(.05,(now-pointer.lastT)/1000||.0167));
+      const dx=x-pointer.x,dy=y-pointer.y;
+      pointer.vx=dx;
+      pointer.vy=dy;
+      pointer.speed=Math.min(1,Math.hypot(dx,dy)/28);
+
+      // Frame-rate-independent normalized velocity. Raw pointer events can
+      // arrive much faster than pointermove; measuring pixels/event made fast
+      // hardware mice look artificially slow.
+      const instantVX=dx/Math.max(1,state.w)/seconds;
+      const instantVY=dy/Math.max(1,state.h)/seconds;
+      const a=1-Math.exp(-seconds*22);
+      pointer.nvx+=(instantVX-pointer.nvx)*a;
+      pointer.nvy+=(instantVY-pointer.nvy)*a;
+      pointer.speedN=Math.min(3,Math.hypot(pointer.nvx,pointer.nvy));
+      pointer.lastT=now;
+
       pointer.x=x;pointer.y=y;
       pointer.nx=state.w?(x/state.w)*2-1:0;
       pointer.ny=state.h?(y/state.h)*2-1:0;
       pointer.active=true;
-      // The hero is full-screen. Coordinate bounds are more reliable than
-      // event.target because masked WebGL layers deliberately use pointer-events:none.
       pointer.overCanvas=x>=0&&y>=0&&x<=state.w&&y<=state.h;
     };
     // Listen to pointermove unconditionally; raw updates are an additional
