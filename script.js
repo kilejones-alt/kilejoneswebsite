@@ -29,7 +29,7 @@
   const MODE_NAMES = ['MIDNIGHT GLOSS', 'NEON PINK LATEX', 'HOT ORANGE', 'MATTE BLACK', 'BRIGHT TEAL', 'SILVER FOIL'];
   const SOLID_COLORS = ['#071226', '#FF0668', '#FF5A00', '#050506', '#00D9C6', '#C9D1DD'];
 
-  const HERO_TRY = Math.max(1, Math.min(4, Number(new URLSearchParams(location.search).get('try')) || 1));
+  const HERO_TRY = Math.max(1, Math.min(6, Number(new URLSearchParams(location.search).get('try')) || 1));
   const HERO_PROFILES = {
     1:{name:'soft-mass',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
        gravity:2650,restitution:.23,damping:4.8,squash:.074,wobble:14.2,delay:.26,parallax:1.30},
@@ -38,8 +38,13 @@
     3:{name:'editorial-elastic',family:'"Space Grotesk","Helvetica Neue",Arial,sans-serif',weight:650,horizontal:.972,
        gravity:2850,restitution:.27,damping:4.3,squash:.086,wobble:12.8,delay:.30,parallax:1.78},
     4:{name:'quiet-heavy',family:'"IBM Plex Sans","Helvetica Neue",Arial,sans-serif',weight:600,horizontal:.948,
-       gravity:3500,restitution:.17,damping:6.0,squash:.060,wobble:18.4,delay:.16,parallax:1.18}
+       gravity:3500,restitution:.17,damping:6.0,squash:.060,wobble:18.4,delay:.16,parallax:1.18,oil:1.0},
+    5:{name:'nothin-viscous',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
+       gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.15,oil:1.75},
+    6:{name:'nothin-deep',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
+       gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.75,oil:2.25}
   };
+  for(const k of [1,2,3,4]) if(!('oil' in HERO_PROFILES[k])) HERO_PROFILES[k].oil=1.0;
   const HERO_PROFILE = HERO_PROFILES[HERO_TRY];
   document.documentElement.dataset.heroTry = String(HERO_TRY);
   const state = {
@@ -240,10 +245,11 @@
 
     if(!state.entry.initialized){
       state.entry.initialized=true;
-      state.entry.y=reduceMotion?0:-Math.max(state.h*1.18,720);
+      const staticHero=HERO_TRY>=5;
+      state.entry.y=(reduceMotion||staticHero)?0:-Math.max(state.h*1.18,720);
       state.entry.vy=0;
       state.entry.startedAt=performance.now();
-      state.entry.settled=reduceMotion;
+      state.entry.settled=reduceMotion||staticHero;
     }
     buildMask();
     gpuRenderer?.resize(state.w, state.h, state.dpr, maskCanvas);
@@ -317,7 +323,7 @@
 
   function updateEntry(now,dt){
     const e=state.entry,p=HERO_PROFILE;
-    if(reduceMotion){e.y=0;e.vy=0;e.scaleX=e.scaleY=1;e.settled=true;return;}
+    if(reduceMotion||HERO_TRY>=5){e.y=0;e.vy=0;e.scaleX=e.scaleY=1;e.settled=true;return;}
     if(e.settled)return;
     const age=(now-e.startedAt)/1000;
     if(age<p.delay)return;
@@ -388,7 +394,8 @@
       now, dt, pointer, mode:state.mode, nextMode:state.nextMode,
       mix:state.mix, reducedMotion:reduceMotion,
       letterScale:state.letterScale,
-      entry:state.entry, heroTry:HERO_TRY, parallaxGain:HERO_PROFILE.parallax
+      entry:state.entry, heroTry:HERO_TRY,
+      parallaxGain:HERO_PROFILE.parallax, oilGain:HERO_PROFILE.oil
     });
     if (gpuActive) {
       canvas.style.visibility = 'hidden';
@@ -408,6 +415,7 @@
         letterScale:+state.letterScale.toFixed(4),
         letterHover:pointer.glyphHover,
         heroTry:HERO_TRY,heroProfile:HERO_PROFILE.name,
+        parallaxGain:HERO_PROFILE.parallax,oilGain:HERO_PROFILE.oil,
         entrySettled:state.entry.settled,
         gpu:gpuRenderer.diagnostic()
       };
@@ -458,6 +466,7 @@
       letterScale:+state.letterScale.toFixed(4),
       letterHover:pointer.glyphHover,
       heroTry:HERO_TRY,heroProfile:HERO_PROFILE.name,
+      parallaxGain:HERO_PROFILE.parallax,oilGain:HERO_PROFILE.oil,
       entrySettled:state.entry.settled,
       rawPointerInput: 'onpointerrawupdate' in window,
       videoReady: !!video && video.readyState >= 2,
