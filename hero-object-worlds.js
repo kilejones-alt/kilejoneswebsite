@@ -723,6 +723,39 @@ class Stage{
   }else if(o.kind==='star'){
     sc[0]*=1.12;sc[1]*=1.12;sc[2]*=1.12;
   }
+  if(this.materialQuality>1.5){
+    // Run 8 scene staging: each material world has a different photographic
+    // composition instead of reusing identical object scale and spacing.
+    if(scene===0){
+      // Midnight enamel: wider field with small points at several depths.
+      p[0]*=1.04;p[1]*=.96;
+      sc[0]*=.96;sc[1]*=.96;sc[2]*=.96;
+    }else if(scene===1){
+      // Latex hero: one larger, closer sculptural subject.
+      p[0]*=.90;p[1]*=.93;p[2]+=.26;
+      sc[0]*=1.08;sc[1]*=1.08;sc[2]*=1.08;
+    }else if(scene===2){
+      // Orange satin: crop large abstract forms through the letters.
+      p[0]*=.76;p[1]*=.78;p[2]+=.42;
+      sc[0]*=1.24;sc[1]*=1.24;sc[2]*=1.18;
+      rot[0]*=.55;rot[1]*=.55;
+    }else if(scene===3){
+      // Matte black: almost still, heavy and close, like a studio sculpture.
+      p[0]*=.92;p[1]*=.94;p[2]+=.18;
+      sc[0]*=1.08;sc[1]*=1.08;sc[2]*=1.08;
+      rot[0]*=.58;rot[1]*=.62;rot[2]*=.62;
+    }else if(scene===4){
+      // Frosted teal: open spacing and slower floating forms.
+      p[0]*=1.08;p[1]*=.91;p[2]-=.10;
+      sc[0]*=1.04;sc[1]*=1.04;sc[2]*=1.04;
+    }else if(scene===5){
+      // Foil: slightly oversized close-up glyph volumes so crinkles read.
+      p[0]*=.91;p[1]*=.90;p[2]+=.34;
+      sc[0]*=1.16;sc[1]*=1.16;sc[2]*=1.12;
+      rot[0]*=.60;rot[1]*=.64;
+    }
+  }
+
   const perspective=1+p[2]*.068,gain=this.parallaxGain||1;
   if(this.interactionMode===7){
     // Run 7: each object samples a different point between the slow and fast
