@@ -615,7 +615,7 @@ void main() {
       gl.drawArrays(gl.TRIANGLES,0,3);
     }
 
-    simulate(now, pointer, dt, reducedMotion, oilGain=1) {
+    simulate(now, pointer, dt, reducedMotion, oilGain=1, interactionMode=1) {
       const S=this.simSize;
       if (!S) return;
       const isActive = !reducedMotion && pointer.active && pointer.overCanvas;
@@ -627,13 +627,24 @@ void main() {
         y:isActive?(-pointer.ny*.5+.5):autoY
       };
       const before=this.oldPoint || p;
-      const move=[Math.max(-.14,Math.min(.14,p.x-before.x)),
-                  Math.max(-.14,Math.min(.14,p.y-before.y))];
+      let move=[Math.max(-.14,Math.min(.14,p.x-before.x)),
+                Math.max(-.14,Math.min(.14,p.y-before.y))];
+      if(interactionMode===7 && isActive){
+        // Feed the fluid a time-normalized directional wake so high-polling
+        // mice and ordinary pointermove produce the same physical response.
+        const directional=[
+          Math.max(-.16,Math.min(.16,(pointer.nvx||0)*dt*.72)),
+          Math.max(-.16,Math.min(.16,-(pointer.nvy||0)*dt*.72))
+        ];
+        move=[move[0]*.35+directional[0]*.65,move[1]*.35+directional[1]*.65];
+      }
       const velocity=Math.abs(move[0])+Math.abs(move[1]);
       this.lastOilGain=oilGain;
-      const speedBoost=isActive?Math.min(3.2,(.82+(pointer.speed||0)*1.75)*oilGain):1.0;
+      this.lastInteractionMode=interactionMode;
+      const speedSource=interactionMode===7?(pointer.speedN||0):(pointer.speed||0);
+      const speedBoost=isActive?Math.min(3.6,(.82+speedSource*1.52)*oilGain):1.0;
       const inject=reducedMotion?0:
-        isActive ? ((velocity>.00002 || (pointer.speed||0)>.015)?speedBoost:0) :
+        isActive ? ((velocity>.000015 || speedSource>.012)?speedBoost:0) :
                    (velocity>.00004?.46:0);
       this.oldPoint=p;
       const texel=[1/S,1/S];
@@ -696,7 +707,8 @@ void main() {
           if(!objectActive && this.originalVideo.paused)
             this.originalVideo.play().catch(()=>{});
           const gl=this.gl;
-          this.simulate(options.now,options.pointer,options.dt,options.reducedMotion,options.oilGain||1);
+          this.simulate(options.now,options.pointer,options.dt,options.reducedMotion,
+            options.oilGain||1,options.heroTry||1);
           gl.bindFramebuffer(gl.FRAMEBUFFER,null);
           gl.viewport(0,0,this.canvas.width,this.canvas.height);
           gl.disable(gl.BLEND);
@@ -735,7 +747,8 @@ void main() {
         gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,v);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
         if(gl.getError()!==gl.NO_ERROR) throw new Error('WebGL video upload denied');
-        this.simulate(options.now,options.pointer,options.dt,options.reducedMotion,options.oilGain||1);
+        this.simulate(options.now,options.pointer,options.dt,options.reducedMotion,
+          options.oilGain||1,options.heroTry||1);
         gl.bindFramebuffer(gl.FRAMEBUFFER,null);
         gl.viewport(0,0,this.canvas.width,this.canvas.height);
         gl.disable(gl.BLEND);
@@ -771,7 +784,8 @@ void main() {
         objectWorlds:window.KBJObjectWorlds?.diagnostic?.() || null,
         nativeLetterScale:this.nativeLetterScale||1,
         physicalTransform:this.filmWindow?.style?.transform||'none',
-        oilGain:this.lastOilGain||1
+        oilGain:this.lastOilGain||1,
+        interactionMode:this.lastInteractionMode||1
       };
     }
   }
