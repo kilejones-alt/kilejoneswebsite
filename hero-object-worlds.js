@@ -635,9 +635,14 @@ class Stage{
     sc[0]*=1.12;sc[1]*=1.12;sc[2]*=1.12;
   }
   const perspective=1+p[2]*.068,gain=this.parallaxGain||1;
-  p[0]-=x*.88*perspective*gain;p[1]+=y*.58*perspective*gain;
-  p[2]+=this.pointerEnergy*.56*Math.sin(phase+t*.31);
-  rot[1]-=x*.082*perspective*gain;rot[0]+=y*.058*perspective*gain;
+  const focus=this.interactionMode>=6?1.0:(this.interactionMode===5?.82:1.0);
+  const px=this.interactionMode>=5?.50:.88;
+  const py=this.interactionMode>=5?.34:.58;
+  const pz=this.interactionMode>=6?.78:(this.interactionMode===5?.46:.56);
+  p[0]-=x*px*perspective*gain*focus;p[1]+=y*py*perspective*gain*focus;
+  p[2]+=this.pointerEnergy*pz*Math.sin(phase+t*.31);
+  rot[1]-=x*(this.interactionMode>=5?.052:.082)*perspective*gain;
+  rot[0]+=y*(this.interactionMode>=5?.038:.058)*perspective*gain;
   p[0]+=Math.sin(t*.11+scene)*.035;
   return model(p,sc,rot);
  }
@@ -666,16 +671,21 @@ class Stage{
    const gl=this.gl,t=options.now*.001*.62;
    const p=options.pointer||{},dt=clamp(options.dt||.016,.001,.05);
    this.parallaxGain=options.parallaxGain||1;
+   this.interactionMode=options.heroTry||1;
+   this.oilGain=options.oilGain||1;
    const tx=p.active?p.nx:Math.sin(t*.12)*.045;
    const ty=p.active?p.ny:Math.cos(t*.10)*.035;
-   const stiffness=31*this.parallaxGain,damping=7.1;
+   const stiffness=(this.interactionMode>=6?40:this.interactionMode===5?27:31)*this.parallaxGain;
+   const damping=this.interactionMode>=6?6.2:this.interactionMode===5?9.6:7.1;
    for(let i=0;i<2;i++){
      const target=i?ty:tx;
-     const impulse=(i?(p.vy||0):(p.vx||0))*0.00165*this.parallaxGain;
+     const impulse=(i?(p.vy||0):(p.vx||0))*
+       (this.interactionMode>=6?0.00245:this.interactionMode===5?0.00135:0.00165)*
+       this.parallaxGain;
      this.pointerVel[i]+=((target-this.pointer[i])*stiffness-this.pointerVel[i]*damping)*dt+impulse;
      this.pointer[i]+=this.pointerVel[i]*dt;
    }
-   const targetEnergy=p.active?Math.min(1,(p.speed||0)*1.18):0;
+   const targetEnergy=p.active?Math.min(1.65,(p.speed||0)*1.18*this.oilGain):0;
    this.pointerEnergy=lerp(this.pointerEnergy,targetEnergy,1-Math.exp(-dt*(targetEnergy>this.pointerEnergy?11.0:1.55)));
    const aspect=this.width/this.height,mobile=aspect<.76;
    this.vp=perspective(aspect);
@@ -727,6 +737,9 @@ class Stage{
    visualMode:this.modelsVisible?'full interactive material world':'simplified pigment loop',
    pointer:[+this.pointer[0].toFixed(3),+this.pointer[1].toFixed(3)],
    pointerEnergy:+this.pointerEnergy.toFixed(3),
+   interactionMode:this.interactionMode||1,
+   parallaxGain:+(this.parallaxGain||1).toFixed(2),
+   oilGain:+(this.oilGain||1).toFixed(2),
    fault:this.fault};
  }
 }
