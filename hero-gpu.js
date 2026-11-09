@@ -213,13 +213,18 @@ float noise(vec2 p){
              mix(hash21(i+vec2(0.,1.)),hash21(i+vec2(1.,1.)),f.x),f.y);
 }
 vec3 material(float scene, vec2 uv){
-  // Ink is a quiet neutral film over native photographed footage.
-  if(scene<.5) return vec3(.012,.017,.025);
-  if(scene<1.5) return vec3(.012,.018,.035);
-  if(scene<2.5) return vec3(.017,.020,.026);
-  if(scene<3.5) return vec3(.008,.008,.010);
-  if(scene<4.5) return vec3(.12,.13,.14);
-  return vec3(.016,.018,.025);
+  // A moving pigment/oil film sits above the sculptural world. Scene changes
+  // alter material character: midnight gloss, latex pink, hot orange,
+  // matte black, electric teal and cool metallic silver.
+  float n1=noise(uv*vec2(4.2,3.1)+vec2(uTime*.055,-uTime*.041));
+  float n2=noise(uv.yx*vec2(8.5,5.7)-vec2(uTime*.031,uTime*.066));
+  float wave=.5+.5*sin((uv.x*1.15+uv.y*.72+n1*.23-n2*.14)*9.0+uTime*.23);
+  if(scene<.5) return mix(vec3(.004,.012,.035),vec3(.035,.12,.42),wave*.52);
+  if(scene<1.5) return mix(vec3(.40,.002,.10),vec3(1.0,.015,.43),.30+.70*wave);
+  if(scene<2.5) return mix(vec3(.66,.055,.0),vec3(1.0,.42,.0),.22+.78*wave);
+  if(scene<3.5) return mix(vec3(.003),vec3(.028,.031,.036),wave*.34);
+  if(scene<4.5) return mix(vec3(.0,.21,.19),vec3(.0,1.0,.76),.20+.80*wave);
+  return mix(vec3(.16,.19,.24),vec3(.88,.94,1.0),.18+.82*wave);
 }
 void main() {
   float glyph = texture(uGlyph, vec2(.5)+(vUv-vec2(.5))/max(1.,uLetterScale)).a;
@@ -241,11 +246,12 @@ void main() {
   float revealed = max(activated,initial*.60);
 
   vec3 ink = mix(material(uMode,vUv),material(uNextMode,vUv),uMix);
-  float ambient = mix(.18,.37,smoothstep(.7,3.8,uMode));
-  // Retain the liquid-cursor aperture; do not obscure real sculptural objects.
-  if (uObjects > .5) ambient *= .34;
-  // Ink veil thins sharply in the locally fluid-revealed region.
-  float alpha = glyph*ambient*(1.0-.985*revealed);
+  float ambient = mix(.24,.48,smoothstep(.4,4.8,uMode));
+  // The objects remain readable, but the fluid pigment is visibly present and
+  // gets carved open by cursor-driven flow. Matte-black scenes stay quieter.
+  if (uObjects > .5) ambient *= (uMode>2.5 && uMode<3.5) ? .17 : .42;
+  float edgeGlow=smoothstep(.10,.75,density)*.16;
+  float alpha = glyph*clamp(ambient+edgeGlow,0.,.72)*(1.0-.94*revealed);
   outColor = vec4(ink,alpha);
 }`;
 
@@ -384,6 +390,20 @@ void main() {
         this.filmWindow.style.maskImage=this.originalGlyphImage;
         this.cursorMaskExpanded=false;
       }
+    }
+
+    updatePhysicalTransform(entry) {
+      if(!this.filmWindow)return;
+      const e=entry||{};
+      const y=Number.isFinite(e.y)?e.y:0;
+      const sx=Number.isFinite(e.scaleX)?e.scaleX:1;
+      const sy=Number.isFinite(e.scaleY)?e.scaleY:1;
+      const transform=`translate3d(0,${y.toFixed(2)}px,0) scale(${sx.toFixed(5)},${sy.toFixed(5)})`;
+      const origin='50% 53%';
+      this.filmWindow.style.transformOrigin=origin;
+      this.filmWindow.style.transform=transform;
+      this.canvas.style.transformOrigin=origin;
+      this.canvas.style.transform=transform;
     }
 
     updateNativeLetterScale(scale) {
@@ -610,9 +630,10 @@ void main() {
       const move=[Math.max(-.14,Math.min(.14,p.x-before.x)),
                   Math.max(-.14,Math.min(.14,p.y-before.y))];
       const velocity=Math.abs(move[0])+Math.abs(move[1]);
+      const speedBoost=isActive?Math.min(1.85,.65+(pointer.speed||0)*1.35):1.0;
       const inject=reducedMotion?0:
-        isActive ? (velocity>.0002?1:0) :
-                   (velocity>.00005?.55:0);
+        isActive ? (velocity>.00008?speedBoost:0) :
+                   (velocity>.00005?.48:0);
       this.oldPoint=p;
       const texel=[1/S,1/S];
       const {flow,pressures}=this;
@@ -646,6 +667,7 @@ void main() {
           window.KBJStage?.update(options);
           this.updateFluidCursorMask(options.pointer,options.now);
           this.updateNativeLetterScale(options.letterScale);
+          this.updatePhysicalTransform(options.entry);
           const objectActive=!!this.objectStage?.render(options);
           // Color-only production mode: the second WebGL canvas is the exact
           // solid color. Don't run fluid simulation or draw an ink veil over
@@ -746,7 +768,8 @@ void main() {
         scenes:window.KBJScenes?.diagnostics?.() || null,
         extraMedia:window.KBJStage?.diagnostics?.() || null,
         objectWorlds:window.KBJObjectWorlds?.diagnostic?.() || null,
-        nativeLetterScale:this.nativeLetterScale||1
+        nativeLetterScale:this.nativeLetterScale||1,
+        physicalTransform:this.filmWindow?.style?.transform||'none'
       };
     }
   }
