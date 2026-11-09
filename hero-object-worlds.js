@@ -154,29 +154,56 @@ const bgF=`#version 300 es
 precision highp float;
 in vec2 uv;
 out vec4 color;
-uniform float uScene,uNext,uMix,uTime,uSpeed;
+uniform float uScene,uNext,uMix,uTime,uSpeed,uQuality;
 uniform vec2 uMouse;
 float h(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+34.21);return fract(p.x*p.y);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
  return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
 vec3 palette(float scene,float oil){
- if(scene<.5)return mix(vec3(.004,.012,.035),vec3(.018,.10,.38),oil*.58);
- if(scene<1.5)return mix(vec3(.58,.003,.12),vec3(1.,.018,.43),.20+.80*oil);
- if(scene<2.5)return mix(vec3(.62,.04,0.),vec3(1.,.39,0.),.18+.82*oil);
- if(scene<3.5)return mix(vec3(.002),vec3(.032,.035,.039),oil*.28);
- if(scene<4.5)return mix(vec3(0.,.22,.19),vec3(0.,.96,.74),.16+.84*oil);
- return mix(vec3(.17,.20,.25),vec3(.92,.96,1.),.16+.84*oil);
+ if(scene<.5)return mix(vec3(.003,.010,.028),vec3(.025,.11,.42),oil*.62);
+ if(scene<1.5)return mix(vec3(.48,.002,.09),vec3(1.,.016,.39),.22+.78*oil);
+ if(scene<2.5)return mix(vec3(.55,.026,0.),vec3(1.,.34,.0),.18+.82*oil);
+ if(scene<3.5)return mix(vec3(.001),vec3(.026,.029,.033),oil*.25);
+ if(scene<4.5)return mix(vec3(0.,.18,.16),vec3(0.,.92,.72),.18+.82*oil);
+ return mix(vec3(.14,.17,.22),vec3(.91,.95,1.),.15+.85*oil);
+}
+vec3 studio(float scene,vec2 p,float oil,float noiseField){
+ vec3 c=palette(scene,oil);
+ float horizon=smoothstep(.02,.98,1.-p.y);
+ float key=exp(-pow(abs(p.x-.27-uMouse.x*.025)*3.1,4.0)-pow(abs(p.y-.35+uMouse.y*.018)*5.0,4.0));
+ float fill=exp(-pow(abs(p.x-.78)*4.6,4.0)-pow(abs(p.y-.62)*6.2,4.0));
+ float vignette=1.-smoothstep(.42,.82,length((p-.5)*vec2(1.0,.82)));
+ float texture=(noiseField-.5)*.055;
+ if(scene<.5){
+   c*=.78+.24*horizon+.15*key+.05*vignette+texture;
+ }else if(scene<1.5){
+   c*=.80+.18*horizon+.22*key+.07*fill+texture;
+ }else if(scene<2.5){
+   c*=.82+.15*horizon+.20*key+.08*fill+texture;
+ }else if(scene<3.5){
+   c*=.72+.16*horizon+.10*key+.05*fill+texture*.42;
+ }else if(scene<4.5){
+   c*=.78+.18*horizon+.18*key+.09*fill+texture*.75;
+   c+=vec3(.03,.10,.09)*vignette*.18;
+ }else{
+   float panel=.5+.5*sin((p.x*.72+p.y*.41)*19.+noiseField*2.4);
+   c*=.72+.18*horizon+.18*key+.10*fill;
+   c+=vec3(.30,.35,.44)*panel*.12+vec3(1.)*key*.13;
+ }
+ return c;
 }
 void main(){
  vec2 mouse=uMouse*.5+.5;
  float d=length((uv-mouse)*vec2(1.15,1.0));
- float a=n(uv*3.4+vec2(uTime*.045,-uTime*.031));
- float b=n(uv.yx*6.1-vec2(uTime*.028,uTime*.054));
- float wake=exp(-d*d*(5.5+uSpeed*7.0));
- float oil=.5+.5*sin((uv.x*.95+uv.y*.72+a*.24-b*.17)*10.0+uTime*.22+wake*2.3);
- oil=clamp(oil + wake*uSpeed*.28,0.,1.);
- vec3 c0=palette(uScene,oil),c1=palette(uNext,1.-oil*.76);
- vec3 c=mix(c0,c1,smoothstep(0.,1.,uMix));
+ float a=n(uv*3.0+vec2(uTime*.028,-uTime*.021));
+ float b=n(uv.yx*5.2-vec2(uTime*.018,uTime*.034));
+ float wake=exp(-d*d*(5.5+uSpeed*5.0));
+ float oil=.5+.5*sin((uv.x*.72+uv.y*.48+a*.17-b*.11)*8.2+uTime*.12+wake*1.8);
+ oil=clamp(oil+wake*uSpeed*.18,0.,1.);
+ vec3 c0=uQuality>1.5?studio(uScene,uv,oil,a):palette(uScene,oil);
+ vec3 c1=uQuality>1.5?studio(uNext,uv,1.-oil*.70,b):palette(uNext,1.-oil*.76);
+ float transition=smoothstep(0.,1.,uMix);
+ vec3 c=mix(c0,c1,transition);
  color=vec4(c,1.0);
 }`;
 const id=()=>new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
@@ -567,7 +594,7 @@ class Stage{
   this.u={};
   if(this.modelsVisible)for(let n of ['uModel','uVP','uBase','uEye','uMouse','uType','uAlpha','uTime','uSeed','uScene','uEnergy','uQuality'])
     this.u[n]=gl.getUniformLocation(this.program,n);
-  this.bu={};for(let n of ['uScene','uNext','uMix','uTime','uMouse','uSpeed'])
+  this.bu={};for(let n of ['uScene','uNext','uMix','uTime','uMouse','uSpeed','uQuality'])
     this.bu[n]=gl.getUniformLocation(this.bgProgram,n);
   this.items=objects();this.pointer=[0,0];this.pointerVel=[0,0];
   this.pointerSlow=[0,0];this.pointerSlowVel=[0,0];
@@ -795,6 +822,7 @@ class Stage{
    gl.uniform1f(this.bu.uMix,mix);gl.uniform1f(this.bu.uTime,t);
    gl.uniform2f(this.bu.uMouse,this.pointer[0],this.pointer[1]);
    gl.uniform1f(this.bu.uSpeed,this.pointerEnergy);
+   gl.uniform1f(this.bu.uQuality,this.materialQuality||0);
    gl.drawArrays(gl.TRIANGLES,0,3);
    gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
    gl.clearDepth(1);gl.clear(gl.DEPTH_BUFFER_BIT);
