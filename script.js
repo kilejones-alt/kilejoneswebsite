@@ -46,7 +46,8 @@
     7:{name:'nothin-layered-physics',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
        gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.42,oil:2.55,material:1},
     8:{name:'nothin-material-choreography',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
-       gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.42,oil:2.35,material:2}
+       gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.42,oil:2.35,material:2,
+       durations:[7.6,6.8,6.3,5.5,6.6,7.4],transition:1.10}
   };
   for(const k of [1,2,3,4]) if(!('oil' in HERO_PROFILES[k])) HERO_PROFILES[k].oil=1.0;
   const HERO_PROFILE = HERO_PROFILES[HERO_TRY];
@@ -375,16 +376,20 @@
       state.mode=force;state.nextMode=(force+1)%MODE_NAMES.length;
       state.mix=0;state.modeStart=now;return;
     }
-    const elapsed=(now-state.modeStart)/1000;
-    if(elapsed>=MODE_SECONDS){
-      const steps=Math.floor(elapsed/MODE_SECONDS);
-      state.mode=(state.mode+steps)%MODE_NAMES.length;
+    const duration=()=>HERO_PROFILE.durations?.[state.mode]||MODE_SECONDS;
+    let elapsed=(now-state.modeStart)/1000;
+    // Run 8 uses scene-specific holds; carry the exact remainder so long
+    // frames never make the choreography drift out of rhythm.
+    while(elapsed>=duration()){
+      state.mode=(state.mode+1)%MODE_NAMES.length;
       state.nextMode=(state.mode+1)%MODE_NAMES.length;
-      state.modeStart+=steps*MODE_SECONDS*1000;
+      state.modeStart+=duration()*1000;
+      elapsed=(now-state.modeStart)/1000;
     }
-    const local=(now-state.modeStart)/1000;
-    const start=MODE_SECONDS-TRANSITION_SECONDS;
-    const x=Math.max(0,Math.min(1,(local-start)/TRANSITION_SECONDS));
+    const d=duration();
+    const trans=HERO_PROFILE.transition||TRANSITION_SECONDS;
+    const start=d-trans;
+    const x=Math.max(0,Math.min(1,(elapsed-start)/trans));
     state.mix=x*x*(3-2*x);
   }
 
@@ -431,7 +436,8 @@
         mode:MODE_NAMES[state.mode],nextMode:MODE_NAMES[state.nextMode],
         mix:+state.mix.toFixed(3), dpr:+state.dpr.toFixed(2),
         videoReady:true,
-        modeSeconds:MODE_SECONDS,transitionSeconds:TRANSITION_SECONDS,
+        modeSeconds:HERO_PROFILE.durations?.[state.mode]||MODE_SECONDS,
+        transitionSeconds:HERO_PROFILE.transition||TRANSITION_SECONDS,
         solidColors:SOLID_COLORS,
         letterScale:+state.letterScale.toFixed(4),
         letterHover:pointer.glyphHover,
@@ -483,7 +489,8 @@
       dpr: +state.dpr.toFixed(2),
       viewport: [state.w, state.h],
       pointer: [Math.round(pointer.x), Math.round(pointer.y)],
-      modeSeconds:MODE_SECONDS,transitionSeconds:TRANSITION_SECONDS,
+      modeSeconds:HERO_PROFILE.durations?.[state.mode]||MODE_SECONDS,
+      transitionSeconds:HERO_PROFILE.transition||TRANSITION_SECONDS,
       solidColors:SOLID_COLORS,
       letterScale:+state.letterScale.toFixed(4),
       letterHover:pointer.glyphHover,
