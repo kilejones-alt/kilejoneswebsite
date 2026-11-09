@@ -29,7 +29,7 @@
   const MODE_NAMES = ['MIDNIGHT GLOSS', 'NEON PINK LATEX', 'HOT ORANGE', 'MATTE BLACK', 'BRIGHT TEAL', 'SILVER FOIL'];
   const SOLID_COLORS = ['#071226', '#FF0668', '#FF5A00', '#050506', '#00D9C6', '#C9D1DD'];
 
-  const HERO_TRY = Math.max(1, Math.min(7, Number(new URLSearchParams(location.search).get('try')) || 1));
+  const HERO_TRY = Math.max(1, Math.min(8, Number(new URLSearchParams(location.search).get('try')) || 1));
   const HERO_PROFILES = {
     1:{name:'soft-mass',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
        gravity:2650,restitution:.23,damping:4.8,squash:.074,wobble:14.2,delay:.26,parallax:1.30},
@@ -44,7 +44,9 @@
     6:{name:'nothin-deep',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
        gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.75,oil:2.25},
     7:{name:'nothin-layered-physics',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
-       gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.42,oil:2.55}
+       gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.42,oil:2.55,material:1},
+    8:{name:'nothin-material-choreography',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
+       gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.42,oil:2.35,material:2}
   };
   for(const k of [1,2,3,4]) if(!('oil' in HERO_PROFILES[k])) HERO_PROFILES[k].oil=1.0;
   const HERO_PROFILE = HERO_PROFILES[HERO_TRY];
@@ -413,7 +415,8 @@
       mix:state.mix, reducedMotion:reduceMotion,
       letterScale:state.letterScale,
       entry:state.entry, heroTry:HERO_TRY,
-      parallaxGain:HERO_PROFILE.parallax, oilGain:HERO_PROFILE.oil
+      parallaxGain:HERO_PROFILE.parallax, oilGain:HERO_PROFILE.oil,
+      materialQuality:HERO_PROFILE.material||0
     });
     if (gpuActive) {
       canvas.style.visibility = 'hidden';
@@ -434,6 +437,7 @@
         letterHover:pointer.glyphHover,
         heroTry:HERO_TRY,heroProfile:HERO_PROFILE.name,
         parallaxGain:HERO_PROFILE.parallax,oilGain:HERO_PROFILE.oil,
+        materialQuality:HERO_PROFILE.material||0,
         entrySettled:state.entry.settled,
         gpu:gpuRenderer.diagnostic()
       };
@@ -485,6 +489,7 @@
       letterHover:pointer.glyphHover,
       heroTry:HERO_TRY,heroProfile:HERO_PROFILE.name,
       parallaxGain:HERO_PROFILE.parallax,oilGain:HERO_PROFILE.oil,
+      materialQuality:HERO_PROFILE.material||0,
       entrySettled:state.entry.settled,
       rawPointerInput: 'onpointerrawupdate' in window,
       videoReady: !!video && video.readyState >= 2,
