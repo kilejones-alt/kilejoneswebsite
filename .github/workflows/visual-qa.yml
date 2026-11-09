@@ -56,12 +56,12 @@ jobs:
             if(!h.includes(font))throw Error('Missing hero trial font: '+font);
           }
           if(!h.includes('font-src'))throw Error('Font CSP missing');
-          if(!s.includes('HERO_PROFILES') || !s.includes('nothin-layered-physics') || !s.includes('speedN'))throw Error('Run 7 pointer profile missing');
+          if(!s.includes('HERO_PROFILES') || !s.includes('nothin-material-choreography') || !s.includes('durations:['))throw Error('Run 8 choreography profile missing');
           if(!s.includes('MIDNIGHT GLOSS') || !s.includes('SILVER FOIL'))throw Error('Material-world cycle missing');
           const world=fs.readFileSync('hero-object-worlds.js','utf8');
           const overlay=fs.readFileSync('hero-gpu.js','utf8');
-          if(!world.includes('pointerEnergy') || !world.includes('pointerSlow') || !world.includes('pointerMotion') || !world.includes('uSpeed'))throw Error('Run 7 layered parallax response missing');
-          if(!overlay.includes('updatePhysicalTransform') || !overlay.includes('speedBoost'))throw Error('GPU physical/velocity response missing');
+          if(!world.includes('pointerSlow') || !world.includes('uQuality') || !world.includes('sceneBase') || !world.includes('Run 8 choreography'))throw Error('Run 8 material system missing');
+          if(!overlay.includes('updatePhysicalTransform') || !overlay.includes('speedBoost') || !overlay.includes('uQuality'))throw Error('Run 8 GPU material veil missing');
           if((nav.match(/<a /g)||[]).length!==5)throw Error('Navigation contains unapproved items');
           console.log('Navigation, visual engine and accessibility selectors validated.');
           NODE
@@ -69,10 +69,10 @@ jobs:
         run: |
           CHROME=$(command -v google-chrome || command -v chromium || true)
           if [ -n "$CHROME" ]; then
-            for TRY in 7; do
+            for TRY in 8; do
               "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=1440,900 --virtual-time-budget=10000 --screenshot="desktop-try-$TRY.png" "file://$PWD/index.html?try=$TRY"
             done
-            for TRY in 7; do
+            for TRY in 8; do
               "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=390,844 --virtual-time-budget=10000 --screenshot="phone-try-$TRY.png" "file://$PWD/index.html?try=$TRY"
             done
           else
@@ -83,6 +83,6 @@ jobs:
         with:
           name: responsive-hero-qa
           path: |
-            desktop-try-7.png
-            phone-try-7.png
+            desktop-try-8.png
+            phone-try-8.png
           if-no-files-found: ignore
