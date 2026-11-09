@@ -615,7 +615,7 @@ void main() {
       gl.drawArrays(gl.TRIANGLES,0,3);
     }
 
-    simulate(now, pointer, dt, reducedMotion) {
+    simulate(now, pointer, dt, reducedMotion, oilGain=1) {
       const S=this.simSize;
       if (!S) return;
       const isActive = !reducedMotion && pointer.active && pointer.overCanvas;
@@ -630,7 +630,8 @@ void main() {
       const move=[Math.max(-.14,Math.min(.14,p.x-before.x)),
                   Math.max(-.14,Math.min(.14,p.y-before.y))];
       const velocity=Math.abs(move[0])+Math.abs(move[1]);
-      const speedBoost=isActive?Math.min(2.25,.82+(pointer.speed||0)*1.75):1.0;
+      this.lastOilGain=oilGain;
+      const speedBoost=isActive?Math.min(3.2,(.82+(pointer.speed||0)*1.75)*oilGain):1.0;
       const inject=reducedMotion?0:
         isActive ? ((velocity>.00002 || (pointer.speed||0)>.015)?speedBoost:0) :
                    (velocity>.00004?.46:0);
@@ -695,7 +696,7 @@ void main() {
           if(!objectActive && this.originalVideo.paused)
             this.originalVideo.play().catch(()=>{});
           const gl=this.gl;
-          this.simulate(options.now,options.pointer,options.dt,options.reducedMotion);
+          this.simulate(options.now,options.pointer,options.dt,options.reducedMotion,options.oilGain||1);
           gl.bindFramebuffer(gl.FRAMEBUFFER,null);
           gl.viewport(0,0,this.canvas.width,this.canvas.height);
           gl.disable(gl.BLEND);
@@ -734,7 +735,7 @@ void main() {
         gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,v);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
         if(gl.getError()!==gl.NO_ERROR) throw new Error('WebGL video upload denied');
-        this.simulate(options.now,options.pointer,options.dt,options.reducedMotion);
+        this.simulate(options.now,options.pointer,options.dt,options.reducedMotion,options.oilGain||1);
         gl.bindFramebuffer(gl.FRAMEBUFFER,null);
         gl.viewport(0,0,this.canvas.width,this.canvas.height);
         gl.disable(gl.BLEND);
@@ -769,7 +770,8 @@ void main() {
         extraMedia:window.KBJStage?.diagnostics?.() || null,
         objectWorlds:window.KBJObjectWorlds?.diagnostic?.() || null,
         nativeLetterScale:this.nativeLetterScale||1,
-        physicalTransform:this.filmWindow?.style?.transform||'none'
+        physicalTransform:this.filmWindow?.style?.transform||'none',
+        oilGain:this.lastOilGain||1
       };
     }
   }
