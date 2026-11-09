@@ -635,9 +635,9 @@ class Stage{
     sc[0]*=1.12;sc[1]*=1.12;sc[2]*=1.12;
   }
   const perspective=1+p[2]*.068,gain=this.parallaxGain||1;
-  p[0]-=x*.58*perspective*gain;p[1]+=y*.38*perspective*gain;
-  p[2]+=this.pointerEnergy*.34*Math.sin(phase+t*.31);
-  rot[1]-=x*.052*perspective*gain;rot[0]+=y*.038*perspective*gain;
+  p[0]-=x*.88*perspective*gain;p[1]+=y*.58*perspective*gain;
+  p[2]+=this.pointerEnergy*.56*Math.sin(phase+t*.31);
+  rot[1]-=x*.082*perspective*gain;rot[0]+=y*.058*perspective*gain;
   p[0]+=Math.sin(t*.11+scene)*.035;
   return model(p,sc,rot);
  }
@@ -668,15 +668,15 @@ class Stage{
    this.parallaxGain=options.parallaxGain||1;
    const tx=p.active?p.nx:Math.sin(t*.12)*.045;
    const ty=p.active?p.ny:Math.cos(t*.10)*.035;
-   const stiffness=22*this.parallaxGain,damping=8.2;
+   const stiffness=31*this.parallaxGain,damping=7.1;
    for(let i=0;i<2;i++){
      const target=i?ty:tx;
-     const impulse=(i?(p.vy||0):(p.vx||0))*0.00065*this.parallaxGain;
+     const impulse=(i?(p.vy||0):(p.vx||0))*0.00165*this.parallaxGain;
      this.pointerVel[i]+=((target-this.pointer[i])*stiffness-this.pointerVel[i]*damping)*dt+impulse;
      this.pointer[i]+=this.pointerVel[i]*dt;
    }
    const targetEnergy=p.active?Math.min(1,(p.speed||0)*1.18):0;
-   this.pointerEnergy=lerp(this.pointerEnergy,targetEnergy,1-Math.exp(-dt*(targetEnergy>this.pointerEnergy?7.5:2.2)));
+   this.pointerEnergy=lerp(this.pointerEnergy,targetEnergy,1-Math.exp(-dt*(targetEnergy>this.pointerEnergy?11.0:1.55)));
    const aspect=this.width/this.height,mobile=aspect<.76;
    this.vp=perspective(aspect);
    const scene=options.mode%6,next=options.nextMode%6,mix=clamp(options.mix||0,0,1);
