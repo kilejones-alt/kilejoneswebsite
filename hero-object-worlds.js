@@ -510,6 +510,8 @@ class Stage{
   this.bu={};for(let n of ['uScene','uNext','uMix','uTime','uMouse','uSpeed'])
     this.bu[n]=gl.getUniformLocation(this.bgProgram,n);
   this.items=objects();this.pointer=[0,0];this.pointerVel=[0,0];
+  this.pointerSlow=[0,0];this.pointerSlowVel=[0,0];
+  this.pointerMotion=[0,0];
   this.pointerEnergy=0;this.parallaxGain=1;this.frames=0;
   // Original model definitions remain for later, but are not allocated.
   this.ready=true;this.fault=null;this.width=0;this.height=0;
@@ -635,14 +637,32 @@ class Stage{
     sc[0]*=1.12;sc[1]*=1.12;sc[2]*=1.12;
   }
   const perspective=1+p[2]*.068,gain=this.parallaxGain||1;
-  const focus=this.interactionMode>=6?1.0:(this.interactionMode===5?.82:1.0);
-  const px=this.interactionMode>=5?.50:.88;
-  const py=this.interactionMode>=5?.34:.58;
-  const pz=this.interactionMode>=6?.78:(this.interactionMode===5?.46:.56);
-  p[0]-=x*px*perspective*gain*focus;p[1]+=y*py*perspective*gain*focus;
-  p[2]+=this.pointerEnergy*pz*Math.sin(phase+t*.31);
-  rot[1]-=x*(this.interactionMode>=5?.052:.082)*perspective*gain;
-  rot[0]+=y*(this.interactionMode>=5?.038:.058)*perspective*gain;
+  if(this.interactionMode===7){
+    // Run 7: each object samples a different point between the slow and fast
+    // camera states according to depth. This creates layered parallax rather
+    // than moving the whole world as one flat slab.
+    const depth=clamp(.58+(p[2]+1.45)*.17,.34,1.34);
+    const blend=clamp(.18+depth*.63,.22,.95);
+    const lx=lerp(this.pointerSlow[0],x,blend);
+    const ly=lerp(this.pointerSlow[1],y,blend);
+    const mvx=this.pointerMotion[0],mvy=this.pointerMotion[1];
+    p[0]-=lx*.57*perspective*gain*depth;
+    p[1]+=ly*.39*perspective*gain*depth;
+    p[0]-=mvx*.085*depth;
+    p[1]+=mvy*.058*depth;
+    p[2]+=this.pointerEnergy*.52*Math.sin(phase+t*.28)*depth;
+    rot[1]-=(lx*.046+mvx*.020)*perspective*gain*depth;
+    rot[0]+=(ly*.034+mvy*.014)*perspective*gain*depth;
+  }else{
+    const focus=this.interactionMode>=6?1.0:(this.interactionMode===5?.82:1.0);
+    const px=this.interactionMode>=5?.50:.88;
+    const py=this.interactionMode>=5?.34:.58;
+    const pz=this.interactionMode>=6?.78:(this.interactionMode===5?.46:.56);
+    p[0]-=x*px*perspective*gain*focus;p[1]+=y*py*perspective*gain*focus;
+    p[2]+=this.pointerEnergy*pz*Math.sin(phase+t*.31);
+    rot[1]-=x*(this.interactionMode>=5?.052:.082)*perspective*gain;
+    rot[0]+=y*(this.interactionMode>=5?.038:.058)*perspective*gain;
+  }
   p[0]+=Math.sin(t*.11+scene)*.035;
   return model(p,sc,rot);
  }
@@ -675,18 +695,31 @@ class Stage{
    this.oilGain=options.oilGain||1;
    const tx=p.active?p.nx:Math.sin(t*.12)*.045;
    const ty=p.active?p.ny:Math.cos(t*.10)*.035;
-   const stiffness=(this.interactionMode>=6?40:this.interactionMode===5?27:31)*this.parallaxGain;
-   const damping=this.interactionMode>=6?6.2:this.interactionMode===5?9.6:7.1;
+   const stiffness=(this.interactionMode===7?34:this.interactionMode>=6?40:this.interactionMode===5?27:31)*this.parallaxGain;
+   const damping=this.interactionMode===7?10.8:this.interactionMode>=6?6.2:this.interactionMode===5?9.6:7.1;
    for(let i=0;i<2;i++){
      const target=i?ty:tx;
-     const impulse=(i?(p.vy||0):(p.vx||0))*
+     const legacyImpulse=(i?(p.vy||0):(p.vx||0))*
        (this.interactionMode>=6?0.00245:this.interactionMode===5?0.00135:0.00165)*
        this.parallaxGain;
+     const normalizedImpulse=(i?(p.nvy||0):(p.nvx||0))*.026*this.parallaxGain;
+     const impulse=this.interactionMode===7?normalizedImpulse:legacyImpulse;
      this.pointerVel[i]+=((target-this.pointer[i])*stiffness-this.pointerVel[i]*damping)*dt+impulse;
      this.pointer[i]+=this.pointerVel[i]*dt;
+
+     if(this.interactionMode===7){
+       const slowK=8.8*this.parallaxGain,slowD=6.4;
+       this.pointerSlowVel[i]+=((target-this.pointerSlow[i])*slowK-this.pointerSlowVel[i]*slowD)*dt;
+       this.pointerSlow[i]+=this.pointerSlowVel[i]*dt;
+       const motionTarget=i?(p.nvy||0):(p.nvx||0);
+       this.pointerMotion[i]=lerp(this.pointerMotion[i],motionTarget,
+         1-Math.exp(-dt*(Math.abs(motionTarget)>Math.abs(this.pointerMotion[i])?15:3.2)));
+     }
    }
-   const targetEnergy=p.active?Math.min(1.65,(p.speed||0)*1.18*this.oilGain):0;
-   this.pointerEnergy=lerp(this.pointerEnergy,targetEnergy,1-Math.exp(-dt*(targetEnergy>this.pointerEnergy?11.0:1.55)));
+   const speedSource=this.interactionMode===7?(p.speedN||0):(p.speed||0);
+   const targetEnergy=p.active?Math.min(1.85,speedSource*1.06*this.oilGain):0;
+   this.pointerEnergy=lerp(this.pointerEnergy,targetEnergy,
+     1-Math.exp(-dt*(targetEnergy>this.pointerEnergy?(this.interactionMode===7?14:11):(this.interactionMode===7?2.4:1.55))));
    const aspect=this.width/this.height,mobile=aspect<.76;
    this.vp=perspective(aspect);
    const scene=options.mode%6,next=options.nextMode%6,mix=clamp(options.mix||0,0,1);
@@ -737,6 +770,8 @@ class Stage{
    visualMode:this.modelsVisible?'full interactive material world':'simplified pigment loop',
    pointer:[+this.pointer[0].toFixed(3),+this.pointer[1].toFixed(3)],
    pointerEnergy:+this.pointerEnergy.toFixed(3),
+   pointerSlow:[+this.pointerSlow[0].toFixed(3),+this.pointerSlow[1].toFixed(3)],
+   pointerMotion:[+this.pointerMotion[0].toFixed(3),+this.pointerMotion[1].toFixed(3)],
    interactionMode:this.interactionMode||1,
    parallaxGain:+(this.parallaxGain||1).toFixed(2),
    oilGain:+(this.oilGain||1).toFixed(2),
