@@ -32,13 +32,13 @@
   const HERO_TRY = Math.max(1, Math.min(4, Number(new URLSearchParams(location.search).get('try')) || 1));
   const HERO_PROFILES = {
     1:{name:'soft-mass',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
-       gravity:3300,restitution:.19,damping:5.3,squash:.060,wobble:15.0,delay:.10,parallax:1.00},
+       gravity:2650,restitution:.23,damping:4.8,squash:.074,wobble:14.2,delay:.26,parallax:1.30},
     2:{name:'dense-rubber',family:'"Archivo","Helvetica Neue",Arial,sans-serif',weight:760,horizontal:.955,
-       gravity:3900,restitution:.255,damping:5.8,squash:.078,wobble:17.2,delay:.06,parallax:1.18},
+       gravity:3150,restitution:.31,damping:5.2,squash:.095,wobble:16.4,delay:.20,parallax:1.55},
     3:{name:'editorial-elastic',family:'"Space Grotesk","Helvetica Neue",Arial,sans-serif',weight:650,horizontal:.972,
-       gravity:3550,restitution:.225,damping:4.9,squash:.070,wobble:13.6,delay:.13,parallax:1.32},
+       gravity:2850,restitution:.27,damping:4.3,squash:.086,wobble:12.8,delay:.30,parallax:1.78},
     4:{name:'quiet-heavy',family:'"IBM Plex Sans","Helvetica Neue",Arial,sans-serif',weight:600,horizontal:.948,
-       gravity:4300,restitution:.135,damping:6.6,squash:.048,wobble:19.0,delay:.04,parallax:.92}
+       gravity:3500,restitution:.17,damping:6.0,squash:.060,wobble:18.4,delay:.16,parallax:1.18}
   };
   const HERO_PROFILE = HERO_PROFILES[HERO_TRY];
   document.documentElement.dataset.heroTry = String(HERO_TRY);
@@ -193,25 +193,26 @@
     // Keep a native OS cursor: no oversized rings, trails or hover morphs.
     // Pointer coordinates still drive gentle 3D camera parallax.
     const updatePointer=(e)=>{
-      if(e.pointerType==='touch')return;
       const x=e.clientX,y=e.clientY;
       pointer.vx=x-pointer.x;
       pointer.vy=y-pointer.y;
-      pointer.speed=Math.min(1,Math.hypot(pointer.vx,pointer.vy)/52);
+      pointer.speed=Math.min(1,Math.hypot(pointer.vx,pointer.vy)/28);
       pointer.x=x;pointer.y=y;
       pointer.nx=state.w?(x/state.w)*2-1:0;
       pointer.ny=state.h?(y/state.h)*2-1:0;
       pointer.active=true;
-      pointer.overCanvas=!!e.target?.closest?.('.hero');
+      // The hero is full-screen. Coordinate bounds are more reliable than
+      // event.target because masked WebGL layers deliberately use pointer-events:none.
+      pointer.overCanvas=x>=0&&y>=0&&x<=state.w&&y<=state.h;
     };
-    const eventName='onpointerrawupdate' in window?'pointerrawupdate':'pointermove';
-    addEventListener(eventName,updatePointer,{passive:true});
-    canvas.addEventListener('pointerenter',e=>{
-      pointer.overCanvas=true;updatePointer(e);
-    },{passive:true});
-    canvas.addEventListener('pointerleave',()=>{
-      pointer.overCanvas=false;
-    },{passive:true});
+    // Listen to pointermove unconditionally; raw updates are an additional
+    // high-frequency input when the browser provides them, never the only one.
+    addEventListener('pointermove',updatePointer,{passive:true});
+    if('onpointerrawupdate' in window)
+      addEventListener('pointerrawupdate',updatePointer,{passive:true});
+    addEventListener('pointerdown',updatePointer,{passive:true});
+    canvas.addEventListener('pointerenter',e=>{pointer.overCanvas=true;updatePointer(e);},{passive:true});
+    canvas.addEventListener('pointerleave',()=>{pointer.overCanvas=false;},{passive:true});
   }
 
   function resize() {
@@ -246,6 +247,9 @@
     }
     buildMask();
     gpuRenderer?.resize(state.w, state.h, state.dpr, maskCanvas);
+    // Put the WebGL plane above the viewport before first paint so there is
+    // no flash of the final wordmark followed by a belated fall.
+    gpuRenderer?.updatePhysicalTransform?.(state.entry);
   }
 
   function buildMask() {
