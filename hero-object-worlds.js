@@ -28,59 +28,119 @@ out vec4 color;
 uniform vec3 uBase;
 uniform vec3 uEye;
 uniform vec2 uMouse;
-uniform float uType,uAlpha,uTime,uSeed;
+uniform float uType,uAlpha,uTime,uSeed,uScene,uEnergy,uQuality;
+
+float sat(float x){return clamp(x,0.0,1.0);}
+float hash31(vec3 p){
+ p=fract(p*.1031);p+=dot(p,p.yzx+33.33);
+ return fract((p.x+p.y)*p.z);
+}
+float grain(vec3 p){
+ vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);
+ return mix(mix(mix(hash31(i),hash31(i+vec3(1,0,0)),f.x),
+                mix(hash31(i+vec3(0,1,0)),hash31(i+vec3(1,1,0)),f.x),f.y),
+            mix(mix(hash31(i+vec3(0,0,1)),hash31(i+vec3(1,0,1)),f.x),
+                mix(hash31(i+vec3(0,1,1)),hash31(i+vec3(1,1,1)),f.x),f.y),f.z);
+}
+vec3 sceneBase(float scene,vec3 original){
+ if(uQuality<1.5)return original;
+ if(scene<.5)return mix(original,vec3(.018,.055,.20),.38);
+ if(scene<1.5)return vec3(1.0,.018,.30);
+ if(scene<2.5)return vec3(1.0,.20,.008);
+ if(scene<3.5)return vec3(.020,.022,.025);
+ if(scene<4.5)return vec3(.010,.70,.62);
+ return vec3(.76,.80,.86);
+}
 void main(){
  vec3 n=normalize(vNormal),v=normalize(uEye-vPosition);
- // Procedural foil creases alter the actual shading normal, not merely
- // the painted color. Two frequencies form different scales of crumpling.
- if(uType>2.5 && uType<3.5){
-   vec3 p=vLocal;
-   float a=p.x*24.0+p.z*15.0+uSeed*6.1;
-   float b=p.y*31.0-p.x*17.0;
-   float c=p.x*63.0-p.z*48.0+p.y*19.0+uSeed*4.4;
-   vec3 bend=vec3(
-     cos(a)*sin(b)*24.0-sin(a)*cos(b)*17.0,
-     sin(a)*cos(b)*31.0,
-     cos(a)*sin(b)*15.0);
-   bend+=vec3(63.0,-19.0,-48.0)*cos(c)*.23;
-   n=normalize(n+bend*.0065);
- }
- vec3 l1=normalize(vec3(-.73+uMouse.x*.37,.89-uMouse.y*.23,1.1));
- vec3 l2=normalize(vec3(.9-uMouse.x*.28,.38+uMouse.y*.25,.62));
- vec3 l3=normalize(vec3(.15,-.9,.83));
- float diff=.52*max(dot(n,l1),0.)+.35*max(dot(n,l2),0.)+
- .24*max(dot(n,l3),0.);
- float spec=pow(max(dot(reflect(-l1,n),v),0.),80.);
- float band=pow(max(dot(reflect(-l2,n),v),0.),24.);
- float soft=pow(max(dot(reflect(-l3,n),v),0.),9.);
- float rim=pow(1.-max(dot(n,v),0.),3.);
+ float micro=grain(vLocal*vec3(7.0,9.0,6.0)+uSeed*3.7);
+ float fine=grain(vLocal*vec3(25.0,29.0,23.0)+uSeed*8.3);
  float wrinkle=sin(vLocal.x*21.+vLocal.z*47.+uSeed*7.)*
-                sin(vLocal.y*33.-vLocal.x*14.+uTime*.12);
- vec3 col=uBase*(.23+diff*1.09);
+               sin(vLocal.y*33.-vLocal.x*14.+uTime*.10);
+
+ // Real surface breakup is encoded in the normal rather than painted on.
+ if(uQuality>1.5){
+   if(uType>2.5&&uType<3.5){
+     vec3 bend=vec3(
+       sin(vLocal.y*31.+vLocal.z*17.+uSeed*4.),
+       cos(vLocal.x*37.-vLocal.z*22.+uSeed*5.),
+       sin((vLocal.x+vLocal.y)*43.+uSeed*6.));
+     n=normalize(n+bend*(.055+.025*fine));
+   }else if(uType>1.5&&uType<2.5){
+     n=normalize(n+vec3(micro-.5,fine-.5,0.)*.018);
+   }else if(uType>.5&&uType<1.5){
+     n=normalize(n+vec3(fine-.5,micro-.5,0.)*.011);
+   }
+ }else if(uType>2.5&&uType<3.5){
+   n=normalize(n+vec3(sin(vLocal.y*31.),cos(vLocal.x*37.),0.)*.025);
+ }
+
+ // Three large photographic softboxes plus a dim floor bounce.
+ vec3 lKey=normalize(vec3(-.72+uMouse.x*.18,.92-uMouse.y*.12,1.15));
+ vec3 lFill=normalize(vec3(.94-uMouse.x*.12,.30+uMouse.y*.10,.72));
+ vec3 lTop=normalize(vec3(.12,.98,.28));
+ vec3 lFloor=normalize(vec3(-.18,-.82,.62));
+ float ndk=max(dot(n,lKey),0.),ndf=max(dot(n,lFill),0.);
+ float ndt=max(dot(n,lTop),0.),ndb=max(dot(n,lFloor),0.);
+
+ float rough=.36;
+ if(uType<.5)rough=.20;
+ else if(uType<1.5)rough=.13;
+ else if(uType<2.5)rough=.82;
+ else if(uType<3.5)rough=.24;
+ else if(uType<4.5)rough=.42;
+ else rough=.58;
+ if(uQuality>1.5 && uScene>2.5&&uScene<3.5)rough=max(rough,.88);
+
+ float exponent=mix(145.0,10.0,rough);
+ vec3 hk=normalize(lKey+v),hf=normalize(lFill+v),ht=normalize(lTop+v);
+ float sk=pow(max(dot(n,hk),0.),exponent);
+ float sf=pow(max(dot(n,hf),0.),max(7.0,exponent*.55));
+ float st=pow(max(dot(n,ht),0.),max(5.0,exponent*.34));
+ float fres=pow(1.-max(dot(n,v),0.),mix(5.0,2.2,rough));
+ float diffuse=.12+.54*ndk+.24*ndf+.12*ndt+.07*ndb;
+
+ vec3 base=sceneBase(uScene,uBase);
+ vec3 col=base*diffuse;
+
  if(uType<.5){
-   col+=vec3(.35,.62,1.0)*(spec*1.9+band*.52+rim*.60);
-   col+=vec3(.03,.10,.24)*soft*.35;
+   // Midnight enamel: hard highlights and blue-black depth.
+   col+=vec3(.38,.66,1.0)*(sk*1.65+sf*.46+fres*.52);
+   col+=vec3(.015,.045,.14)*(micro*.16);
+ }else if(uType<1.5){
+   // Inflated latex: broad white softbox streaks over saturated pigment.
+   col=base*(.22+diffuse*.88);
+   col+=vec3(1.,.91,.95)*(sk*2.5+sf*.72+st*.28);
+   col+=base*fres*.24;
+   col*=mix(.94,1.055,micro);
+ }else if(uType<2.5){
+   // Matte graphite / plaster: nearly no specular, strong grazing edge.
+   col=base*(.26+diffuse*.77);
+   col+=vec3(.34,.39,.46)*(fres*.30+sf*.055);
+   col*=mix(.82,1.04,micro*.72+fine*.28);
+ }else if(uType<3.5){
+   // Crinkled helium foil: alternating cool/warm panels and sharp broken glints.
+   float panel=sat(.5+.5*wrinkle);
+   vec3 foil=mix(vec3(.18,.22,.29),vec3(.96,.98,1.0),panel*.72+.16);
+   vec3 warm=vec3(1.0,.78,.55)*pow(max(dot(n,normalize(vec3(-.76,.26,.58))),0.),9.);
+   col=foil*(.18+diffuse*.75);
+   col+=vec3(1.)*(sk*2.25+sf*1.18+st*.46)+warm*.28+vec3(.38,.50,.72)*fres*.56;
+   col*=mix(.84,1.10,fine);
+ }else if(uType<4.5){
+   // Frosted pearl/glass: milky center, cool edge transmission illusion.
+   vec3 ice=uQuality>1.5&&uScene>3.5&&uScene<4.5?vec3(.08,.92,.80):base;
+   col=ice*(.16+diffuse*.52);
+   col+=vec3(.82,.98,1.)*(fres*.76+sf*.25+st*.15);
+   col=mix(col,vec3(.78,.95,.96),(.18+.22*micro)*(1.-max(dot(n,v),0.)));
+ }else{
+   // Dark supporting forms: satin, not plastic.
+   col=base*(.25+diffuse*.68)+vec3(.23,.28,.36)*(fres*.28+sf*.10);
  }
- else if(uType<1.5){
-   // Glossy hot-pink latex under two broad photographic softboxes.
-   col=uBase*(.34+diff*.94)+vec3(1.,.87,.95)*
-       (spec*2.6+band*.38+soft*.19)+uBase*rim*.30;
- }
- else if(uType<2.5){
-   // Matte-black velvet/plaster reads through bright edge and softbox lights,
-   // not artificial gloss. Silhouette stays black on a lighter studio field.
-   col=uBase*(.33+diff*.91)+vec3(.38,.47,.60)*(spec*.12+band*.20+rim*.48);
- }
- else if(uType<3.5){
-   float dither=.5+.5*wrinkle;
-   vec3 foil=mix(vec3(.30,.35,.41),vec3(.92,.94,.98),dither);
-   float panel=pow(max(dot(reflect(-v,n),normalize(vec3(-.76,.35,.55))),0.),8.0);
-   col=foil*(.27+diff*.93)+vec3(1.,.99,.98)*
-       (spec*2.2+band*1.1+panel*.44)+vec3(.41,.53,.69)*rim*.61;
- }
- else if(uType<4.5){col+=vec3(.84,.95,1.)*(spec*.81+rim*.51+soft*.24);}
- else {col+=vec3(.31,.38,.49)*(spec*.55+rim*.27);}
- col=pow(clamp(col/(col+vec3(.75)),0.,1.),vec3(.83));
+
+ // Pointer energy changes the light, not the geometry, giving a tactile
+ // highlight sweep without making materials look rubbery.
+ if(uQuality>1.5)col+=vec3(1.)*sk*uEnergy*.10;
+ col=pow(clamp(col/(col+vec3(.68)),0.,1.),vec3(.82));
  color=vec4(col,uAlpha);
 }`;
 const bgV=`#version 300 es
@@ -505,7 +565,7 @@ class Stage{
   }
   this.bgVao=gl.createVertexArray();
   this.u={};
-  if(this.modelsVisible)for(let n of ['uModel','uVP','uBase','uEye','uMouse','uType','uAlpha','uTime','uSeed'])
+  if(this.modelsVisible)for(let n of ['uModel','uVP','uBase','uEye','uMouse','uType','uAlpha','uTime','uSeed','uScene','uEnergy','uQuality'])
     this.u[n]=gl.getUniformLocation(this.program,n);
   this.bu={};for(let n of ['uScene','uNext','uMix','uTime','uMouse','uSpeed'])
     this.bu[n]=gl.getUniformLocation(this.bgProgram,n);
@@ -675,6 +735,9 @@ class Stage{
   gl.uniform2f(this.u.uMouse,this.pointer[0],this.pointer[1]);
   gl.uniform1f(this.u.uTime,t);
   gl.uniform1f(this.u.uAlpha,alpha);
+  gl.uniform1f(this.u.uScene,index);
+  gl.uniform1f(this.u.uEnergy,this.pointerEnergy||0);
+  gl.uniform1f(this.u.uQuality,this.materialQuality||0);
   for(const o of this.items[index]){
    gl.uniformMatrix4fv(this.u.uModel,false,this.matrix(o,t,mobile,index));
    gl.uniform3fv(this.u.uBase,o.color);
@@ -693,6 +756,7 @@ class Stage{
    this.parallaxGain=options.parallaxGain||1;
    this.interactionMode=options.heroTry||1;
    this.oilGain=options.oilGain||1;
+   this.materialQuality=options.materialQuality||0;
    const tx=p.active?p.nx:Math.sin(t*.12)*.045;
    const ty=p.active?p.ny:Math.cos(t*.10)*.035;
    const stiffness=(this.interactionMode===7?34:this.interactionMode>=6?40:this.interactionMode===5?27:31)*this.parallaxGain;
@@ -736,11 +800,23 @@ class Stage{
    gl.clearDepth(1);gl.clear(gl.DEPTH_BUFFER_BIT);
    gl.disable(gl.BLEND);
    if(this.modelsVisible){
-     this.drawScene(scene,t,1,mobile);
-     if(mix>.005){
+     if(this.materialQuality>1.5 && mix>.005){
+       // Run 8 choreography: the incoming world arrives before the outgoing
+       // world disappears, with a brief editorial overlap rather than a
+       // synthetic opacity dissolve.
+       const incoming=ease(clamp(mix*1.38,0,1));
+       const outgoing=1.-ease(clamp((mix-.30)/.70,0,1));
+       this.drawScene(scene,t,outgoing,mobile);
        gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.BLEND);
        gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-       this.drawScene(next,t,mix,mobile);gl.disable(gl.BLEND);
+       this.drawScene(next,t+.18,incoming,mobile);gl.disable(gl.BLEND);
+     }else{
+       this.drawScene(scene,t,1,mobile);
+       if(mix>.005){
+         gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.BLEND);
+         gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+         this.drawScene(next,t,mix,mobile);gl.disable(gl.BLEND);
+       }
      }
    }
    if((this.frames<3||this.frames%120===0) && gl.getError()!==gl.NO_ERROR)
@@ -775,6 +851,7 @@ class Stage{
    interactionMode:this.interactionMode||1,
    parallaxGain:+(this.parallaxGain||1).toFixed(2),
    oilGain:+(this.oilGain||1).toFixed(2),
+   materialQuality:this.materialQuality||0,
    fault:this.fault};
  }
 }
