@@ -381,9 +381,10 @@
     // Run 8 uses scene-specific holds; carry the exact remainder so long
     // frames never make the choreography drift out of rhythm.
     while(elapsed>=duration()){
+      const finishedDuration=duration();
       state.mode=(state.mode+1)%MODE_NAMES.length;
       state.nextMode=(state.mode+1)%MODE_NAMES.length;
-      state.modeStart+=duration()*1000;
+      state.modeStart+=finishedDuration*1000;
       elapsed=(now-state.modeStart)/1000;
     }
     const d=duration();
