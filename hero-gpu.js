@@ -630,10 +630,10 @@ void main() {
       const move=[Math.max(-.14,Math.min(.14,p.x-before.x)),
                   Math.max(-.14,Math.min(.14,p.y-before.y))];
       const velocity=Math.abs(move[0])+Math.abs(move[1]);
-      const speedBoost=isActive?Math.min(1.85,.65+(pointer.speed||0)*1.35):1.0;
+      const speedBoost=isActive?Math.min(2.25,.82+(pointer.speed||0)*1.75):1.0;
       const inject=reducedMotion?0:
-        isActive ? (velocity>.00008?speedBoost:0) :
-                   (velocity>.00005?.48:0);
+        isActive ? ((velocity>.00002 || (pointer.speed||0)>.015)?speedBoost:0) :
+                   (velocity>.00004?.46:0);
       this.oldPoint=p;
       const texel=[1/S,1/S];
       const {flow,pressures}=this;
