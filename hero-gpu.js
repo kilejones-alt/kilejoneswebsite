@@ -201,6 +201,7 @@ uniform float uIntro;
 uniform vec2 uPointer;
 uniform float uLetterScale;
 uniform float uObjects;
+uniform float uQuality;
 float hash21(vec2 p){
   p=fract(p*vec2(123.34,456.21));
   p+=dot(p,p+45.32);
@@ -235,7 +236,9 @@ void main() {
   // approximately binary boundary, like the photographed Nothin effect.
   float small = noise(vUv*vec2(19.0,13.0)+vec2(uTime*.18,0.0));
   float broad = noise(vUv*vec2(6.0,4.0)-vec2(uTime*.07,0.0));
-  float organic = (small-.5)*.085 + (broad-.5)*.12;
+  float quality=smoothstep(1.5,2.0,uQuality);
+  float organic = (small-.5)*mix(.085,.050,quality) +
+                  (broad-.5)*mix(.12,.075,quality);
   float activated = smoothstep(.19+organic,.29+organic,density);
 
   // Slow opening animation. The scene remains moving when the cursor is idle.
@@ -247,11 +250,14 @@ void main() {
 
   vec3 ink = mix(material(uMode,vUv),material(uNextMode,vUv),uMix);
   float ambient = mix(.24,.48,smoothstep(.4,4.8,uMode));
-  // The objects remain readable, but the fluid pigment is visibly present and
-  // gets carved open by cursor-driven flow. Matte-black scenes stay quieter.
-  if (uObjects > .5) ambient *= (uMode>2.5 && uMode<3.5) ? .17 : .42;
-  float edgeGlow=smoothstep(.10,.75,density)*.16;
-  float alpha = glyph*clamp(ambient+edgeGlow,0.,.72)*(1.0-.94*revealed);
+  // Run 8 lets the sculptural material carry the image. The fluid becomes a
+  // thinner optical veil rather than another competing generated texture.
+  ambient*=mix(1.0,.70,quality);
+  if (uObjects > .5) ambient *= (uMode>2.5 && uMode<3.5)
+      ? mix(.17,.11,quality) : mix(.42,.27,quality);
+  float edgeGlow=smoothstep(.10,.75,density)*mix(.16,.10,quality);
+  float alpha = glyph*clamp(ambient+edgeGlow,0.,mix(.72,.48,quality))*
+      (1.0-mix(.94,.965,quality)*revealed);
   outColor = vec4(ink,alpha);
 }`;
 
@@ -722,6 +728,7 @@ void main() {
             uPointer:[options.pointer.nx,options.pointer.ny],
             uLetterScale:options.letterScale||1,
             uObjects:objectActive?1:0,
+            uQuality:options.materialQuality||0,
             uIntro:Math.min(1.6,options.now*.001 - this.birthTime)
           });
           gl.drawArrays(gl.TRIANGLES,0,3);
