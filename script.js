@@ -22,12 +22,26 @@
 
   const PAPER = '#f3f5f7';
   const INK = '#09090a';
-  const MODE_SECONDS = 5.6;
-  const TRANSITION_SECONDS = 0;
-  // Exact repeating order: BLACK -> ORANGE -> PINK -> TEAL -> BLACK.
-  // Four unique frames avoid holding black twice at the loop boundary.
-  const MODE_NAMES = ['BLACK', 'NEON ORANGE', 'NEON PINK', 'BRIGHT TEAL'];
-  const SOLID_COLORS = ['#000000', '#FF5A00', '#FF00A8', '#00E5CD'];
+  const MODE_SECONDS = 6.8;
+  const TRANSITION_SECONDS = 1.35;
+  // Six real material worlds. Bright pigments are deliberately interrupted
+  // by matte black and silver/foil so the hero changes material, not only hue.
+  const MODE_NAMES = ['MIDNIGHT GLOSS', 'NEON PINK LATEX', 'HOT ORANGE', 'MATTE BLACK', 'BRIGHT TEAL', 'SILVER FOIL'];
+  const SOLID_COLORS = ['#071226', '#FF0668', '#FF5A00', '#050506', '#00D9C6', '#C9D1DD'];
+
+  const HERO_TRY = Math.max(1, Math.min(4, Number(new URLSearchParams(location.search).get('try')) || 1));
+  const HERO_PROFILES = {
+    1:{name:'soft-mass',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
+       gravity:3300,restitution:.19,damping:5.3,squash:.060,wobble:15.0,delay:.10,parallax:1.00},
+    2:{name:'dense-rubber',family:'"Archivo","Helvetica Neue",Arial,sans-serif',weight:760,horizontal:.955,
+       gravity:3900,restitution:.255,damping:5.8,squash:.078,wobble:17.2,delay:.06,parallax:1.18},
+    3:{name:'editorial-elastic',family:'"Space Grotesk","Helvetica Neue",Arial,sans-serif',weight:650,horizontal:.972,
+       gravity:3550,restitution:.225,damping:4.9,squash:.070,wobble:13.6,delay:.13,parallax:1.32},
+    4:{name:'quiet-heavy',family:'"IBM Plex Sans","Helvetica Neue",Arial,sans-serif',weight:600,horizontal:.948,
+       gravity:4300,restitution:.135,damping:6.6,squash:.048,wobble:19.0,delay:.04,parallax:.92}
+  };
+  const HERO_PROFILE = HERO_PROFILES[HERO_TRY];
+  document.documentElement.dataset.heroTry = String(HERO_TRY);
   const state = {
     w: 0,
     h: 0,
@@ -44,9 +58,14 @@
     fps: 60,
     frames: 0,
     fpsMark: performance.now(),
-    // Restrained 8.5% glyph-only hover; no whole-image zoom.
+    // The typography itself stays front-facing. Pointer energy is routed into
+    // the internal world rather than scaling or tilting the wordmark.
     letterScale: 1,
     letterHoverUntil: 0,
+    entry: {
+      initialized:false, y:0, vy:0, impact:0, impactAt:0,
+      scaleX:1, scaleY:1, settled:false, startedAt:performance.now()
+    },
   };
 
   const pointer = {
@@ -218,6 +237,13 @@
       g.imageSmoothingQuality = 'high';
     });
 
+    if(!state.entry.initialized){
+      state.entry.initialized=true;
+      state.entry.y=reduceMotion?0:-Math.max(state.h*1.18,720);
+      state.entry.vy=0;
+      state.entry.startedAt=performance.now();
+      state.entry.settled=reduceMotion;
+    }
     buildMask();
     gpuRenderer?.resize(state.w, state.h, state.dpr, maskCanvas);
   }
@@ -230,30 +256,29 @@
     g.textAlign = 'center';
     g.textBaseline = 'middle';
 
-    // Decorative Roman capitals, with original name and two-line geometry.
-    // Size is fitted to screen so flourishes never extend past viewport.
-    const family = '"Cinzel Decorative","Times New Roman",serif';
-    const weight = 700;
-    const horizontal = state.mobile ? .93 : .945;
-    const targetW = state.w * .912 / horizontal;
+    // Four forward-facing typography trials. All use contemporary grotesks
+    // and identical geometry so the comparison is about feel, not layout.
+    const family = HERO_PROFILE.family;
+    const weight = HERO_PROFILE.weight;
+    const horizontal = HERO_PROFILE.horizontal * (state.mobile ? .985 : 1);
+    const targetW = state.w * .925 / horizontal;
     const top = fitFont(g, 'KILE B.', family, weight, targetW,
-      Math.min(state.w * (state.mobile ? .43 : .56), state.h * (state.mobile ? .263 : .415)));
+      Math.min(state.w * (state.mobile ? .45 : .59), state.h * (state.mobile ? .275 : .43)));
     const bottom = fitFont(g, 'JONES', family, weight, targetW,
-      Math.min(state.w * (state.mobile ? .49 : .61), state.h * (state.mobile ? .318 : .46)));
+      Math.min(state.w * (state.mobile ? .50 : .64), state.h * (state.mobile ? .33 : .475)));
 
-    // Keep both lines inside the screen, including the actual font ascenders.
-    const middle = state.h * (state.mobile ? .52 : .53);
-    const separation = (top + bottom) * (state.mobile ? .32 : .278);
+    const middle = state.h * (state.mobile ? .525 : .535);
+    const separation = (top + bottom) * (state.mobile ? .305 : .268);
     g.save();
     g.translate(state.w / 2, 0);
     g.scale(horizontal, 1);
     g.lineJoin = 'round';
     g.font = `${weight} ${top}px ${family}`;
-    g.lineWidth = Math.max(.6, top * .004);
+    g.lineWidth = Math.max(.45, top * .0025);
     g.strokeText('KILE B.', 0, middle - separation);
     g.fillText('KILE B.', 0, middle - separation);
     g.font = `${weight} ${bottom}px ${family}`;
-    g.lineWidth = Math.max(.6, bottom * .004);
+    g.lineWidth = Math.max(.45, bottom * .0025);
     g.strokeText('JONES', 0, middle + separation);
     g.fillText('JONES', 0, middle + separation);
     g.restore();
@@ -271,49 +296,66 @@
     return lo;
   }
 
-  function updateLetterHover(now,dt) {
-    // Crucially, hit-test the ORIGINAL, unscaled glyphs.
-    // Using the zoomed image for hit-testing created a feedback loop:
-    // stationary cursor -> expanding text -> white gap -> shrinking -> repeat.
+  function updateLetterHover() {
+    // The aperture never swells around the mouse. The internal simulation
+    // receives the pointer; the typography remains a stable physical object.
+    state.letterScale=1;
     let hit=false;
-    if(finePointer&&!reduceMotion&&pointer.active&&pointer.overCanvas&&
+    if(finePointer&&pointer.active&&pointer.overCanvas&&
        pointer.x>=0&&pointer.x<state.w&&pointer.y>=0&&pointer.y<state.h){
       const bx=Math.floor(pointer.x/state.w*maskCanvas.width);
       const by=Math.floor(pointer.y/state.h*maskCanvas.height);
       if(bx>=0&&by>=0&&bx<maskCanvas.width&&by<maskCanvas.height)
         hit=maskCtx.getImageData(bx,by,1,1).data[3]>42;
     }
-    if(hit)state.letterHoverUntil=now+240;
-    const target=finePointer&&!reduceMotion&&pointer.overCanvas&&
-       now<state.letterHoverUntil?1.085:1;
-    // Stationary hit-testing prevents pulsing; a long easing tail adds calm.
-    const speed=target>state.letterScale?2.25:2.2;
-    state.letterScale+=(target-state.letterScale)*
-      (1-Math.exp(-Math.min(.25,dt)*speed));
-    if(Math.abs(state.letterScale-target)<.0003)state.letterScale=target;
     pointer.glyphHover=hit;
   }
 
+  function updateEntry(now,dt){
+    const e=state.entry,p=HERO_PROFILE;
+    if(reduceMotion){e.y=0;e.vy=0;e.scaleX=e.scaleY=1;e.settled=true;return;}
+    if(e.settled)return;
+    const age=(now-e.startedAt)/1000;
+    if(age<p.delay)return;
+    e.vy+=p.gravity*dt;
+    e.y+=e.vy*dt;
+    if(e.y>=0){
+      const impact=Math.abs(e.vy);
+      e.y=0;
+      e.impact=Math.min(1,impact/2100);
+      e.impactAt=now;
+      e.vy=-impact*p.restitution;
+    }
+    if(e.y<0)e.vy*=Math.exp(-.12*dt);
+    else e.vy*=Math.exp(-p.damping*dt);
+
+    const since=Math.max(0,(now-e.impactAt)/1000);
+    const pulse=e.impactAt?e.impact*Math.exp(-p.wobble*.42*since)*Math.cos(p.wobble*since):0;
+    e.scaleY=1-p.squash*pulse;
+    e.scaleX=1+p.squash*.58*pulse;
+
+    if(age>1.0 && Math.abs(e.vy)<8 && Math.abs(e.y)<.6 && since>.55){
+      e.y=0;e.vy=0;e.scaleX=1;e.scaleY=1;e.settled=true;
+    }
+  }
+
   function updateMode(now) {
-    // QA-only diagnostic world selection; no visible controls on the website.
     const force=window.__KBJ_FORCE_SCENE;
     if(Number.isInteger(force) && force>=0 && force<MODE_NAMES.length){
-      state.mode=force;
-      state.nextMode=(force+1)%MODE_NAMES.length;
-      state.mix=0;
-      state.modeStart=now;
-      return;
+      state.mode=force;state.nextMode=(force+1)%MODE_NAMES.length;
+      state.mix=0;state.modeStart=now;return;
     }
-    const elapsed = (now - state.modeStart) / 1000;
-    // Hard switch, not a crossfade. Each full color holds for 5.6s.
-    // Carry remainder to keep timing accurate even under low frame rates.
-    if (elapsed >= MODE_SECONDS) {
-      const steps = Math.floor(elapsed / MODE_SECONDS);
-      state.mode = (state.mode + steps) % MODE_NAMES.length;
-      state.nextMode = (state.mode + 1) % MODE_NAMES.length;
-      state.modeStart += steps * MODE_SECONDS * 1000;
+    const elapsed=(now-state.modeStart)/1000;
+    if(elapsed>=MODE_SECONDS){
+      const steps=Math.floor(elapsed/MODE_SECONDS);
+      state.mode=(state.mode+steps)%MODE_NAMES.length;
+      state.nextMode=(state.mode+1)%MODE_NAMES.length;
+      state.modeStart+=steps*MODE_SECONDS*1000;
     }
-    state.mix = 0;
+    const local=(now-state.modeStart)/1000;
+    const start=MODE_SECONDS-TRANSITION_SECONDS;
+    const x=Math.max(0,Math.min(1,(local-start)/TRANSITION_SECONDS));
+    state.mix=x*x*(3-2*x);
   }
 
   function frame(now) {
@@ -332,7 +374,8 @@
     const dt = Math.min(0.05, elapsed);
     state.last = now;
     const t = (now - state.start) / 1000;
-    updateLetterHover(now,Math.min(.4,elapsed));
+    updateLetterHover();
+    updateEntry(now,Math.min(.05,elapsed));
     updateMode(now);
 
     // The GPU draws the actual glyph mask and footage without readback.
@@ -340,7 +383,8 @@
     const gpuActive = !!gpuRenderer?.render({
       now, dt, pointer, mode:state.mode, nextMode:state.nextMode,
       mix:state.mix, reducedMotion:reduceMotion,
-      letterScale:state.letterScale
+      letterScale:state.letterScale,
+      entry:state.entry, heroTry:HERO_TRY, parallaxGain:HERO_PROFILE.parallax
     });
     if (gpuActive) {
       canvas.style.visibility = 'hidden';
@@ -359,6 +403,8 @@
         solidColors:SOLID_COLORS,
         letterScale:+state.letterScale.toFixed(4),
         letterHover:pointer.glyphHover,
+        heroTry:HERO_TRY,heroProfile:HERO_PROFILE.name,
+        entrySettled:state.entry.settled,
         gpu:gpuRenderer.diagnostic()
       };
       return;
@@ -371,12 +417,12 @@
     ctx.fillStyle = PAPER;
     ctx.fillRect(0, 0, state.w, state.h);
 
-    // Constant black letter body keeps the name readable between moving objects.
-    ctx.fillStyle = INK;
+    // Canvas fallback follows the same physical entrance transform.
     ctx.save();
-    ctx.translate(state.w/2,state.h/2);
-    ctx.scale(state.letterScale,state.letterScale);
+    ctx.translate(state.w/2,state.h/2 + state.entry.y);
+    ctx.scale(state.entry.scaleX,state.entry.scaleY);
     ctx.translate(-state.w/2,-state.h/2);
+    ctx.fillStyle = INK;
     ctx.drawImage(maskCanvas, 0, 0, state.w, state.h);
     ctx.restore();
 
@@ -407,6 +453,8 @@
       solidColors:SOLID_COLORS,
       letterScale:+state.letterScale.toFixed(4),
       letterHover:pointer.glyphHover,
+      heroTry:HERO_TRY,heroProfile:HERO_PROFILE.name,
+      entrySettled:state.entry.settled,
       rawPointerInput: 'onpointerrawupdate' in window,
       videoReady: !!video && video.readyState >= 2,
       renderer: 'original Canvas 2D fallback',
