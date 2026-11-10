@@ -331,6 +331,9 @@ void main() {
         event.preventDefault();
         this.fail('WebGL context lost');
       });
+      this.canvas.addEventListener('webglcontextrestored',()=>{
+        if(!document.hidden) location.reload();
+      },{once:true});
     }
 
     fail(message, error) {
@@ -585,20 +588,29 @@ void main() {
       this.oldPoint = null;
     }
 
-    resize(width, height, dpr, maskCanvas) {
+    resize(width,height,dpr,maskCanvas,qualityScale=1,isIOS=false) {
       if (this.failed) return;
       try {
         this.width = width;
         this.height = height;
-        // Film remains full browser resolution; only the translucent GPU ink
-        // is lowered on high-DPR screens to control mobile fill-rate.
-        const inkDpr = Math.min(dpr,width <= 700 ? 1.15 : 1.35);
+        // Film remains full browser resolution; the GPU overlay adapts its
+        // backing resolution to sustained device performance.
+        this.qualityScale=Math.max(.55,Math.min(1,qualityScale||1));
+        this.isIOS=!!isIOS;
+        const mobile=width<=700;
+        const cap=mobile?(this.isIOS?1.0:1.15):(this.isIOS?1.15:1.35);
+        const inkDpr=Math.min(dpr,cap*Math.sqrt(this.qualityScale));
+        this.inkDpr=inkDpr;
         this.canvas.width = Math.max(1,Math.round(width*inkDpr));
         this.canvas.height = Math.max(1,Math.round(height*inkDpr));
         this.canvas.style.width = width + 'px';
         this.canvas.style.height = height + 'px';
-        const run=Number(new URLSearchParams(location.search).get('try'))||1;
-        this.resetFluid(run>=9 ? (width<700?176:256) : (width<700?160:224));
+        const requested=Number(new URLSearchParams(location.search).get('try'));
+        const run=Number.isFinite(requested)&&requested>0?requested:9;
+        let fluid=run>=9?(mobile?(this.isIOS?160:176):256):(mobile?160:224);
+        if(this.qualityScale<.76) fluid=mobile?144:192;
+        else if(this.qualityScale<.90) fluid=mobile?160:224;
+        this.resetFluid(fluid);
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D,this.glyphTexture);
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -664,7 +676,7 @@ void main() {
       const before=this.oldPoint || p;
       let move=[Math.max(-.14,Math.min(.14,p.x-before.x)),
                 Math.max(-.14,Math.min(.14,p.y-before.y))];
-      if(interactionMode===7 && isActive){
+      if(interactionMode>=7 && isActive){
         // Feed the fluid a time-normalized directional wake so high-polling
         // mice and ordinary pointermove produce the same physical response.
         const directional=[
@@ -676,7 +688,7 @@ void main() {
       const velocity=Math.abs(move[0])+Math.abs(move[1]);
       this.lastOilGain=oilGain;
       this.lastInteractionMode=interactionMode;
-      const speedSource=interactionMode===7?(pointer.speedN||0):(pointer.speed||0);
+      const speedSource=interactionMode>=7?(pointer.speedN||0):(pointer.speed||0);
       const speedBoost=isActive?Math.min(3.6,(.82+speedSource*1.52)*oilGain):1.0;
       const inject=reducedMotion?0:
         isActive ? ((velocity>.000015 || speedSource>.012)?speedBoost:0) :
@@ -821,7 +833,10 @@ void main() {
         nativeLetterScale:this.nativeLetterScale||1,
         physicalTransform:this.filmWindow?.style?.transform||'none',
         oilGain:this.lastOilGain||1,
-        interactionMode:this.lastInteractionMode||1
+        interactionMode:this.lastInteractionMode||1,
+        qualityScale:+(this.qualityScale||1).toFixed(2),
+        inkDpr:+(this.inkDpr||1).toFixed(2),
+        isIOS:!!this.isIOS
       };
     }
   }
