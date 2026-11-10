@@ -596,14 +596,11 @@ class Stage{
   this.program=this.modelsVisible?program(vert,frag):null;
   this.bgProgram=program(bgV,bgF);
   this.meshes={};
-  if(this.modelsVisible)for(let [name,data] of Object.entries({sphere:sphere(),star:star(),ring:torus(),cone:cone(),leg:leg(),rhinoBody:rhinoBody(),foilZ:foilGlyph('Z'),foilI:foilGlyph('I')})){
-    const vao=gl.createVertexArray(),buffer=gl.createBuffer();
-    gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
-    gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,24,0);
-    gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,3,gl.FLOAT,false,24,12);
-    this.meshes[name]={vao,buffer,count:data.length/6};
-  }
+  this.meshFactories={
+    sphere,star,ring:torus,cone,leg,rhinoBody,
+    foilZ:()=>foilGlyph('Z'),foilI:()=>foilGlyph('I')
+  };
+  if(this.modelsVisible)this.ensureMesh('star');
   this.bgVao=gl.createVertexArray();
   this.u={};
   if(this.modelsVisible)for(let n of ['uModel','uVP','uBase','uEye','uMouse','uType','uAlpha','uTime','uSeed','uScene','uEnergy','uQuality'])
@@ -623,6 +620,41 @@ class Stage{
   this.canvas.addEventListener('webglcontextrestored',()=>{
     if(!document.hidden) location.reload();
   },{once:true});
+  this.prewarmMeshes();
+ }
+ ensureMesh(name){
+  if(this.meshes[name])return this.meshes[name];
+  const factory=this.meshFactories?.[name];
+  if(!factory)return null;
+  const gl=this.gl,data=factory();
+  const vao=gl.createVertexArray(),buffer=gl.createBuffer();
+  gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+  gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,24,0);
+  gl.enableVertexAttribArray(1);gl.vertexAttribPointer(1,3,gl.FLOAT,false,24,12);
+  return(this.meshes[name]={vao,buffer,count:data.length/6});
+ }
+ prewarmMeshes(){
+  if(!this.modelsVisible)return;
+  const queue=['sphere','ring','cone','leg','foilZ','foilI','rhinoBody']
+    .filter(name=>!this.meshes[name]);
+  const pump=deadline=>{
+    if(document.hidden)return;
+    let built=0;
+    while(queue.length && built<2 &&
+          (!deadline || deadline.didTimeout || deadline.timeRemaining()>5)){
+      this.ensureMesh(queue.shift());built++;
+    }
+    if(!queue.length)return;
+    if('requestIdleCallback' in window)
+      requestIdleCallback(pump,{timeout:1800});
+    else
+      setTimeout(()=>pump(null),260);
+  };
+  if('requestIdleCallback' in window)
+    requestIdleCallback(pump,{timeout:900});
+  else
+    setTimeout(()=>pump(null),550);
  }
  resize(){
   // clientWidth/Height are intentionally used instead of transformed bounds:
@@ -845,7 +877,9 @@ class Stage{
    gl.uniform3fv(this.u.uBase,o.color);
    gl.uniform1f(this.u.uType,o.type);
    gl.uniform1f(this.u.uSeed,o.seed);
-   let m=this.meshes[o.geo];gl.bindVertexArray(m.vao);
+   const m=this.ensureMesh(o.geo);
+   if(!m)continue;
+   gl.bindVertexArray(m.vao);
    gl.drawArrays(gl.TRIANGLES,0,m.count);
   }
  }
@@ -949,6 +983,7 @@ class Stage{
   return {active:this.ready,frames:this.frames,worlds:names,
    objectsByScene:this.items.map(x=>x.length),
    proceduralMeshes:Object.keys(this.meshes),
+   lazyMeshCount:Object.keys(this.meshes).length,
    camera:'true perspective, 30.3deg FOV',
    canvas:[this.width,this.height],modelsVisible:this.modelsVisible,
    visualMode:this.modelsVisible?'full interactive material world':'simplified pigment loop',
