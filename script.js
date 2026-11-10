@@ -131,7 +131,7 @@
   resize();
   document.fonts?.ready.then(() => { if(state.running) resize(); });
   addEventListener('resize', debounce(resize, 80), { passive: true });
-  visualViewport?.addEventListener('resize',debounce(resize,120),{passive:true});
+  window.visualViewport?.addEventListener('resize',debounce(resize,120),{passive:true});
   addEventListener('orientationchange',()=>setTimeout(resize,120),{passive:true});
   addEventListener('pageshow',event=>{
     if(event.persisted){
