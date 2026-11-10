@@ -19,6 +19,10 @@
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const coarsePointer = matchMedia('(pointer: coarse)').matches;
   const finePointer = matchMedia('(pointer: fine) and (hover:hover)').matches;
+  const ua=navigator.userAgent||'';
+  const iPadDesktop=navigator.platform==='MacIntel' && navigator.maxTouchPoints>1;
+  const isIOS=/iPhone|iPad|iPod/.test(ua) || iPadDesktop;
+  const isSafari=/Safari/.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR|FxiOS/.test(ua);
 
   const PAPER = '#f3f5f7';
   const INK = '#09090a';
@@ -29,7 +33,10 @@
   const MODE_NAMES = ['MIDNIGHT GLOSS', 'NEON PINK LATEX', 'HOT ORANGE', 'MATTE BLACK', 'BRIGHT TEAL', 'SILVER FOIL'];
   const SOLID_COLORS = ['#071226', '#FF0668', '#FF5A00', '#050506', '#00D9C6', '#C9D1DD'];
 
-  const HERO_TRY = Math.max(1, Math.min(9, Number(new URLSearchParams(location.search).get('try')) || 1));
+  // Run 9 is the production homepage. Older ?try= values remain available
+  // for comparison and emergency regression checks.
+  const requestedTry=Number(new URLSearchParams(location.search).get('try'));
+  const HERO_TRY = Math.max(1, Math.min(9, Number.isFinite(requestedTry)&&requestedTry>0 ? requestedTry : 9));
   const HERO_PROFILES = {
     1:{name:'soft-mass',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
        gravity:2650,restitution:.23,damping:4.8,squash:.074,wobble:14.2,delay:.26,parallax:1.30},
@@ -71,6 +78,13 @@
     fps: 60,
     frames: 0,
     fpsMark: performance.now(),
+    qualityScale: 1,
+    qualityLevel: 0,
+    qualityReason: 'full',
+    lowFpsWindows: 0,
+    highFpsWindows: 0,
+    qualityChangedAt: performance.now(),
+    targetFps: 60,
     // The typography itself stays front-facing. Pointer energy is routed into
     // the internal world rather than scaling or tilting the wordmark.
     letterScale: 1,
@@ -117,10 +131,20 @@
   resize();
   document.fonts?.ready.then(() => { if(state.running) resize(); });
   addEventListener('resize', debounce(resize, 80), { passive: true });
+  visualViewport?.addEventListener('resize',debounce(resize,120),{passive:true});
+  addEventListener('orientationchange',()=>setTimeout(resize,120),{passive:true});
+  addEventListener('pageshow',event=>{
+    if(event.persisted){
+      state.last=performance.now();
+      resize();
+      if(!state.running){state.running=true;requestAnimationFrame(frame);}
+    }
+  },{passive:true});
   document.addEventListener('visibilitychange', () => {
     state.running = !document.hidden;
     if (state.running) {
       state.last = performance.now();
+      state.lastDraw = 0;
       requestAnimationFrame(frame);
     }
   });
@@ -200,7 +224,9 @@
     video.muted = true;
     video.loop = true;
     video.playsInline = true;
-    const tryPlay = () => { if (!reduceMotion) video.play().catch(() => {}); };
+    const tryPlay = () => {
+      if (!reduceMotion && !gpuRenderer) video.play().catch(() => {});
+    };
     video.addEventListener('canplay', tryPlay, { once: true });
     tryPlay();
     ['pointerdown', 'touchstart', 'keydown'].forEach((name) => addEventListener(name, tryPlay, { once: true, passive: true }));
@@ -249,11 +275,19 @@
     state.h = Math.max(320, innerHeight);
     state.mobile = state.w <= 700 || (coarsePointer && state.h <= 700);
 
-    const pixelBudget = state.mobile ? 1_700_000 : 3_600_000;
-    let dpr = Math.min(devicePixelRatio || 1, state.mobile ? 1.5 : 1.75);
+    // iOS Safari is much more sensitive to transient GPU memory pressure.
+    // Keep the same visual composition, but start from a lower pixel ceiling.
+    const baseBudget = state.mobile
+      ? (isIOS ? 1_220_000 : 1_700_000)
+      : (isSafari ? 3_050_000 : 3_600_000);
+    const pixelBudget=baseBudget*state.qualityScale;
+    const baseCap=state.mobile
+      ? (isIOS ? 1.32 : 1.5)
+      : (isSafari ? 1.58 : 1.75);
+    let dpr = Math.min(devicePixelRatio || 1, baseCap*Math.sqrt(state.qualityScale));
     const requested = state.w * state.h * dpr * dpr;
     if (requested > pixelBudget) dpr *= Math.sqrt(pixelBudget / requested);
-    state.dpr = Math.max(1, dpr);
+    state.dpr = Math.max(isIOS?.92:1, dpr);
 
     const bw = Math.max(1, Math.round(state.w * state.dpr));
     const bh = Math.max(1, Math.round(state.h * state.dpr));
@@ -276,7 +310,7 @@
       state.entry.settled=reduceMotion||staticHero;
     }
     buildMask();
-    gpuRenderer?.resize(state.w, state.h, state.dpr, maskCanvas);
+    gpuRenderer?.resize(state.w,state.h,state.dpr,maskCanvas,state.qualityScale,isIOS);
     // Put the WebGL plane above the viewport before first paint so there is
     // no flash of the final wordmark followed by a belated fall.
     gpuRenderer?.updatePhysicalTransform?.(state.entry);
@@ -397,12 +431,48 @@
     state.mix=x*x*(3-2*x);
   }
 
-  function frame(now) {
+  function updateAdaptiveQuality(now,fps){
+    if(HERO_TRY<9 || reduceMotion) return;
+    const target=state.targetFps;
+    const sinceChange=now-state.qualityChangedAt;
+    if(now-state.start<6000 || sinceChange<4500) return;
+
+    if(fps<target*.72){
+      state.lowFpsWindows++;
+      state.highFpsWindows=0;
+    }else if(fps>target*.92){
+      state.highFpsWindows++;
+      state.lowFpsWindows=0;
+    }else{
+      state.lowFpsWindows=Math.max(0,state.lowFpsWindows-1);
+      state.highFpsWindows=0;
+    }
+
+    const steps=isIOS?[1,.82,.68]:[1,.86,.72];
+    if(state.lowFpsWindows>=3 && state.qualityLevel<steps.length-1){
+      state.qualityLevel++;
+      state.qualityScale=steps[state.qualityLevel];
+      state.qualityReason='sustained-low-fps';
+      state.qualityChangedAt=now;
+      state.lowFpsWindows=state.highFpsWindows=0;
+      resize();
+    }else if(state.highFpsWindows>=8 && state.qualityLevel>0){
+      state.qualityLevel--;
+      state.qualityScale=steps[state.qualityLevel];
+      state.qualityReason='recovered';
+      state.qualityChangedAt=now;
+      state.lowFpsWindows=state.highFpsWindows=0;
+      resize();
+    }
+  }
+
+    function frame(now) {
     if (!state.running) return;
     requestAnimationFrame(frame);
     // Hardware-aware redraw budget: pointer coordinates are still sampled at
     // full frequency; expensive material and alpha masks are not.
     const targetFps=HERO_TRY>=9?(state.mobile?40:60):(state.mobile?30:50);
+    state.targetFps=targetFps;
     const interval = 1000 / targetFps;
     if (now - state.lastDraw < interval) return;
     state.lastDraw = now;
@@ -437,13 +507,15 @@
       letterScale:state.letterScale,
       entry:state.entry, heroTry:HERO_TRY,
       parallaxGain:HERO_PROFILE.parallax, oilGain:HERO_PROFILE.oil,
-      materialQuality:HERO_PROFILE.material||0
+      materialQuality:HERO_PROFILE.material||0,
+      qualityScale:state.qualityScale,isIOS
     });
     if (gpuActive) {
       canvas.style.visibility = 'hidden';
       state.frames++;
       if (now - state.fpsMark >= 1000) {
         state.fps = Math.round(state.frames * 1000 / (now - state.fpsMark));
+        updateAdaptiveQuality(now,state.fps);
         state.frames = 0;
         state.fpsMark = now;
       }
@@ -460,6 +532,9 @@
         heroTry:HERO_TRY,heroProfile:HERO_PROFILE.name,
         parallaxGain:HERO_PROFILE.parallax,oilGain:HERO_PROFILE.oil,
         materialQuality:HERO_PROFILE.material||0,
+        qualityScale:+state.qualityScale.toFixed(2),
+        qualityLevel:state.qualityLevel,qualityReason:state.qualityReason,
+        targetFps:state.targetFps,isIOS,isSafari,
         entrySettled:state.entry.settled,
         gpu:gpuRenderer.diagnostic()
       };
@@ -493,6 +568,7 @@
     state.frames++;
     if (now - state.fpsMark >= 1000) {
       state.fps = Math.round((state.frames * 1000) / (now - state.fpsMark));
+      updateAdaptiveQuality(now,state.fps);
       state.frames = 0;
       state.fpsMark = now;
     }
@@ -513,6 +589,9 @@
       heroTry:HERO_TRY,heroProfile:HERO_PROFILE.name,
       parallaxGain:HERO_PROFILE.parallax,oilGain:HERO_PROFILE.oil,
       materialQuality:HERO_PROFILE.material||0,
+      qualityScale:+state.qualityScale.toFixed(2),
+      qualityLevel:state.qualityLevel,qualityReason:state.qualityReason,
+      targetFps:state.targetFps,isIOS,isSafari,
       entrySettled:state.entry.settled,
       rawPointerInput: 'onpointerrawupdate' in window,
       videoReady: !!video && video.readyState >= 2,
