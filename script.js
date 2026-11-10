@@ -29,7 +29,7 @@
   const MODE_NAMES = ['MIDNIGHT GLOSS', 'NEON PINK LATEX', 'HOT ORANGE', 'MATTE BLACK', 'BRIGHT TEAL', 'SILVER FOIL'];
   const SOLID_COLORS = ['#071226', '#FF0668', '#FF5A00', '#050506', '#00D9C6', '#C9D1DD'];
 
-  const HERO_TRY = Math.max(1, Math.min(8, Number(new URLSearchParams(location.search).get('try')) || 1));
+  const HERO_TRY = Math.max(1, Math.min(9, Number(new URLSearchParams(location.search).get('try')) || 1));
   const HERO_PROFILES = {
     1:{name:'soft-mass',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
        gravity:2650,restitution:.23,damping:4.8,squash:.074,wobble:14.2,delay:.26,parallax:1.30},
@@ -47,7 +47,10 @@
        gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.42,oil:2.55,material:1},
     8:{name:'nothin-material-choreography',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
        gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.42,oil:2.35,material:2,
-       durations:[7.6,6.8,6.3,5.5,6.6,7.4],transition:1.10}
+       durations:[7.6,6.8,6.3,5.5,6.6,7.4],transition:1.10},
+    9:{name:'nothin-final-refinement',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
+       gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.38,oil:2.18,material:3,
+       durations:[7.9,7.1,6.7,5.8,7.0,7.7],transition:.96}
   };
   for(const k of [1,2,3,4]) if(!('oil' in HERO_PROFILES[k])) HERO_PROFILES[k].oil=1.0;
   const HERO_PROFILE = HERO_PROFILES[HERO_TRY];
@@ -399,7 +402,8 @@
     requestAnimationFrame(frame);
     // Hardware-aware redraw budget: pointer coordinates are still sampled at
     // full frequency; expensive material and alpha masks are not.
-    const interval = 1000 / (state.mobile ? 30 : 50);
+    const targetFps=HERO_TRY>=9?(state.mobile?40:60):(state.mobile?30:50);
+    const interval = 1000 / targetFps;
     if (now - state.lastDraw < interval) return;
     state.lastDraw = now;
 
