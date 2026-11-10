@@ -264,3 +264,10 @@ body,body a,body button,#hero-canvas{cursor:default!important}
    GPU layers share one transform so the world never escapes the glyph aperture. */
 .hero-film-window,.hero-gpu-layer{will-change:transform}
 .hero-film-window{contain:paint;overflow:hidden}
+
+
+/* Production mobile GPU cleanup: the full-screen multiply-noise layer is
+   visually negligible at phone size but forces an extra compositing pass. */
+@media (max-width:700px){
+  .noise{display:none!important}
+}
