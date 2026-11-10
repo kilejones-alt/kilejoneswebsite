@@ -139,7 +139,12 @@ void main(){
 
  // Pointer energy changes the light, not the geometry, giving a tactile
  // highlight sweep without making materials look rubbery.
- if(uQuality>1.5)col+=vec3(1.)*sk*uEnergy*.10;
+ if(uQuality>1.5)col+=vec3(1.)*sk*uEnergy*(uQuality>2.5?.055:.10);
+ if(uQuality>2.5){
+   // Filmic highlight shoulder: preserve texture without digital clipping.
+   col=col/(vec3(.18)+col);
+   col=mix(col,vec3(dot(col,vec3(.2126,.7152,.0722))),.025);
+ }
  col=pow(clamp(col/(col+vec3(.68)),0.,1.),vec3(.82));
  color=vec4(col,uAlpha);
 }`;
@@ -198,8 +203,10 @@ void main(){
  float a=n(uv*3.0+vec2(uTime*.028,-uTime*.021));
  float b=n(uv.yx*5.2-vec2(uTime*.018,uTime*.034));
  float wake=exp(-d*d*(5.5+uSpeed*5.0));
- float oil=.5+.5*sin((uv.x*.72+uv.y*.48+a*.17-b*.11)*8.2+uTime*.12+wake*1.8);
- oil=clamp(oil+wake*uSpeed*.18,0.,1.);
+ float cadence=uQuality>2.5?6.65:8.2;
+ float timeRate=uQuality>2.5?.072:.12;
+ float oil=.5+.5*sin((uv.x*.72+uv.y*.48+a*.17-b*.11)*cadence+uTime*timeRate+wake*1.8);
+ oil=clamp(oil+wake*uSpeed*(uQuality>2.5?.115:.18),0.,1.);
  vec3 c0=uQuality>1.5?studio(uScene,uv,oil,a):palette(uScene,oil);
  vec3 c1=uQuality>1.5?studio(uNext,uv,1.-oil*.70,b):palette(uNext,1.-oil*.76);
  float transition=smoothstep(0.,1.,uMix);
@@ -619,30 +626,32 @@ class Stage{
    this.canvas.width=this.width=w;this.canvas.height=this.height=h;
   }return true;
  }
- matrix(o,t,mobile,scene){
+ matrix(o,mt,mobile,scene){
   const p=[...o.p],sc=[...o.sc],rot=[...o.rot];
   const phase=o.phase||o.seed,x=this.pointer[0],y=this.pointer[1];
+  const finalQuality=this.materialQuality>2.5;
+  const mt=finalQuality?(mt*.78+phase*.091):t;
   if(o.kind==='star'){
    // 3D star field: each sculpture has its own position, rotation and drift.
-   p[0]+=Math.sin(t*.19+phase)*.22*o.dir;
-   p[1]+=Math.cos(t*.27+phase)*.18;
-   p[2]+=Math.sin(t*.31+phase)*.41;
+   p[0]+=Math.sin(mt*.19+phase)*.22*o.dir;
+   p[1]+=Math.cos(mt*.27+phase)*.18;
+   p[2]+=Math.sin(mt*.31+phase)*.41;
    // Most stars remain front-facing; a few rotate through real XYZ angles.
-   rot[1]+=(o.axial?t*.18*o.dir:Math.sin(t*.26+phase)*.32);
-   rot[0]+=Math.sin(t*.32+phase)*.18;
-   rot[2]+=t*o.spin*o.dir;
+   rot[1]+=(o.axial?mt*.18*o.dir:Math.sin(mt*.26+phase)*.32);
+   rot[0]+=Math.sin(mt*.32+phase)*.18;
+   rot[2]+=mt*o.spin*o.dir;
    if(mobile){p[0]*=.52;p[1]*=.66;}
   }else if(o.kind==='rabbit'){
    // Orbit the connected balloon assembly around one common origin.
    // Three-quarter, forward-biased hero pose. Keep the ears and muzzle
    // facing the camera instead of showing only a narrow side profile.
-   const yaw=-.47+Math.sin(t*.34)*.105;
+   const yaw=-.47+Math.sin(mt*.34)*.105;
    const xx=p[0],zz=p[2];
    p[0]=xx*Math.cos(yaw)+zz*Math.sin(yaw);
    p[2]=zz*Math.cos(yaw)-xx*Math.sin(yaw);
-   p[1]+=Math.sin(t*.61)*.14;
-   p[2]+=Math.sin(t*.38)*.38; // gently approach / recede
-   rot[1]+=yaw;rot[2]+=Math.sin(t*.19)*.036;
+   p[1]+=Math.sin(mt*.61)*.14;
+   p[2]+=Math.sin(mt*.38)*.38; // gently approach / recede
+   rot[1]+=yaw;rot[2]+=Math.sin(mt*.19)*.036;
    if(mobile){
      // Tall silhouettes are slightly compressed behind the phone wordmark.
      // Fit the upright rabbit largely within the upper phone word,
@@ -663,12 +672,12 @@ class Stage{
   }else if(o.kind==='rhino'){
    // Rhino: look toward camera in a restrained 3/4 profile, leaving
    // both horns and the full weight-bearing body readable.
-   const yaw=-.51+Math.sin(t*.25)*.095;
+   const yaw=-.51+Math.sin(mt*.25)*.095;
    const xx=p[0],zz=p[2];
    p[0]=xx*Math.cos(yaw)+zz*Math.sin(yaw);
    p[2]=zz*Math.cos(yaw)-xx*Math.sin(yaw);
-   p[0]+=Math.sin(t*.19)*.055;
-   p[2]+=Math.sin(t*.18)*.22; // much heavier and slower
+   p[0]+=Math.sin(mt*.19)*.055;
+   p[2]+=Math.sin(mt*.18)*.22; // much heavier and slower
    rot[1]+=yaw;
    if(mobile){
      p[0]*=.53;p[1]*=.50;sc[0]*=.53;sc[1]*=.50;sc[2]*=.62;
@@ -683,18 +692,18 @@ class Stage{
    const k=o.letter,cx=[-2.03,-.06,1.78][k];
    // "ZIO" must always face forward. A slight per-letter 3D turn
    // maintains material reflection without letting glyphs disappear.
-   const yaw=Math.sin(t*(.29+k*.07)+k*.68)*.11;
+   const yaw=Math.sin(mt*(.29+k*.07)+k*.68)*.11;
    const dx=p[0]-cx,dz=p[2];
    p[0]=cx+dx*Math.cos(yaw)+dz*Math.sin(yaw);
    p[2]=dz*Math.cos(yaw)-dx*Math.sin(yaw);
-   p[1]+=Math.sin(t*(.37+k*.07)+k*1.50)*.13;
-   p[2]+=Math.sin(t*(.24+k*.09)+k*2.30)*.28;
+   p[1]+=Math.sin(mt*(.37+k*.07)+k*1.50)*.13;
+   p[2]+=Math.sin(mt*(.24+k*.09)+k*2.30)*.28;
    // O should never disappear edge-on while the word ZIO is displayed.
    // A restrained wobble in XYZ preserves readable lettering; other stars
    // carry the full slow axial spins of the surrounding sequence.
-   rot[1]+=yaw+(k===2?Math.sin(t*.17)*.065:0);
-   rot[0]+=(k===2?Math.sin(t*.28)*.095:0);
-   rot[2]+=Math.sin(t*(.19+k*.06)+k)*.07;
+   rot[1]+=yaw+(k===2?Math.sin(mt*.17)*.065:0);
+   rot[0]+=(k===2?Math.sin(mt*.28)*.095:0);
+   rot[2]+=Math.sin(mt*(.19+k*.06)+k)*.07;
    if(mobile){
      p[0]*=.43;p[1]*=.34;sc[0]*=.43;sc[1]*=.34;sc[2]*=.65;
      p[1]+=.44;
@@ -703,8 +712,8 @@ class Stage{
      p[1]+=1.44;p[0]-=.29;
    }
   }else{
-   p[1]+=Math.sin(t*.24+phase)*.20;p[2]+=Math.cos(t*.21+phase)*.28;
-   rot[0]+=t*.045;rot[1]+=t*.05*o.dir;
+   p[1]+=Math.sin(mt*.24+phase)*.20;p[2]+=Math.cos(mt*.21+phase)*.28;
+   rot[0]+=mt*.045;rot[1]+=mt*.05*o.dir;
    if(mobile){p[0]*=.55;p[1]*=.55;}
   }
   // Increase object size without separating the head, horns, paws or
@@ -757,7 +766,7 @@ class Stage{
   }
 
   const perspective=1+p[2]*.068,gain=this.parallaxGain||1;
-  if(this.interactionMode===7){
+  if(this.interactionMode>=7){
     // Run 7: each object samples a different point between the slow and fast
     // camera states according to depth. This creates layered parallax rather
     // than moving the whole world as one flat slab.
@@ -770,7 +779,7 @@ class Stage{
     p[1]+=ly*.39*perspective*gain*depth;
     p[0]-=mvx*.085*depth;
     p[1]+=mvy*.058*depth;
-    p[2]+=this.pointerEnergy*.52*Math.sin(phase+t*.28)*depth;
+    p[2]+=this.pointerEnergy*.52*Math.sin(phase+mt*.28)*depth;
     rot[1]-=(lx*.046+mvx*.020)*perspective*gain*depth;
     rot[0]+=(ly*.034+mvy*.014)*perspective*gain*depth;
   }else{
@@ -779,11 +788,17 @@ class Stage{
     const py=this.interactionMode>=5?.34:.58;
     const pz=this.interactionMode>=6?.78:(this.interactionMode===5?.46:.56);
     p[0]-=x*px*perspective*gain*focus;p[1]+=y*py*perspective*gain*focus;
-    p[2]+=this.pointerEnergy*pz*Math.sin(phase+t*.31);
+    p[2]+=this.pointerEnergy*pz*Math.sin(phase+mt*.31);
     rot[1]-=x*(this.interactionMode>=5?.052:.082)*perspective*gain;
     rot[0]+=y*(this.interactionMode>=5?.038:.058)*perspective*gain;
   }
-  p[0]+=Math.sin(t*.11+scene)*.035;
+  p[0]+=Math.sin(mt*.11+scene)*.035;
+  if(finalQuality){
+    p[0]+=Math.sin(mt*.071+phase*1.73)*.018;
+    p[1]+=Math.cos(mt*.093+phase*.89)*.014;
+    p[2]+=Math.sin(mt*.057+phase*2.11)*.024;
+    rot[2]+=Math.sin(mt*.049+phase*1.37)*.008;
+  }
   return model(p,sc,rot);
  }
  drawScene(index,t,alpha,mobile){
@@ -819,19 +834,19 @@ class Stage{
    this.materialQuality=options.materialQuality||0;
    const tx=p.active?p.nx:Math.sin(t*.12)*.045;
    const ty=p.active?p.ny:Math.cos(t*.10)*.035;
-   const stiffness=(this.interactionMode===7?34:this.interactionMode>=6?40:this.interactionMode===5?27:31)*this.parallaxGain;
-   const damping=this.interactionMode===7?10.8:this.interactionMode>=6?6.2:this.interactionMode===5?9.6:7.1;
+   const stiffness=(this.interactionMode>=7?34:this.interactionMode>=6?40:this.interactionMode===5?27:31)*this.parallaxGain;
+   const damping=this.interactionMode>=7?10.8:this.interactionMode>=6?6.2:this.interactionMode===5?9.6:7.1;
    for(let i=0;i<2;i++){
      const target=i?ty:tx;
      const legacyImpulse=(i?(p.vy||0):(p.vx||0))*
        (this.interactionMode>=6?0.00245:this.interactionMode===5?0.00135:0.00165)*
        this.parallaxGain;
      const normalizedImpulse=(i?(p.nvy||0):(p.nvx||0))*.026*this.parallaxGain;
-     const impulse=this.interactionMode===7?normalizedImpulse:legacyImpulse;
+     const impulse=this.interactionMode>=7?normalizedImpulse:legacyImpulse;
      this.pointerVel[i]+=((target-this.pointer[i])*stiffness-this.pointerVel[i]*damping)*dt+impulse;
      this.pointer[i]+=this.pointerVel[i]*dt;
 
-     if(this.interactionMode===7){
+     if(this.interactionMode>=7){
        const slowK=8.8*this.parallaxGain,slowD=6.4;
        this.pointerSlowVel[i]+=((target-this.pointerSlow[i])*slowK-this.pointerSlowVel[i]*slowD)*dt;
        this.pointerSlow[i]+=this.pointerSlowVel[i]*dt;
@@ -840,10 +855,10 @@ class Stage{
          1-Math.exp(-dt*(Math.abs(motionTarget)>Math.abs(this.pointerMotion[i])?15:3.2)));
      }
    }
-   const speedSource=this.interactionMode===7?(p.speedN||0):(p.speed||0);
+   const speedSource=this.interactionMode>=7?(p.speedN||0):(p.speed||0);
    const targetEnergy=p.active?Math.min(1.85,speedSource*1.06*this.oilGain):0;
    this.pointerEnergy=lerp(this.pointerEnergy,targetEnergy,
-     1-Math.exp(-dt*(targetEnergy>this.pointerEnergy?(this.interactionMode===7?14:11):(this.interactionMode===7?2.4:1.55))));
+     1-Math.exp(-dt*(targetEnergy>this.pointerEnergy?(this.interactionMode>=7?14:11):(this.interactionMode>=7?2.4:1.55))));
    const aspect=this.width/this.height,mobile=aspect<.76;
    this.vp=perspective(aspect);
    const scene=options.mode%6,next=options.nextMode%6,mix=clamp(options.mix||0,0,1);
