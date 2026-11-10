@@ -864,14 +864,16 @@ class Stage{
        this.pointerSlowVel[i]+=((target-this.pointerSlow[i])*slowK-this.pointerSlowVel[i]*slowD)*dt;
        this.pointerSlow[i]+=this.pointerSlowVel[i]*dt;
        const motionTarget=i?(p.nvy||0):(p.nvx||0);
+       const release=this.interactionMode>=9?1.65:3.2;
        this.pointerMotion[i]=lerp(this.pointerMotion[i],motionTarget,
-         1-Math.exp(-dt*(Math.abs(motionTarget)>Math.abs(this.pointerMotion[i])?15:3.2)));
+         1-Math.exp(-dt*(Math.abs(motionTarget)>Math.abs(this.pointerMotion[i])?15:release)));
      }
    }
    const speedSource=this.interactionMode>=7?(p.speedN||0):(p.speed||0);
    const targetEnergy=p.active?Math.min(1.85,speedSource*1.06*this.oilGain):0;
+   const energyRelease=this.interactionMode>=9?1.45:(this.interactionMode>=7?2.4:1.55);
    this.pointerEnergy=lerp(this.pointerEnergy,targetEnergy,
-     1-Math.exp(-dt*(targetEnergy>this.pointerEnergy?(this.interactionMode>=7?14:11):(this.interactionMode>=7?2.4:1.55))));
+     1-Math.exp(-dt*(targetEnergy>this.pointerEnergy?(this.interactionMode>=7?14:11):energyRelease)));
    const aspect=this.width/this.height,mobile=aspect<.76;
    this.vp=perspective(aspect);
    const scene=options.mode%6,next=options.nextMode%6,mix=clamp(options.mix||0,0,1);
