@@ -414,6 +414,17 @@
     const dt = Math.min(0.05, elapsed);
     state.last = now;
     const t = (now - state.start) / 1000;
+    if(HERO_TRY>=9 && pointer.active){
+      const idle=(now-pointer.lastT)/1000;
+      if(idle>.032){
+        // Preserve a short physical tail after a mouse gesture, then let it
+        // decay continuously rather than freezing the last velocity sample.
+        const tail=Math.exp(-Math.min(.05,elapsed)*2.15);
+        pointer.nvx*=tail;
+        pointer.nvy*=tail;
+        pointer.speedN=Math.hypot(pointer.nvx,pointer.nvy);
+      }
+    }
     updateLetterHover();
     updateEntry(now,Math.min(.05,elapsed));
     updateMode(now);
