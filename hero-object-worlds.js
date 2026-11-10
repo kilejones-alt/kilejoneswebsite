@@ -626,11 +626,11 @@ class Stage{
    this.canvas.width=this.width=w;this.canvas.height=this.height=h;
   }return true;
  }
- matrix(o,mt,mobile,scene){
+ matrix(o,t,mobile,scene){
   const p=[...o.p],sc=[...o.sc],rot=[...o.rot];
   const phase=o.phase||o.seed,x=this.pointer[0],y=this.pointer[1];
   const finalQuality=this.materialQuality>2.5;
-  const mt=finalQuality?(mt*.78+phase*.091):t;
+  const mt=finalQuality?(t*.78+phase*.091):t;
   if(o.kind==='star'){
    // 3D star field: each sculpture has its own position, rotation and drift.
    p[0]+=Math.sin(mt*.19+phase)*.22*o.dir;
