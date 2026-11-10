@@ -562,7 +562,8 @@ function objects(){
 }
 class Stage{
  constructor(host){
-  this.host=host;this.canvas=document.createElement('canvas');
+  this.host=host;this.run=Number(new URLSearchParams(location.search).get('try'))||1;
+  this.canvas=document.createElement('canvas');
   this.canvas.className='hero-object-canvas';
   this.canvas.setAttribute('aria-hidden','true');host.appendChild(this.canvas);
   this.gl=this.canvas.getContext('webgl2',{
@@ -619,7 +620,8 @@ class Stage{
   // the physical entrance can squash/translate the hero without reallocating
   // WebGL buffers every animation frame.
   const cw=this.host.clientWidth||innerWidth,ch=this.host.clientHeight||innerHeight;
-  const dpr=Math.min(window.devicePixelRatio||1,cw<700?1:1.12);
+  const cap=this.run>=9?(cw<700?1.08:1.18):(cw<700?1:1.12);
+  const dpr=Math.min(window.devicePixelRatio||1,cap);
   const w=Math.round(cw*dpr),h=Math.round(ch*dpr);
   if(!w||!h)return false;
   if(this.width!==w||this.height!==h){
@@ -732,6 +734,17 @@ class Stage{
   }else if(o.kind==='star'){
     sc[0]*=1.12;sc[1]*=1.12;sc[2]*=1.12;
   }
+  if(this.materialQuality>2.5 && mobile){
+    // Run 9 phone framing: fill the glyph apertures with fewer, larger readable
+    // surfaces instead of shrinking the desktop composition into the phone.
+    if(scene===0){sc[0]*=1.08;sc[1]*=1.08;sc[2]*=1.08;}
+    if(scene===1){sc[0]*=1.07;sc[1]*=1.07;sc[2]*=1.05;p[1]-=.03;}
+    if(scene===2){sc[0]*=1.12;sc[1]*=1.12;sc[2]*=1.08;}
+    if(scene===3){sc[0]*=1.10;sc[1]*=1.10;sc[2]*=1.06;}
+    if(scene===4){sc[0]*=1.09;sc[1]*=1.09;sc[2]*=1.06;}
+    if(scene===5){sc[0]*=1.11;sc[1]*=1.11;sc[2]*=1.08;}
+  }
+
   if(this.materialQuality>1.5){
     // Run 8 scene staging: each material world has a different photographic
     // composition instead of reusing identical object scale and spacing.
@@ -880,8 +893,9 @@ class Stage{
        // Run 8 choreography: the incoming world arrives before the outgoing
        // world disappears, with a brief editorial overlap rather than a
        // synthetic opacity dissolve.
-       const incoming=ease(clamp(mix*1.38,0,1));
-       const outgoing=1.-ease(clamp((mix-.30)/.70,0,1));
+       const finalQ=this.materialQuality>2.5;
+       const incoming=ease(clamp(mix*(finalQ?1.52:1.38),0,1));
+       const outgoing=1.-ease(clamp((mix-(finalQ?.24:.30))/(finalQ?.64:.70),0,1));
        this.drawScene(scene,t,outgoing,mobile);
        gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.BLEND);
        gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
