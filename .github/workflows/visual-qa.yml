@@ -64,8 +64,11 @@ jobs:
           const overlay=fs.readFileSync('hero-gpu.js','utf8');
           if(!world.includes('pointerSlow') || !world.includes('interactionMode>=7') || !world.includes('materialQuality>2.5') || !world.includes('Run 9 phone framing'))throw Error('Run 9 layered/material/mobile system missing');
           if(!world.includes('qualityScale') || !world.includes('antialias:!this.isIOS') || !world.includes('webglcontextrestored'))throw Error('3D adaptive/iOS recovery missing');
+          if(!world.includes('prewarmMeshes') || !world.includes('ensureMesh'))throw Error('Lazy mesh first-paint optimization missing');
           if(!overlay.includes('updatePhysicalTransform') || !overlay.includes('speedBoost') || !overlay.includes('finalQ') || !overlay.includes('256'))throw Error('Run 9 GPU refinement missing');
           if(!overlay.includes('qualityScale') || !overlay.includes('webglcontextrestored') || !overlay.includes('this.isIOS'))throw Error('GPU adaptive/iOS recovery missing');
+          if(!s.includes('HERO_TRY>=9){pointer.glyphHover=false;return;}'))throw Error('Production pixel-readback removal missing');
+          if(!css.includes('.noise{display:none!important}'))throw Error('Mobile compositing cleanup missing');
           if(!h.includes('preload="metadata"') || !h.includes('cdn.creativeclaw.co" crossorigin'))throw Error('Production media loading optimization missing');
           if((nav.match(/<a /g)||[]).length!==5)throw Error('Navigation contains unapproved items');
           console.log('Navigation, visual engine and accessibility selectors validated.');
