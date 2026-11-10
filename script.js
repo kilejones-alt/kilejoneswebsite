@@ -365,9 +365,10 @@
   }
 
   function updateLetterHover() {
-    // The aperture never swells around the mouse. The internal simulation
-    // receives the pointer; the typography remains a stable physical object.
+    // Run 9 has no glyph-hover scaling. Avoid a synchronous getImageData()
+    // readback every rendered frame on the production homepage.
     state.letterScale=1;
+    if(HERO_TRY>=9){pointer.glyphHover=false;return;}
     let hit=false;
     if(finePointer&&pointer.active&&pointer.overCanvas&&
        pointer.x>=0&&pointer.x<state.w&&pointer.y>=0&&pointer.y<state.h){
