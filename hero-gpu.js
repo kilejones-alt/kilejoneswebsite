@@ -217,9 +217,14 @@ vec3 material(float scene, vec2 uv){
   // A moving pigment/oil film sits above the sculptural world. Scene changes
   // alter material character: midnight gloss, latex pink, hot orange,
   // matte black, electric teal and cool metallic silver.
-  float n1=noise(uv*vec2(4.2,3.1)+vec2(uTime*.055,-uTime*.041));
-  float n2=noise(uv.yx*vec2(8.5,5.7)-vec2(uTime*.031,uTime*.066));
-  float wave=.5+.5*sin((uv.x*1.15+uv.y*.72+n1*.23-n2*.14)*9.0+uTime*.23);
+  float finalQ=smoothstep(2.5,3.0,uQuality);
+  float n1=noise(uv*mix(vec2(4.2,3.1),vec2(3.25,2.45),finalQ)+
+                 vec2(uTime*mix(.055,.024,finalQ),-uTime*mix(.041,.018,finalQ)));
+  float n2=noise(uv.yx*mix(vec2(8.5,5.7),vec2(5.8,4.3),finalQ)-
+                 vec2(uTime*mix(.031,.015,finalQ),uTime*mix(.066,.027,finalQ)));
+  float wave=.5+.5*sin((uv.x*1.15+uv.y*.72+n1*mix(.23,.13,finalQ)-
+                       n2*mix(.14,.08,finalQ))*mix(9.0,6.35,finalQ)+
+                       uTime*mix(.23,.074,finalQ));
   if(scene<.5) return mix(vec3(.004,.012,.035),vec3(.035,.12,.42),wave*.52);
   if(scene<1.5) return mix(vec3(.40,.002,.10),vec3(1.0,.015,.43),.30+.70*wave);
   if(scene<2.5) return mix(vec3(.66,.055,.0),vec3(1.0,.42,.0),.22+.78*wave);
@@ -234,11 +239,14 @@ void main() {
   float density = flow.b;
   // Not a circular radial reveal. Let the fluid field create an irregular,
   // approximately binary boundary, like the photographed Nothin effect.
-  float small = noise(vUv*vec2(19.0,13.0)+vec2(uTime*.18,0.0));
-  float broad = noise(vUv*vec2(6.0,4.0)-vec2(uTime*.07,0.0));
+  float finalQ=smoothstep(2.5,3.0,uQuality);
+  float small = noise(vUv*mix(vec2(19.0,13.0),vec2(13.0,9.0),finalQ)+
+                      vec2(uTime*mix(.18,.065,finalQ),0.0));
+  float broad = noise(vUv*mix(vec2(6.0,4.0),vec2(4.4,3.2),finalQ)-
+                      vec2(uTime*mix(.07,.026,finalQ),0.0));
   float quality=smoothstep(1.5,2.0,uQuality);
-  float organic = (small-.5)*mix(.085,.050,quality) +
-                  (broad-.5)*mix(.12,.075,quality);
+  float organic = (small-.5)*mix(.085,.032,finalQ) +
+                  (broad-.5)*mix(.12,.050,finalQ);
   float activated = smoothstep(.19+organic,.29+organic,density);
 
   // Slow opening animation. The scene remains moving when the cursor is idle.
@@ -252,12 +260,12 @@ void main() {
   float ambient = mix(.24,.48,smoothstep(.4,4.8,uMode));
   // Run 8 lets the sculptural material carry the image. The fluid becomes a
   // thinner optical veil rather than another competing generated texture.
-  ambient*=mix(1.0,.70,quality);
+  ambient*=mix(1.0,.70,quality)*mix(1.0,.72,finalQ);
   if (uObjects > .5) ambient *= (uMode>2.5 && uMode<3.5)
-      ? mix(.17,.11,quality) : mix(.42,.27,quality);
-  float edgeGlow=smoothstep(.10,.75,density)*mix(.16,.10,quality);
-  float alpha = glyph*clamp(ambient+edgeGlow,0.,mix(.72,.48,quality))*
-      (1.0-mix(.94,.965,quality)*revealed);
+      ? mix(.17,.085,finalQ) : mix(.42,.205,finalQ);
+  float edgeGlow=smoothstep(.10,.75,density)*mix(.16,.065,finalQ);
+  float alpha = glyph*clamp(ambient+edgeGlow,0.,mix(.72,.38,finalQ))*
+      (1.0-mix(.94,.978,finalQ)*revealed);
   outColor = vec4(ink,alpha);
 }`;
 
@@ -569,7 +577,8 @@ void main() {
         this.canvas.height = Math.max(1,Math.round(height*inkDpr));
         this.canvas.style.width = width + 'px';
         this.canvas.style.height = height + 'px';
-        this.resetFluid(width < 700 ? 160 : 224);
+        const run=Number(new URLSearchParams(location.search).get('try'))||1;
+        this.resetFluid(run>=9 ? (width<700?176:256) : (width<700?160:224));
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D,this.glyphTexture);
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
