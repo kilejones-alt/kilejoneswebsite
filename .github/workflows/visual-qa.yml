@@ -57,11 +57,16 @@ jobs:
           }
           if(!h.includes('font-src'))throw Error('Font CSP missing');
           if(!s.includes('HERO_PROFILES') || !s.includes('nothin-final-refinement') || !s.includes('material:3'))throw Error('Run 9 final profile missing');
+          if(!s.includes('requestedTry') || !s.includes(': 9'))throw Error('Run 9 must be production default');
+          if(!s.includes('updateAdaptiveQuality') || !s.includes('qualityScale') || !s.includes('isIOS'))throw Error('Adaptive/iOS production governor missing');
           if(!s.includes('MIDNIGHT GLOSS') || !s.includes('SILVER FOIL'))throw Error('Material-world cycle missing');
           const world=fs.readFileSync('hero-object-worlds.js','utf8');
           const overlay=fs.readFileSync('hero-gpu.js','utf8');
           if(!world.includes('pointerSlow') || !world.includes('interactionMode>=7') || !world.includes('materialQuality>2.5') || !world.includes('Run 9 phone framing'))throw Error('Run 9 layered/material/mobile system missing');
+          if(!world.includes('qualityScale') || !world.includes('antialias:!this.isIOS') || !world.includes('webglcontextrestored'))throw Error('3D adaptive/iOS recovery missing');
           if(!overlay.includes('updatePhysicalTransform') || !overlay.includes('speedBoost') || !overlay.includes('finalQ') || !overlay.includes('256'))throw Error('Run 9 GPU refinement missing');
+          if(!overlay.includes('qualityScale') || !overlay.includes('webglcontextrestored') || !overlay.includes('this.isIOS'))throw Error('GPU adaptive/iOS recovery missing');
+          if(!h.includes('preload="metadata"') || !h.includes('cdn.creativeclaw.co" crossorigin'))throw Error('Production media loading optimization missing');
           if((nav.match(/<a /g)||[]).length!==5)throw Error('Navigation contains unapproved items');
           console.log('Navigation, visual engine and accessibility selectors validated.');
           NODE
@@ -69,12 +74,9 @@ jobs:
         run: |
           CHROME=$(command -v google-chrome || command -v chromium || true)
           if [ -n "$CHROME" ]; then
-            for TRY in 9; do
-              "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=1440,900 --virtual-time-budget=10000 --screenshot="desktop-try-$TRY.png" "file://$PWD/index.html?try=$TRY"
-            done
-            for TRY in 9; do
-              "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=390,844 --virtual-time-budget=10000 --screenshot="phone-try-$TRY.png" "file://$PWD/index.html?try=$TRY"
-            done
+            "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=1440,900 --virtual-time-budget=10000 --screenshot="desktop-root.png" "file://$PWD/index.html"
+            "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=390,844 --virtual-time-budget=10000 --screenshot="phone-root.png" "file://$PWD/index.html"
+            "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=1440,900 --virtual-time-budget=10000 --screenshot="desktop-try-9.png" "file://$PWD/index.html?try=9"
           else
             echo "Chrome unavailable: browser screenshot tests skipped."
           fi
@@ -83,6 +85,7 @@ jobs:
         with:
           name: responsive-hero-qa
           path: |
+            desktop-root.png
+            phone-root.png
             desktop-try-9.png
-            phone-try-9.png
           if-no-files-found: ignore
