@@ -233,8 +233,9 @@ vec3 material(float scene, vec2 uv){
   return mix(vec3(.16,.19,.24),vec3(.88,.94,1.0),.18+.82*wave);
 }
 void main() {
-  float glyph = texture(uGlyph, vec2(.5)+(vUv-vec2(.5))/max(1.,uLetterScale)).a;
-  if(glyph<.005) discard;
+  float rawGlyph = texture(uGlyph, vec2(.5)+(vUv-vec2(.5))/max(1.,uLetterScale)).a;
+  float glyph = uQuality>2.5 ? smoothstep(.30,.82,rawGlyph) : rawGlyph;
+  if(glyph<.01) discard;
   vec4 flow = texture(uFlow,vUv);
   float density = flow.b;
   // Not a circular radial reveal. Let the fluid field create an irregular,
@@ -382,7 +383,26 @@ void main() {
 
     syncNativeMask() {
       if (!this.nativeMode || !this.maskCanvas) return;
-      const url = this.maskCanvas.toDataURL('image/png');
+      let source=this.maskCanvas;
+      const run=Number(new URLSearchParams(location.search).get('try'))||1;
+      if(run>=9){
+        // Run 9: suppress subpixel alpha fringe around curved glyph edges.
+        // The mask remains antialiased, but faint exterior pixels are removed.
+        const tightened=document.createElement('canvas');
+        tightened.width=this.maskCanvas.width;
+        tightened.height=this.maskCanvas.height;
+        const g=tightened.getContext('2d',{willReadFrequently:true});
+        g.drawImage(this.maskCanvas,0,0);
+        const img=g.getImageData(0,0,tightened.width,tightened.height);
+        const d=img.data;
+        for(let i=3;i<d.length;i+=4){
+          const a=d[i];
+          d[i]=a<=145?0:a>=242?255:Math.round((a-145)/97*255);
+        }
+        g.putImageData(img,0,0);
+        source=tightened;
+      }
+      const url = source.toDataURL('image/png');
       const image = 'url("' + url + '")';
       this.originalGlyphImage = image;
       const filmWindow = this.filmWindow;
