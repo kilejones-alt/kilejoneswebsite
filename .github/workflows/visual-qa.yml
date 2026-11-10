@@ -9,6 +9,10 @@ on:
       - 'hero-object-worlds.js'
       - 'styles.css'
       - 'media.html'
+      - 'CNAME'
+      - 'robots.txt'
+      - 'sitemap.xml'
+      - 'site.webmanifest'
       - '.github/workflows/visual-qa.yml'
   workflow_dispatch:
 
@@ -71,7 +75,22 @@ jobs:
           if(!css.includes('.noise{display:none!important}'))throw Error('Mobile compositing cleanup missing');
           if(!h.includes('preload="metadata"') || !h.includes('cdn.creativeclaw.co" crossorigin'))throw Error('Production media loading optimization missing');
           if((nav.match(/<a /g)||[]).length!==5)throw Error('Navigation contains unapproved items');
-          console.log('Navigation, visual engine and accessibility selectors validated.');
+          if(fs.existsSync('index (1).html'))throw Error('Obsolete Projects page must not return');
+          const cname=fs.readFileSync('CNAME','utf8').trim();
+          const robots=fs.readFileSync('robots.txt','utf8');
+          const sitemap=fs.readFileSync('sitemap.xml','utf8');
+          const media=fs.readFileSync('media.html','utf8');
+          if(cname!=='kilejones.com')throw Error('Production CNAME must remain kilejones.com');
+          for(const [name,text] of [['index.html',h],['media.html',media],['robots.txt',robots],['sitemap.xml',sitemap]]){
+            if(text.includes('kilebardenjones.com'))throw Error('Old domain leaked into '+name);
+          }
+          if(!h.includes('rel="canonical" href="https://kilejones.com/"'))throw Error('Homepage canonical incorrect');
+          if(!media.includes('rel="canonical" href="https://kilejones.com/media.html"'))throw Error('Media canonical incorrect');
+          if(!robots.includes('Sitemap: https://kilejones.com/sitemap.xml'))throw Error('Sitemap discovery missing');
+          for(const url of ['https://kilejones.com/','https://kilejones.com/media.html']){
+            if(!sitemap.includes('<loc>'+url+'</loc>'))throw Error('Sitemap missing '+url);
+          }
+                    console.log('Navigation, visual engine and accessibility selectors validated.');
           NODE
       - name: Headless desktop and phone rendering smoke tests
         run: |
