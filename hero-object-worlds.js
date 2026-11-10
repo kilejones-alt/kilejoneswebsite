@@ -562,12 +562,18 @@ function objects(){
 }
 class Stage{
  constructor(host){
-  this.host=host;this.run=Number(new URLSearchParams(location.search).get('try'))||1;
+  this.host=host;
+  const requested=Number(new URLSearchParams(location.search).get('try'));
+  this.run=Number.isFinite(requested)&&requested>0?requested:9;
+  const ua=navigator.userAgent||'';
+  this.isIOS=/iPhone|iPad|iPod/.test(ua) ||
+    (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  this.qualityScale=1;
   this.canvas=document.createElement('canvas');
   this.canvas.className='hero-object-canvas';
   this.canvas.setAttribute('aria-hidden','true');host.appendChild(this.canvas);
   this.gl=this.canvas.getContext('webgl2',{
-    alpha:true,antialias:true,depth:true,stencil:false,premultipliedAlpha:false,
+    alpha:true,antialias:!this.isIOS,depth:true,stencil:false,premultipliedAlpha:false,
     powerPreference:'high-performance'});
   if(!this.gl)throw Error('WebGL2 unavailable');
   const gl=this.gl;
@@ -614,14 +620,22 @@ class Stage{
     e.preventDefault();this.ready=false;this.fault='context lost';
     this.canvas.style.display='none';
   });
+  this.canvas.addEventListener('webglcontextrestored',()=>{
+    if(!document.hidden) location.reload();
+  },{once:true});
  }
  resize(){
   // clientWidth/Height are intentionally used instead of transformed bounds:
   // the physical entrance can squash/translate the hero without reallocating
   // WebGL buffers every animation frame.
   const cw=this.host.clientWidth||innerWidth,ch=this.host.clientHeight||innerHeight;
-  const cap=this.run>=9?(cw<700?1.08:1.18):(cw<700?1:1.12);
+  const mobile=cw<700;
+  const baseCap=this.run>=9
+    ? (mobile?(this.isIOS?.92:1.08):(this.isIOS?1.06:1.18))
+    : (mobile?1:1.12);
+  const cap=baseCap*Math.sqrt(Math.max(.55,Math.min(1,this.qualityScale||1)));
   const dpr=Math.min(window.devicePixelRatio||1,cap);
+  this.renderDpr=dpr;
   const w=Math.round(cw*dpr),h=Math.round(ch*dpr);
   if(!w||!h)return false;
   if(this.width!==w||this.height!==h){
@@ -838,6 +852,8 @@ class Stage{
  render(options){
   if(!this.ready)return false;
   try{
+   this.qualityScale=Math.max(.55,Math.min(1,options.qualityScale||1));
+   if(typeof options.isIOS==='boolean')this.isIOS=options.isIOS;
    if(!this.resize())return false;
    const gl=this.gl,t=options.now*.001*.62;
    const p=options.pointer||{},dt=clamp(options.dt||.016,.001,.05);
@@ -944,6 +960,10 @@ class Stage{
    parallaxGain:+(this.parallaxGain||1).toFixed(2),
    oilGain:+(this.oilGain||1).toFixed(2),
    materialQuality:this.materialQuality||0,
+   qualityScale:+(this.qualityScale||1).toFixed(2),
+   renderDpr:+(this.renderDpr||1).toFixed(2),
+   isIOS:!!this.isIOS,
+   antialias:!this.isIOS,
    fault:this.fault};
  }
 }
