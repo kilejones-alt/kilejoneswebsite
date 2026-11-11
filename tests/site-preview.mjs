@@ -40,7 +40,7 @@ try{
     page.on('pageerror',error=>errors.push(error.message));
     await page.goto(base,{waitUntil:'domcontentloaded',timeout:30000});
     await page.waitForFunction(()=>!!window.__KBJ_DIAGNOSTICS,undefined,{timeout:15000});
-    if(await page.locator('h1').innerText()!=='Kile Jones')
+    if((await page.locator('h1').textContent())?.trim()!=='Kile Jones')
       throw new Error('The homepage name is not Kile Jones');
     if(await page.locator('.figure-scene').count()!==2)
       throw new Error('Both full-size figure scenes must be present');
