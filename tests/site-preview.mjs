@@ -42,16 +42,15 @@ try{
     await page.waitForFunction(()=>!!window.__KBJ_DIAGNOSTICS,undefined,{timeout:15000});
     if((await page.locator('h1').textContent())?.trim()!=='Kile Jones')
       throw new Error('The homepage name is not Kile Jones');
-    if(await page.locator('.figure-scene').count()!==2)
-      throw new Error('Both full-size figure scenes must be present');
+    if(await page.locator('.figure-scene').count()!==6)
+      throw new Error('All six full-size sculpture scenes must be present');
     await page.screenshot({path:'qa-screenshots/'+spec.name+'-hero.png'});
 
-    await page.locator('.figure-scene-rabbit').scrollIntoViewIfNeeded();
-    await page.locator('.figure-art-rabbit').evaluate(img=>img.decode());
-    await page.screenshot({path:'qa-screenshots/'+spec.name+'-rabbit.png'});
-    await page.locator('.figure-scene-rhino').scrollIntoViewIfNeeded();
-    await page.locator('.figure-art-rhino').evaluate(img=>img.decode());
-    await page.screenshot({path:'qa-screenshots/'+spec.name+'-rhino.png'});
+    for(const name of ['midnight','rabbit','amber','rhino','glass','foil']){
+      await page.locator('.figure-scene-'+name).scrollIntoViewIfNeeded();
+      await page.locator('.figure-art-'+name).evaluate(img=>img.decode());
+      await page.screenshot({path:'qa-screenshots/'+spec.name+'-'+name+'.png'});
+    }
 
     const figures=await page.locator('.figure-art').evaluateAll(els=>
       els.map(img=>({loaded:img.complete&&img.naturalWidth>0,
@@ -62,7 +61,7 @@ try{
       scrollWidth:document.documentElement.scrollWidth,innerWidth:innerWidth,
       scrollHeight:document.documentElement.scrollHeight,innerHeight:innerHeight
     }));
-    if(bounds.scrollWidth>bounds.innerWidth+2 || bounds.scrollHeight<bounds.innerHeight*2.8)
+    if(bounds.scrollWidth>bounds.innerWidth+2 || bounds.scrollHeight<bounds.innerHeight*6.8)
       throw new Error('Gallery layout overflow or missing depth: '+JSON.stringify(bounds));
 
     await page.locator('#music-toggle').click();
