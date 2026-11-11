@@ -52,7 +52,7 @@ jobs:
           for(const id of ['hero-canvas','menu-toggle','music-toggle','mobile-drawer']){
             if(!h.includes('id="'+id+'"'))throw Error('Missing '+id);
           }
-          if(!h.includes('Kile Jones</h1>') || s.includes("fitFont(g, 'KILE B.'"))
+          if(!h.includes('Kile Jones</h1>') || s.includes("fitFont(g, 'KILE B.'") || !s.includes('Bowlby One SC') || !s.includes("drawTrackedText(g,'KILE',0,yTop,tracking)") || !s.includes("drawTrackedText(g,'JONES',0,yBottom,tracking)") || !s.includes("state.mobile ? .86 : .74") || !s.includes("state.mobile ? .06 : .08") || !s.includes("g.textAlign='left'") || !s.includes("state.h * (state.mobile ? .35 : .55)") || !s.includes("const lineGap = Math.min(size * .82"))
             throw Error('KILE / JONES wordmark missing');
           for(const file of ['assets/midnight-ceramic-v1.png','assets/balloon-rabbit-v1.png',
             'assets/amber-resin-v1.png','assets/matte-rhino-v1.png',

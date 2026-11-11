@@ -55,7 +55,7 @@
     8:{name:'nothin-material-choreography',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
        gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.42,oil:2.35,material:2,
        durations:[7.6,6.8,6.3,5.5,6.6,7.4],transition:1.10},
-    9:{name:'nothin-final-refinement',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
+    9:{name:'nothin-final-refinement',family:'"Bowlby One SC","Arial Black",sans-serif',weight:400,horizontal:1,
        gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.38,oil:2.18,material:3,
        durations:[7.9,7.1,6.7,5.8,7.0,7.7],transition:.96}
   };
@@ -321,14 +321,45 @@
     g.clearRect(0, 0, state.w, state.h);
     g.fillStyle = INK;
     g.strokeStyle = INK;
-    g.textAlign = 'center';
     g.textBaseline = 'middle';
 
-    // Four forward-facing typography trials. All use contemporary grotesks
-    // and identical geometry so the comparison is about feel, not layout.
     const family = HERO_PROFILE.family;
     const weight = HERO_PROFILE.weight;
     const horizontal = HERO_PROFILE.horizontal * (state.mobile ? .985 : 1);
+
+    // Production typography: KILE / JONES share one size and one left edge.
+    // The wordmark is deliberately smaller than the previous full-width build,
+    // while the broad glyph strokes retain large windows into the moving worlds.
+    if(HERO_TRY>=9){
+      const targetW = state.w * (state.mobile ? .86 : .74) / horizontal;
+      const maxSize = Math.min(
+        state.w * .60,
+        state.h * (state.mobile ? .35 : .55)
+      );
+      const size = fitTrackedFont(g,'JONES',family,weight,targetW,maxSize);
+      const tracking = size * (state.mobile ? .040 : .045);
+      const left = state.w * (state.mobile ? .06 : .08);
+      const centerY = state.h * (state.mobile ? .52 : .53);
+      const lineGap = Math.min(size * .82, state.h * (state.mobile ? .22 : .30));
+      const yTop = centerY - lineGap * .5;
+      const yBottom = centerY + lineGap * .5;
+
+      g.save();
+      g.textAlign='left';
+      g.translate(left,0);
+      g.scale(horizontal,1);
+      g.lineJoin='round';
+      g.lineCap='round';
+      g.font=`${weight} ${size}px ${family}`;
+      g.lineWidth=Math.max(.6,size*.0025);
+      drawTrackedText(g,'KILE',0,yTop,tracking);
+      drawTrackedText(g,'JONES',0,yBottom,tracking);
+      g.restore();
+      return;
+    }
+
+    // Older ?try= modes remain unchanged for regression comparison.
+    g.textAlign = 'center';
     const targetW = state.w * .925 / horizontal;
     const top = fitFont(g, 'KILE', family, weight, targetW,
       Math.min(state.w * (state.mobile ? .45 : .59), state.h * (state.mobile ? .275 : .43)));
@@ -350,6 +381,38 @@
     g.strokeText('JONES', 0, middle + separation);
     g.fillText('JONES', 0, middle + separation);
     g.restore();
+  }
+
+  function measureTrackedText(g,text,tracking){
+    let width=0;
+    for(let i=0;i<text.length;i++){
+      width+=g.measureText(text[i]).width;
+      if(i<text.length-1) width+=tracking;
+    }
+    return width;
+  }
+
+  function drawTrackedText(g,text,x,y,tracking){
+    let cursor=x;
+    for(let i=0;i<text.length;i++){
+      const ch=text[i];
+      g.strokeText(ch,cursor,y);
+      g.fillText(ch,cursor,y);
+      cursor+=g.measureText(ch).width+(i<text.length-1?tracking:0);
+    }
+  }
+
+  function fitTrackedFont(g,text,family,weight,targetW,maxSize){
+    let lo=16;
+    let hi=Math.max(16,maxSize);
+    for(let i=0;i<18;i++){
+      const mid=(lo+hi)*.5;
+      g.font=`${weight} ${mid}px ${family}`;
+      const tracking=mid*(state.mobile?.040:.045);
+      if(measureTrackedText(g,text,tracking)<=targetW) lo=mid;
+      else hi=mid;
+    }
+    return lo;
   }
 
   function fitFont(g, text, family, weight, targetW, maxSize) {
