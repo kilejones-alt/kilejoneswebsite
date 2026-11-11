@@ -46,12 +46,7 @@ try{
       throw new Error('All six full-size sculpture scenes must be present');
     await page.screenshot({path:'qa-screenshots/'+spec.name+'-hero.png'});
 
-    await page.waitForFunction(()=>{
-      const film=document.querySelector('.hero-art-plate-work video');
-      return film && !film.paused && film.readyState>=2 && film.currentTime>.2;
-    },undefined,{timeout:15000});
-    await page.screenshot({path:'qa-screenshots/'+spec.name+'-work-film.png'});
-    await page.goto(base+'?scene=7',{waitUntil:'domcontentloaded',timeout:30000});
+    await page.goto(base+'?scene=6',{waitUntil:'domcontentloaded',timeout:30000});
     await page.waitForFunction(()=>{
       const film=document.querySelector('.hero-art-plate-archive video');
       return film && !film.paused && film.readyState>=2 && film.currentTime>.2;

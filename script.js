@@ -28,9 +28,9 @@
   const INK = '#09090a';
   const MODE_SECONDS = 6.8;
   const TRANSITION_SECONDS = 1.35;
-  // Six material worlds and two short moving-image passages.
-  const MODE_NAMES = ['MIDNIGHT CERAMIC', 'NEON PINK LATEX', 'AMBER RESIN', 'MATTE BLACK', 'FOLDED GLASS', 'SILVER FOIL', 'THE THIRD ERA FILM', 'ARCHIVAL FOOTAGE'];
-  const SOLID_COLORS = ['#071226', '#FF0668', '#FF5A00', '#050506', '#00D9C6', '#C9D1DD', '#25272a', '#202124'];
+  // Six material worlds and an archival moving-image passage.
+  const MODE_NAMES = ['MIDNIGHT CERAMIC', 'NEON PINK LATEX', 'AMBER RESIN', 'MATTE BLACK', 'FOLDED GLASS', 'SILVER FOIL', 'ARCHIVAL FOOTAGE'];
+  const SOLID_COLORS = ['#071226', '#FF0668', '#FF5A00', '#050506', '#00D9C6', '#C9D1DD', '#202124'];
 
   // Run 9 is the production homepage. Older ?try= values remain available
   // for comparison and emergency regression checks.
@@ -56,7 +56,7 @@
        durations:[7.6,6.8,6.3,5.5,6.6,7.4],transition:1.10},
     9:{name:'nothin-final-refinement',family:'"Bowlby One SC","Arial Black",sans-serif',weight:400,horizontal:1,
        gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.38,oil:2.18,material:3,
-       durations:[7.9,7.1,6.7,5.8,7.0,7.7,8.0,8.0],transition:.96}
+       durations:[7.9,7.1,6.7,5.8,7.0,7.7,8.0],transition:.96}
   };
   for(const k of [1,2,3,4]) if(!('oil' in HERO_PROFILES[k])) HERO_PROFILES[k].oil=1.0;
   const HERO_PROFILE = HERO_PROFILES[HERO_TRY];
@@ -70,8 +70,8 @@
     start: performance.now(),
     lastDraw: 0,
     last: performance.now(),
-    mode: HERO_TRY>=9 ? 6 : 0,
-    nextMode: HERO_TRY>=9 ? 7 : 1,
+    mode: 0,
+    nextMode: 1,
     modeStart: performance.now(),
     mix: 0,
     fps: 60,
