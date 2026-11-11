@@ -115,7 +115,7 @@ jobs:
           }
           if(!h.includes('rel="canonical" href="https://kilejones.com/"'))throw Error('Homepage canonical incorrect');
           if(!media.includes('rel="canonical" href="https://kilejones.com/media.html"'))throw Error('Media canonical incorrect');
-          if(!media.includes('<title>Selected Work & Media — Kile Jones</title>') || !media.includes('Gazology, Antizionism, and the Manufacture of Conviction') || !media.includes('Interviews & Podcasts') || !media.includes('Conversations'))throw Error('Expanded Media/Selected Work page missing');
+          if(!media.includes('<title>Selected Work & Media — Kile Jones</title>') || !media.includes('Gazology, Antizionism, and the Manufacture of Conviction') || !media.includes('The October Turn Finale') || !media.includes('Interviews &amp; Podcasts') || !media.includes('Conversations'))throw Error('Expanded Media/Selected Work page missing');
           for(const id of ['appearances','writing','conversations'])if(!media.includes('id="'+id+'"'))throw Error('Media section missing: '+id);
           if(!media.includes('Fathom Journal') || !media.includes('The Times of Israel') || !media.includes('History Impossible'))throw Error('Professional media archive incomplete');
           if(!media.includes('media.css?v=20261111profile1') || !media.includes('media.js?v=20261111profile1'))throw Error('Media asset versions stale');
