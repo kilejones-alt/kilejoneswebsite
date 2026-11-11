@@ -9,6 +9,8 @@ on:
       - 'hero-art-plates.js'
       - 'styles.css'
       - 'media.html'
+      - 'media.css'
+      - 'media.js'
       - 'CNAME'
       - 'robots.txt'
       - 'sitemap.xml'
@@ -34,6 +36,7 @@ jobs:
           node --check hero-webgl.js
           node --check hero-gpu.js
           node --check hero-art-plates.js
+          node --check media.js
       - name: Verify navigation, links and hero renderer
         run: |
           node <<'NODE'
@@ -104,12 +107,18 @@ jobs:
           const robots=fs.readFileSync('robots.txt','utf8');
           const sitemap=fs.readFileSync('sitemap.xml','utf8');
           const media=fs.readFileSync('media.html','utf8');
+          const mediaCss=fs.readFileSync('media.css','utf8');
+          const mediaJs=fs.readFileSync('media.js','utf8');
           if(cname!=='kilejones.com')throw Error('Production CNAME must remain kilejones.com');
           for(const [name,text] of [['index.html',h],['media.html',media],['robots.txt',robots],['sitemap.xml',sitemap]]){
             if(text.includes('kilebardenjones.com'))throw Error('Old domain leaked into '+name);
           }
           if(!h.includes('rel="canonical" href="https://kilejones.com/"'))throw Error('Homepage canonical incorrect');
           if(!media.includes('rel="canonical" href="https://kilejones.com/media.html"'))throw Error('Media canonical incorrect');
+          for(const id of ['appearances','writing','conversations'])if(!media.includes('id="'+id+'"'))throw Error('Media section missing: '+id);
+          if(!media.includes('Fathom Journal') || !media.includes('The Times of Israel') || !media.includes('History Impossible'))throw Error('Professional media archive incomplete');
+          if(!media.includes('media.css?v=20261111profile1') || !media.includes('media.js?v=20261111profile1'))throw Error('Media asset versions stale');
+          if(!mediaCss.includes('.media-section') || !mediaJs.includes('IntersectionObserver'))throw Error('Media profile assets incomplete');
           if(!robots.includes('Sitemap: https://kilejones.com/sitemap.xml'))throw Error('Sitemap discovery missing');
           for(const url of ['https://kilejones.com/','https://kilejones.com/media.html']){
             if(!sitemap.includes('<loc>'+url+'</loc>'))throw Error('Sitemap missing '+url);
