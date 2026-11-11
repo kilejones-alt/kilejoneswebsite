@@ -120,6 +120,9 @@ jobs:
           if(!media.includes('Fathom Journal') || !media.includes('The Times of Israel') || !media.includes('History Impossible'))throw Error('Professional media archive incomplete');
           if(!media.includes('media.css?v=20261111profile1') || !media.includes('media.js?v=20261111profile1'))throw Error('Media asset versions stale');
           if(!mediaCss.includes('.media-section') || !mediaJs.includes('IntersectionObserver'))throw Error('Media profile assets incomplete');
+          const writingBlock=(media.split('id="writing"')[1]||'').split('id="conversations"')[0]||'';
+          const writingUrls=[...writingBlock.matchAll(/href="(https?:\/\/[^"]+)"/g)].map(m=>m[1]).filter(u=>!u.includes('/author/kile-jones/')&&!u.includes('/archive'));
+          if(writingUrls.length!==22 || new Set(writingUrls).size!==22)throw Error('Writing archive entry count incorrect or duplicate');
           if(!robots.includes('Sitemap: https://kilejones.com/sitemap.xml'))throw Error('Sitemap discovery missing');
           for(const url of ['https://kilejones.com/','https://kilejones.com/media.html']){
             if(!sitemap.includes('<loc>'+url+'</loc>'))throw Error('Sitemap missing '+url);
