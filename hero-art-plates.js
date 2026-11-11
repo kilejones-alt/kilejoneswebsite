@@ -9,7 +9,8 @@
     {src:'assets/matte-rhino-v1.png', tone:'rhino'},
     {src:'assets/folded-glass-v1.png', tone:'glass'},
     {src:'assets/silver-zio-v1.png', tone:'foil'},
-    {src:'assets/archival-film-v1.mp4', poster:'assets/archival-film-poster-v1.jpg', tone:'archive', film:true}
+    {src:'assets/archival-film-v1.mp4', poster:'assets/archival-film-poster-v1.jpg', tone:'archive', film:true},
+    {src:'assets/lenin-film-v1.mp4', poster:'assets/lenin-film-poster-v1.jpg', tone:'lenin', film:true}
   ];
 
   class ArtPlates {
