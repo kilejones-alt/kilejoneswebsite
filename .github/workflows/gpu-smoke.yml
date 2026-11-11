@@ -11,7 +11,7 @@ on:
       - 'package.json'
 jobs:
   browser-smoke:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
           if(!video){console.log('Video src not found');process.exit(0);}
           try{
             const res=await fetch(video,{
-              headers:{Origin:'https://kilebardenjones.com',Range:'bytes=0-0'},
+              headers:{Origin:'https://kilejones.com',Range:'bytes=0-0'},
               signal:AbortSignal.timeout(10000)
             });
             console.log(JSON.stringify({
