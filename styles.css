@@ -271,3 +271,50 @@ body,body a,body button,#hero-canvas{cursor:default!important}
 @media (max-width:700px){
   .noise{display:none!important}
 }
+
+/* Give each sculpture its own full-size moment after the wordmark. */
+html{scroll-behavior:smooth}
+body{overflow-x:hidden;overflow-y:auto;background:var(--paper)}
+.page-plane{position:relative;inset:auto;min-height:100svh;overflow:visible}
+.figure-cue{
+  position:absolute;right:clamp(20px,3vw,44px);bottom:clamp(18px,3vh,36px);
+  z-index:10;display:grid;place-items:center;width:42px;height:42px;
+  border:1px solid rgba(9,9,10,.35);border-radius:50%;
+  background:rgba(243,245,247,.85);color:#09090a;
+  font:300 25px/1 "IBM Plex Sans",Arial,sans-serif;
+  transition:transform .3s var(--ease),background .3s ease;
+}
+.figure-cue:hover,.figure-cue:focus-visible{transform:translateY(3px);background:#fff}
+.figure-gallery{position:relative}
+.figure-scene{
+  position:relative;display:grid;place-items:center;isolation:isolate;
+  min-height:100svh;overflow:hidden;
+}
+.figure-scene-rabbit{
+  background:radial-gradient(ellipse 58% 58% at 50% 55%,#271025 0%,#100915 62%,#08090e 100%);
+}
+.figure-scene-rhino{
+  background:radial-gradient(ellipse 75% 85% at 50% 40%,#f8f8f6 0%,#e6e7e5 65%,#d0d2d1 100%);
+}
+.figure-art{display:block;position:relative;z-index:1;max-width:none;object-fit:contain;user-select:none;-webkit-user-drag:none}
+.figure-art-rabbit{
+  width:auto;height:min(84svh,900px);max-width:88vw;
+  filter:drop-shadow(0 38px 45px rgba(0,0,0,.36));
+  animation:figure-breathe 9s ease-in-out infinite alternate;
+}
+.figure-art-rhino{
+  width:min(88vw,1350px);height:auto;max-height:78svh;
+  filter:drop-shadow(0 30px 26px rgba(22,24,26,.16));
+  animation:figure-breathe 11s ease-in-out infinite alternate-reverse;
+}
+@keyframes figure-breathe{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,-12px,0)}}
+@media(max-width:700px){
+  .figure-cue{right:17px;bottom:18px;width:38px;height:38px;font-size:23px}
+  .figure-art-rabbit{width:105vw;height:auto;max-width:none;max-height:72svh}
+  .figure-art-rhino{width:96vw;max-height:none}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .figure-art{animation:none}
+  .figure-cue{transition:none}
+}

@@ -1,4 +1,4 @@
-name: Personal Site Visual QA
+name: Personal Site Source QA
 on:
   push:
     paths:
@@ -13,12 +13,17 @@ on:
       - 'robots.txt'
       - 'sitemap.xml'
       - 'site.webmanifest'
+      - 'assets/**'
+      - 'og-image-v2.png'
+      - 'icon-192-v2.png'
+      - 'icon-512-v2.png'
+      - 'apple-touch-icon-v2.png'
       - '.github/workflows/visual-qa.yml'
   workflow_dispatch:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
@@ -47,6 +52,14 @@ jobs:
           for(const id of ['hero-canvas','menu-toggle','music-toggle','mobile-drawer']){
             if(!h.includes('id="'+id+'"'))throw Error('Missing '+id);
           }
+          if(!h.includes('Kile Jones</h1>') || s.includes("fitFont(g, 'KILE B.'"))
+            throw Error('KILE / JONES wordmark missing');
+          for(const file of ['assets/balloon-rabbit-v1.png','assets/matte-rhino-v1.png',
+            'og-image-v2.png','icon-192-v2.png','icon-512-v2.png','apple-touch-icon-v2.png']){
+            if(!fs.existsSync(file))throw Error('Missing figure or brand asset: '+file);
+          }
+          if(!h.includes('id="figures"') || !h.includes('figure-scene-rabbit') || !h.includes('figure-scene-rhino'))
+            throw Error('Full-size figure gallery missing');
           for(const fn of ['drawFoilWorld','drawLiquidSilver','drawVideo','buildMask']){
             if(!s.includes('function '+fn+'('))throw Error('Renderer missing '+fn);
           }
@@ -92,22 +105,3 @@ jobs:
           }
                     console.log('Navigation, visual engine and accessibility selectors validated.');
           NODE
-      - name: Headless desktop and phone rendering smoke tests
-        run: |
-          CHROME=$(command -v google-chrome || command -v chromium || true)
-          if [ -n "$CHROME" ]; then
-            "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=1440,900 --virtual-time-budget=10000 --screenshot="desktop-root.png" "file://$PWD/index.html"
-            "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=390,844 --virtual-time-budget=10000 --screenshot="phone-root.png" "file://$PWD/index.html"
-            "$CHROME" --headless --no-sandbox --enable-webgl --enable-unsafe-swiftshader --hide-scrollbars --window-size=1440,900 --virtual-time-budget=10000 --screenshot="desktop-try-9.png" "file://$PWD/index.html?try=9"
-          else
-            echo "Chrome unavailable: browser screenshot tests skipped."
-          fi
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: responsive-hero-qa
-          path: |
-            desktop-root.png
-            phone-root.png
-            desktop-try-9.png
-          if-no-files-found: ignore

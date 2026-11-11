@@ -1,19 +1,22 @@
-name: Cinzel Decorative solid neon color loop QA
+name: Homepage figure QA
 on:
   push:
-    branches: [solid-black-neon-cinzel-20261102]
+    branches: [main]
     paths:
       - 'index.html'
       - 'styles.css'
+      - 'assets/**'
       - 'hero-scenes.js'
       - 'script.js'
       - 'hero-gpu.js'
       - 'hero-object-worlds.js'
       - 'tests/site-preview.mjs'
       - '.github/workflows/wordmark-hover-qa.yml'
+  pull_request:
+    branches: [main]
 jobs:
   interaction:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 16
     steps:
       - uses: actions/checkout@v4
@@ -29,11 +32,11 @@ jobs:
           node --check hero-object-worlds.js
       - run: npm run check
       - run: npm run test:gpu
-      - name: Test real glyph hover zoom, desktop/mobile and scene previews
+      - name: Test desktop and phone figure scenes and controls
         run: node tests/site-preview.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: hover-wordmark-qa
+          name: homepage-figure-qa
           path: qa-screenshots/
           if-no-files-found: ignore

@@ -330,7 +330,7 @@
     const weight = HERO_PROFILE.weight;
     const horizontal = HERO_PROFILE.horizontal * (state.mobile ? .985 : 1);
     const targetW = state.w * .925 / horizontal;
-    const top = fitFont(g, 'KILE B.', family, weight, targetW,
+    const top = fitFont(g, 'KILE', family, weight, targetW,
       Math.min(state.w * (state.mobile ? .45 : .59), state.h * (state.mobile ? .275 : .43)));
     const bottom = fitFont(g, 'JONES', family, weight, targetW,
       Math.min(state.w * (state.mobile ? .50 : .64), state.h * (state.mobile ? .33 : .475)));
@@ -343,8 +343,8 @@
     g.lineJoin = 'round';
     g.font = `${weight} ${top}px ${family}`;
     g.lineWidth = Math.max(.45, top * .0025);
-    g.strokeText('KILE B.', 0, middle - separation);
-    g.fillText('KILE B.', 0, middle - separation);
+    g.strokeText('KILE', 0, middle - separation);
+    g.fillText('KILE', 0, middle - separation);
     g.font = `${weight} ${bottom}px ${family}`;
     g.lineWidth = Math.max(.45, bottom * .0025);
     g.strokeText('JONES', 0, middle + separation);
@@ -470,6 +470,13 @@
     function frame(now) {
     if (!state.running) return;
     requestAnimationFrame(frame);
+    // The figure gallery has its own inexpensive motion; stop drawing the
+    // hidden WebGL hero while visitors are below it.
+    if(window.scrollY>=state.h){
+      state.modeStart+=Math.max(0,now-state.last);
+      state.last=now;
+      return;
+    }
     // Hardware-aware redraw budget: pointer coordinates are still sampled at
     // full frequency; expensive material and alpha masks are not.
     const targetFps=HERO_TRY>=9?(state.mobile?40:60):(state.mobile?30:50);
