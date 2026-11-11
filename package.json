@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check script.js && node --check hero-gpu.js && node --check hero-object-worlds.js && node --check hero-webgl.js",
+    "check": "node --check script.js && node --check hero-gpu.js && node --check hero-art-plates.js && node --check hero-webgl.js",
     "test:gpu": "node tests/gpu-smoke.mjs"
   },
   "devDependencies": {

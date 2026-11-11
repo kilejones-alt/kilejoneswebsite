@@ -17,17 +17,17 @@ Former domain:
 
 The production homepage uses Run 9 (`nothin-final-refinement`) by default. Older `?try=1..8` modes remain available only for regression comparison.
 
-The hero keeps the KILE / JONES typography fixed and front-facing while animated 3D material worlds move inside the glyph masks. The rabbit and rhino also have full-viewport figure scenes below the hero, where their forms are readable at desktop and phone sizes.
+The hero keeps the KILE / JONES typography fixed and front-facing while six art-directed sculpture plates move gently inside the glyph masks. Below it, each sculpture has a full-viewport scene where its form is readable on desktop and phone. The sequence is midnight ceramic, pink rabbit, amber resin, black rhino, folded glass, and silver foil ZIO. The earlier procedural stars and two ring/sphere scenes were removed.
 
-The two full-viewport figure assets are original generated raster artwork, self-hosted in `assets/`. Their gentle float uses CSS transforms; they are not animated 3D models. Each image loads lazily when its section approaches the viewport, and the hidden WebGL hero stops drawing while the gallery is on screen.
+All six art assets are original generated raster cutouts with alpha transparency, self-hosted in `assets/`. The hero uses subtle pointer parallax and timed crossfades; the gallery uses restrained CSS float. These are not animated 3D models. The gallery images load lazily as their sections approach the viewport, and the hidden hero stops drawing while the gallery is on screen. No paid assets or services are required.
 
 The renderer uses:
 - `script.js` — production state, pointer/inertia, adaptive quality governor, fallbacks.
-- `hero-object-worlds.js` — original WebGL2 3D object worlds.
+- `hero-art-plates.js` — six self-hosted sculpture plates and pointer movement.
 - `hero-gpu.js` — GPU compositing/fluid layer and strict glyph containment.
 - `hero-webgl.js`, `hero-stage.js`, `hero-scenes.js` — retained progressive/fallback infrastructure.
 
-Run 9 is optimized for desktop and mobile, including iOS/Safari-specific GPU limits, lazy mesh construction, adaptive resolution, context-loss recovery, orientation/history recovery, and strict glyph-edge containment.
+Run 9 retains desktop and mobile safeguards, including iOS/Safari GPU limits, adaptive resolution, context-loss recovery, orientation/history recovery, and strict glyph-edge containment.
 
 ## Production pages
 
@@ -55,5 +55,5 @@ GitHub Actions validates:
 - Keep `CNAME` set to `kilejones.com`.
 - Do not reintroduce `kilebardenjones.com` into production canonical, Open Graph, Twitter, robots, or sitemap metadata.
 - Keep the former-domain redirect logic isolated in `kilebardenjones-redirect`.
-- Preserve the current Run 9 hero unless a deliberate visual revision is requested.
+- Preserve the six-scene art direction unless a deliberate visual revision is requested.
 - Preserve mobile/iOS performance safeguards when changing the renderer.

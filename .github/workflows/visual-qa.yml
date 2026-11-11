@@ -6,7 +6,7 @@ on:
       - 'script.js'
       - 'hero-webgl.js'
       - 'hero-gpu.js'
-      - 'hero-object-worlds.js'
+      - 'hero-art-plates.js'
       - 'styles.css'
       - 'media.html'
       - 'CNAME'
@@ -33,7 +33,7 @@ jobs:
           node --check script.js
           node --check hero-webgl.js
           node --check hero-gpu.js
-          node --check hero-object-worlds.js
+          node --check hero-art-plates.js
       - name: Verify navigation, links and hero renderer
         run: |
           node <<'NODE'
@@ -54,12 +54,14 @@ jobs:
           }
           if(!h.includes('Kile Jones</h1>') || s.includes("fitFont(g, 'KILE B.'") || !s.includes('Bowlby One SC') || !s.includes("drawTrackedText(g,'KILE',0,yTop,tracking)") || !s.includes("drawTrackedText(g,'JONES',0,yBottom,tracking)") || !s.includes("state.mobile ? .86 : .74") || !s.includes("state.mobile ? .06 : .08") || !s.includes("g.textAlign='left'") || !s.includes("state.h * (state.mobile ? .35 : .55)") || !s.includes("const lineGap = Math.min(size * .82"))
             throw Error('KILE / JONES wordmark missing');
-          for(const file of ['assets/balloon-rabbit-v1.png','assets/matte-rhino-v1.png',
+          for(const file of ['assets/midnight-ceramic-v1.png','assets/balloon-rabbit-v1.png',
+            'assets/amber-resin-v1.png','assets/matte-rhino-v1.png',
+            'assets/folded-glass-v1.png','assets/silver-zio-v1.png',
             'og-image-v2.png','icon-192-v2.png','icon-512-v2.png','apple-touch-icon-v2.png']){
             if(!fs.existsSync(file))throw Error('Missing figure or brand asset: '+file);
           }
-          if(!h.includes('id="figures"') || !h.includes('figure-scene-rabbit') || !h.includes('figure-scene-rhino'))
-            throw Error('Full-size figure gallery missing');
+          if(!h.includes('id="figures"') || (h.match(/class="figure-scene figure-scene-/g)||[]).length!==6)
+            throw Error('Six-scene sculpture gallery missing');
           for(const fn of ['drawFoilWorld','drawLiquidSilver','drawVideo','buildMask']){
             if(!s.includes('function '+fn+'('))throw Error('Renderer missing '+fn);
           }
@@ -76,12 +78,13 @@ jobs:
           if(!s.includes('HERO_PROFILES') || !s.includes('nothin-final-refinement') || !s.includes('material:3'))throw Error('Run 9 final profile missing');
           if(!s.includes('requestedTry') || !s.includes(': 9'))throw Error('Run 9 must be production default');
           if(!s.includes('updateAdaptiveQuality') || !s.includes('qualityScale') || !s.includes('isIOS'))throw Error('Adaptive/iOS production governor missing');
-          if(!s.includes('MIDNIGHT GLOSS') || !s.includes('SILVER FOIL'))throw Error('Material-world cycle missing');
-          const world=fs.readFileSync('hero-object-worlds.js','utf8');
+          if(!s.includes('MIDNIGHT CERAMIC') || !s.includes('AMBER RESIN') || !s.includes('FOLDED GLASS') || !s.includes('SILVER FOIL'))throw Error('Material-world cycle missing');
+          const plates=fs.readFileSync('hero-art-plates.js','utf8');
           const overlay=fs.readFileSync('hero-gpu.js','utf8');
-          if(!world.includes('pointerSlow') || !world.includes('interactionMode>=7') || !world.includes('materialQuality>2.5') || !world.includes('Run 9 phone framing'))throw Error('Run 9 layered/material/mobile system missing');
-          if(!world.includes('qualityScale') || !world.includes('antialias:!this.isIOS') || !world.includes('webglcontextrestored'))throw Error('3D adaptive/iOS recovery missing');
-          if(!world.includes('prewarmMeshes') || !world.includes('ensureMesh'))throw Error('Lazy mesh first-paint optimization missing');
+          if(!h.includes('src="hero-art-plates.js') || h.includes('src="hero-object-worlds.js'))throw Error('Production art renderer incorrect');
+          for(const file of ['midnight-ceramic-v1.png','amber-resin-v1.png','folded-glass-v1.png','silver-zio-v1.png'])
+            if(!plates.includes(file))throw Error('Missing art plate: '+file);
+          if(!overlay.includes('KBJArtPlates') || !plates.includes('pointer.nx'))throw Error('Art plate interaction missing');
           if(!overlay.includes('updatePhysicalTransform') || !overlay.includes('speedBoost') || !overlay.includes('finalQ') || !overlay.includes('256'))throw Error('Run 9 GPU refinement missing');
           if(!overlay.includes('qualityScale') || !overlay.includes('webglcontextrestored') || !overlay.includes('this.isIOS'))throw Error('GPU adaptive/iOS recovery missing');
           if(!s.includes('HERO_TRY>=9){pointer.glyphHover=false;return;}'))throw Error('Production pixel-readback removal missing');

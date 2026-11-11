@@ -9,7 +9,7 @@ on:
       - 'hero-scenes.js'
       - 'script.js'
       - 'hero-gpu.js'
-      - 'hero-object-worlds.js'
+      - 'hero-art-plates.js'
       - 'tests/site-preview.mjs'
       - '.github/workflows/wordmark-hover-qa.yml'
   pull_request:
@@ -29,7 +29,7 @@ jobs:
         run: |
           node --check script.js
           node --check hero-gpu.js
-          node --check hero-object-worlds.js
+          node --check hero-art-plates.js
       - run: npm run check
       - run: npm run test:gpu
       - name: Test desktop and phone figure scenes and controls

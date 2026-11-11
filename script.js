@@ -30,7 +30,7 @@
   const TRANSITION_SECONDS = 1.35;
   // Six real material worlds. Bright pigments are deliberately interrupted
   // by matte black and silver/foil so the hero changes material, not only hue.
-  const MODE_NAMES = ['MIDNIGHT GLOSS', 'NEON PINK LATEX', 'HOT ORANGE', 'MATTE BLACK', 'BRIGHT TEAL', 'SILVER FOIL'];
+  const MODE_NAMES = ['MIDNIGHT CERAMIC', 'NEON PINK LATEX', 'AMBER RESIN', 'MATTE BLACK', 'FOLDED GLASS', 'SILVER FOIL'];
   const SOLID_COLORS = ['#071226', '#FF0668', '#FF5A00', '#050506', '#00D9C6', '#C9D1DD'];
 
   // Run 9 is the production homepage. Older ?try= values remain available
@@ -234,7 +234,7 @@
 
   function setupCursor() {
     // Keep a native OS cursor: no oversized rings, trails or hover morphs.
-    // Pointer coordinates still drive gentle 3D camera parallax.
+    // Pointer coordinates still drive gentle artwork parallax.
     const updatePointer=(e)=>{
       const x=e.clientX,y=e.clientY,now=performance.now();
       const seconds=Math.max(.004,Math.min(.05,(now-pointer.lastT)/1000||.0167));
@@ -271,8 +271,8 @@
   }
 
   function resize() {
-    state.w = Math.max(320, innerWidth);
-    state.h = Math.max(320, innerHeight);
+    state.w = Math.max(320, canvas.parentElement.clientWidth || innerWidth);
+    state.h = Math.max(320, canvas.parentElement.clientHeight || innerHeight);
     state.mobile = state.w <= 700 || (coarsePointer && state.h <= 700);
 
     // iOS Safari is much more sensitive to transient GPU memory pressure.
@@ -472,7 +472,8 @@
   }
 
   function updateMode(now) {
-    const force=window.__KBJ_FORCE_SCENE;
+    const sceneParam=new URLSearchParams(location.search).get('scene');
+    const force=sceneParam!==null ? Number(sceneParam) : window.__KBJ_FORCE_SCENE;
     if(Number.isInteger(force) && force>=0 && force<MODE_NAMES.length){
       state.mode=force;state.nextMode=(force+1)%MODE_NAMES.length;
       state.mix=0;state.modeStart=now;return;

@@ -1,7 +1,7 @@
-/* Independent WebGL2 compositor for the KILE B. / JONES wordmark.
+/* Independent WebGL2 compositor for the KILE / JONES wordmark.
    It is NOT source code from noth.in, Skeleton Fluid Reveal, or PavelDoGreat.
-   Uses the existing DOM-generated glyph mask and preserves script.js as fallback.
-   No external dependencies, assets, or navigation changes. */
+   Uses the existing DOM-generated glyph mask and self-hosted sculpture plates.
+   Preserves script.js as fallback. */
 (() => {
   'use strict';
 
@@ -350,7 +350,7 @@ void main() {
         const parent = this.originalVideoParent || document.body;
         parent.insertBefore(video,
           this.originalVideoNext?.parentNode === parent ? this.originalVideoNext : null);
-        window.KBJObjectWorlds?.destroy();
+        this.artPlates?.destroy();
         window.KBJStage?.detach();
         this.filmWindow?.remove();
         this.filmWindow = null;
@@ -378,9 +378,9 @@ void main() {
         this.video.remove();
         this.video = null;
       }
-      this.status = 'native video + GPU fluid reveal';
+      this.status = 'art plates + GPU mask';
       window.KBJStage?.attach(filmWindow);
-      this.objectStage = window.KBJObjectWorlds?.create(filmWindow) || null;
+      this.artPlates = window.KBJArtPlates?.create(filmWindow) || null;
       this.syncNativeMask();
     }
 
@@ -453,8 +453,7 @@ void main() {
          layers===this.nativeLetterLayers)return;
       this.nativeLetterScale=z;
       this.nativeLetterLayers=layers;
-      // The original mask is sized and zoomed independently of the 3D
-      // objects and film: users see MORE object surface inside each letter.
+      // The original mask is sized independently of the artwork and film.
       // The additional pointer-fluid gradient layers retain normal scale.
       const sizes=[(z*100).toFixed(2)+'% '+(z*100).toFixed(2)+'%',
         ...Array.from({length:layers-1},()=> '100% 100%')].join(', ');
@@ -727,28 +726,9 @@ void main() {
           this.updateFluidCursorMask(options.pointer,options.now);
           this.updateNativeLetterScale(options.letterScale);
           this.updatePhysicalTransform(options.entry);
-          const objectActive=!!this.objectStage?.render(options);
-          // Color-only production mode: the second WebGL canvas is the exact
-          // solid color. Don't run fluid simulation or draw an ink veil over
-          // it; the already-masked 3D-stage canvas gives perfectly flat color.
-          if(this.objectStage && !this.objectStage.modelsVisible){
-            this.originalVideo.style.opacity='0';
-            if(objectActive){
-              if(!this.originalVideo.paused)this.originalVideo.pause();
-              this.canvas.style.display='none';
-              this.status='solid palette through letter mask';
-              this.completedFrames++;
-              return true;
-            }
-            // If stage WebGL is lost, let the Canvas2D solid-color fallback
-            // handle this frame. Never expose the unrelated old footage.
-            this.canvas.style.display='none';
-            this.status='solid palette fallback to Canvas2D';
-            return false;
-          }
-          // Keep original video as an instantly reversible fallback. When the
-          // constructed 3D worlds render successfully, the 320x240 source
-          // is hidden; real objects replace rather than recolor that video.
+          const objectActive=!!this.artPlates?.render(options);
+          // Keep the original video as an instantly reversible fallback.
+          // Art plates sit inside the same precise glyph mask.
           this.originalVideo.style.opacity=objectActive?'0':'1';
           if(objectActive && !this.originalVideo.paused)this.originalVideo.pause();
           if(!objectActive && this.originalVideo.paused)
@@ -776,7 +756,7 @@ void main() {
           if((this.completedFrames<3||this.completedFrames%120===0) && gl.getError()!==gl.NO_ERROR)
              throw new Error('Native video fluid pass failed');
           this.canvas.style.display='block';
-          this.status='native video + GPU fluid reveal active';
+          this.status='art plates + GPU mask active';
            this.completedFrames++;
           return true;
         } catch(error) {
@@ -825,11 +805,11 @@ void main() {
 
     diagnostic() {
       return {
-        status:this.status,active:!this.failed && (this.status==='active' || this.status==='native video + GPU fluid reveal active'),
-        simSize:this.simSize,fluidFormat:this.floatSim ? 'RGBA16F' : 'RGBA8',source:this.nativeMode ? 'original native MP4 + stable letter aperture' : 'same-origin GPU video texture',
+        status:this.status,active:!this.failed && (this.status==='active' || this.status==='art plates + GPU mask active'),
+        simSize:this.simSize,fluidFormat:this.floatSim ? 'RGBA16F' : 'RGBA8',source:this.nativeMode ? 'self-hosted sculpture plates + native video fallback' : 'same-origin GPU video texture',
         scenes:window.KBJScenes?.diagnostics?.() || null,
         extraMedia:window.KBJStage?.diagnostics?.() || null,
-        objectWorlds:window.KBJObjectWorlds?.diagnostic?.() || null,
+        artPlates:!!this.artPlates,
         nativeLetterScale:this.nativeLetterScale||1,
         physicalTransform:this.filmWindow?.style?.transform||'none',
         oilGain:this.lastOilGain||1,
