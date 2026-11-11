@@ -159,7 +159,6 @@ body{font-family:"IBM Plex Mono","SFMono-Regular",Menlo,Consolas,monospace}
  will-change:transform;
 }
 .hero-art-plate video{pointer-events:none}
-.hero-art-plate-work{background:#25272a}
 .hero-art-plate-archive{background:#202124}
 .hero-art-plate-midnight{background:radial-gradient(ellipse at 53% 48%,#24416a 0%,#09152b 75%)}
 .hero-art-plate-rabbit{background:radial-gradient(ellipse at 50% 50%,#6c0c32 0%,#290414 80%)}

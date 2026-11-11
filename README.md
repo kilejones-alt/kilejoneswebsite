@@ -17,15 +17,15 @@ Former domain:
 
 The production homepage uses Run 9 (`nothin-final-refinement`) by default. Older `?try=1..8` modes remain available only for regression comparison.
 
-The hero keeps the KILE / JONES typography fixed and front-facing. It opens with two muted, self-hosted moving-image passages inside the glyphs: an excerpt from the user's Third Era film and a short archival excerpt already used by the prior homepage. Six art-directed sculpture plates follow. Below the hero, each sculpture has a full-viewport scene where its form is readable on desktop and phone. The earlier procedural stars and two ring/sphere scenes were removed.
+The hero keeps the KILE / JONES typography fixed and front-facing. Six art-directed sculpture plates rotate inside the glyphs, followed by a short archival excerpt already used by the prior homepage. Below the hero, each sculpture has a full-viewport scene where its form is readable on desktop and phone. The earlier procedural stars and two ring/sphere scenes were removed.
 
 All six art assets are original generated raster cutouts with alpha transparency, self-hosted in `assets/`. The hero uses subtle pointer parallax and timed crossfades; the gallery uses restrained CSS float. These are not animated 3D models. The gallery images load lazily as their sections approach the viewport, and the hidden hero stops drawing while the gallery is on screen. No paid assets or services are required.
 
-The two video excerpts are silent, eight-second MP4s with local poster frames. Playback starts only while their hero scene is active, pauses outside it, and stays still when reduced motion is requested. Source and processing notes are in `assets/ARTWORK.md`.
+The archival excerpt is a silent, eight-second MP4 with a local poster frame. Playback starts only while its hero scene is active, pauses outside it, and stays still when reduced motion is requested. Source and processing notes are in `assets/ARTWORK.md`.
 
 The renderer uses:
 - `script.js` — production state, pointer/inertia, adaptive quality governor, fallbacks.
-- `hero-art-plates.js` — six self-hosted sculpture plates, two video scenes, and pointer movement.
+- `hero-art-plates.js` — six self-hosted sculpture plates, one archival video scene, and pointer movement.
 - `hero-gpu.js` — GPU compositing/fluid layer and strict glyph containment.
 - `hero-webgl.js`, `hero-stage.js`, `hero-scenes.js` — retained progressive/fallback infrastructure.
 

@@ -4,11 +4,9 @@ All six PNGs were created with the built-in image generation tool for this site.
 
 ## Moving-image passages
 
-`work-film-v1.mp4` is the first eight seconds of the user's previously imported `The_Third_Era_16x9_1080p.mp4` film (Creative Claw asset `2b5a14c7-9f8c-4b5a-a4a7-c36ad224a5f0`). It was cropped to a 1280×720 frame centered on the filmed stage, stripped of audio, and encoded as an MP4 for the hero. Its poster comes from one second into the excerpt.
-
 `archival-film-v1.mp4` is the first eight seconds of the previously embedded homepage archival clip (Creative Claw asset `cfa957d0-2936-4b0b-95d6-0c9070ed496e`). Its source is 320×240, so the image remains visibly archival. The excerpt was resized to 640 pixels wide, given a small contrast adjustment, stripped of audio, and encoded as an MP4 for the hero. Its poster comes from one second into the excerpt.
 
-The two self-hosted excerpts add no service charge. They play only inside the letter mask, pause outside their scene, and stop under reduced motion.
+The self-hosted excerpt adds no service charge. It plays only inside the letter mask, pauses outside its scene, and stops under reduced motion.
 
 ## `midnight-ceramic-v1.png`
 
