@@ -46,6 +46,22 @@ try{
       throw new Error('All six full-size sculpture scenes must be present');
     await page.screenshot({path:'qa-screenshots/'+spec.name+'-hero.png'});
 
+    await page.waitForFunction(()=>{
+      const film=document.querySelector('.hero-art-plate-work video');
+      return film && !film.paused && film.readyState>=2 && film.currentTime>.2;
+    },undefined,{timeout:15000});
+    await page.screenshot({path:'qa-screenshots/'+spec.name+'-work-film.png'});
+    await page.goto(base+'?scene=7',{waitUntil:'domcontentloaded',timeout:30000});
+    await page.waitForFunction(()=>{
+      const film=document.querySelector('.hero-art-plate-archive video');
+      return film && !film.paused && film.readyState>=2 && film.currentTime>.2;
+    },undefined,{timeout:15000});
+    await page.screenshot({path:'qa-screenshots/'+spec.name+'-archival-film.png'});
+    await page.locator('.figure-scene-midnight').scrollIntoViewIfNeeded();
+    await page.waitForFunction(()=>
+      document.querySelector('.hero-art-plate-archive video')?.paused,
+      undefined,{timeout:5000});
+
     for(const name of ['midnight','rabbit','amber','rhino','glass','foil']){
       await page.locator('.figure-scene-'+name).scrollIntoViewIfNeeded();
       await page.locator('.figure-art-'+name).evaluate(img=>img.decode());

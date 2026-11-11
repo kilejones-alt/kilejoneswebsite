@@ -57,6 +57,8 @@ jobs:
           for(const file of ['assets/midnight-ceramic-v1.png','assets/balloon-rabbit-v1.png',
             'assets/amber-resin-v1.png','assets/matte-rhino-v1.png',
             'assets/folded-glass-v1.png','assets/silver-zio-v1.png',
+            'assets/work-film-v1.mp4','assets/work-film-poster-v1.jpg',
+            'assets/archival-film-v1.mp4','assets/archival-film-poster-v1.jpg',
             'og-image-v2.png','icon-192-v2.png','icon-512-v2.png','apple-touch-icon-v2.png']){
             if(!fs.existsSync(file))throw Error('Missing figure or brand asset: '+file);
           }
@@ -82,9 +84,14 @@ jobs:
           const plates=fs.readFileSync('hero-art-plates.js','utf8');
           const overlay=fs.readFileSync('hero-gpu.js','utf8');
           if(!h.includes('src="hero-art-plates.js') || h.includes('src="hero-object-worlds.js'))throw Error('Production art renderer incorrect');
-          if(!h.includes('hero-art-plates.js?v=20261110forwardfinal') || !h.includes('hero-gpu.js?v=20261110forwardfinal') || !h.includes('script.js?v=20261110forwardfinal'))throw Error('Production hero cache-buster stale');
+          if(!h.includes('hero-art-plates.js?v=20261110film1') || !h.includes('hero-gpu.js?v=20261110film1') || !h.includes('script.js?v=20261110film1'))throw Error('Production hero cache-buster stale');
           for(const file of ['midnight-ceramic-v1.png','amber-resin-v1.png','folded-glass-v1.png','silver-zio-v1.png'])
             if(!plates.includes(file))throw Error('Missing art plate: '+file);
+          for(const file of ['work-film-v1.mp4','archival-film-v1.mp4'])
+            if(!plates.includes(file))throw Error('Missing moving-image scene: '+file);
+          if(!s.includes('THE THIRD ERA FILM') || !s.includes('ARCHIVAL FOOTAGE') ||
+             !plates.includes("document.createElement(scene.film ? 'video' : 'img')"))
+            throw Error('Moving-image sequence missing');
           if(!overlay.includes('KBJArtPlates') || !plates.includes('pointer.nx'))throw Error('Art plate interaction missing');
           if(!overlay.includes('updatePhysicalTransform') || !overlay.includes('speedBoost') || !overlay.includes('finalQ') || !overlay.includes('256'))throw Error('Run 9 GPU refinement missing');
           if(!overlay.includes('qualityScale') || !overlay.includes('webglcontextrestored') || !overlay.includes('this.isIOS'))throw Error('GPU adaptive/iOS recovery missing');
