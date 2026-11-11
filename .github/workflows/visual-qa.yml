@@ -82,6 +82,7 @@ jobs:
           const plates=fs.readFileSync('hero-art-plates.js','utf8');
           const overlay=fs.readFileSync('hero-gpu.js','utf8');
           if(!h.includes('src="hero-art-plates.js') || h.includes('src="hero-object-worlds.js'))throw Error('Production art renderer incorrect');
+          if(!h.includes('hero-art-plates.js?v=20261110forwardfinal') || !h.includes('hero-gpu.js?v=20261110forwardfinal') || !h.includes('script.js?v=20261110forwardfinal'))throw Error('Production hero cache-buster stale');
           for(const file of ['midnight-ceramic-v1.png','amber-resin-v1.png','folded-glass-v1.png','silver-zio-v1.png'])
             if(!plates.includes(file))throw Error('Missing art plate: '+file);
           if(!overlay.includes('KBJArtPlates') || !plates.includes('pointer.nx'))throw Error('Art plate interaction missing');
