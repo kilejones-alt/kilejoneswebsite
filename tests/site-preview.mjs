@@ -7,7 +7,7 @@ import {chromium} from 'playwright';
 const root=process.cwd();
 const mime={'.html':'text/html','.css':'text/css','.js':'text/javascript',
   '.json':'application/json','.mp3':'audio/mpeg','.png':'image/png',
-  '.svg':'image/svg+xml','.jpg':'image/jpeg','.ico':'image/x-icon',
+  '.svg':'image/svg+xml','.jpg':'image/jpeg','.mp4':'video/mp4','.ico':'image/x-icon',
   '.webmanifest':'application/manifest+json'};
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
@@ -52,9 +52,15 @@ try{
       return film && !film.paused && film.readyState>=2 && film.currentTime>.2;
     },undefined,{timeout:15000});
     await page.screenshot({path:'qa-screenshots/'+spec.name+'-archival-film.png'});
+    await page.goto(base+'?scene=7',{waitUntil:'domcontentloaded',timeout:30000});
+    await page.waitForFunction(()=>{
+      const film=document.querySelector('.hero-art-plate-lenin video');
+      return film && !film.paused && film.readyState>=2 && film.currentTime>.2;
+    },undefined,{timeout:15000});
+    await page.screenshot({path:'qa-screenshots/'+spec.name+'-lenin-film.png'});
     await page.locator('.figure-scene-midnight').scrollIntoViewIfNeeded();
     await page.waitForFunction(()=>
-      document.querySelector('.hero-art-plate-archive video')?.paused,
+      document.querySelector('.hero-art-plate-lenin video')?.paused,
       undefined,{timeout:5000});
 
     for(const name of ['midnight','rabbit','amber','rhino','glass','foil']){

@@ -8,6 +8,8 @@ All six PNGs were created with the built-in image generation tool for this site.
 
 The self-hosted excerpt adds no service charge. It plays only inside the letter mask, pauses outside its scene, and stops under reduced motion.
 
+`lenin-film-v1.mp4` is a silent ten-second excerpt of the user-supplied file `C:\Users\Jones\OneDrive\Videos\13654703_1920_1080_25fps.mp4`. It shows a white Lenin statue against a blue sky. It was resized to 960 pixels wide and encoded as H.264 MP4; its local poster comes from three seconds into the source. The site owner selected it for the letter-mask rotation. Its original creator and reuse rights were not established from the filename alone.
+
 ## `midnight-ceramic-v1.png`
 
 Prompt: a single asymmetrical carved upright monolith in deep midnight-blue glazed ceramic, with fractured top, incised planes, hand-worked glaze, cobalt highlights and near-black recesses; gallery-grade studio lighting, three-quarter view, fully visible, transparent background; no rings, spheres, stars, animals, letters, or scenery.
