@@ -333,14 +333,16 @@
     if(HERO_TRY>=9){
       const targetW = state.w * (state.mobile ? .86 : .74) / horizontal;
       const maxSize = Math.min(
-        state.w * (state.mobile ? .34 : .34),
-        state.h * (state.mobile ? .30 : .42)
+        state.w * .60,
+        state.h * (state.mobile ? .35 : .55)
       );
       const size = fitTrackedFont(g,'JONES',family,weight,targetW,maxSize);
       const tracking = size * (state.mobile ? .040 : .045);
       const left = state.w * (state.mobile ? .06 : .08);
-      const yTop = state.h * (state.mobile ? .425 : .425);
-      const yBottom = state.h * (state.mobile ? .605 : .625);
+      const centerY = state.h * (state.mobile ? .52 : .53);
+      const lineGap = Math.min(size * .82, state.h * (state.mobile ? .22 : .30));
+      const yTop = centerY - lineGap * .5;
+      const yBottom = centerY + lineGap * .5;
 
       g.save();
       g.textAlign='left';
