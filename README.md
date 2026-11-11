@@ -1,4 +1,4 @@
-# Kile B. Jones — production homepage
+# Kile Jones — production homepage
 
 Production site: https://kilejones.com/
 
@@ -17,7 +17,9 @@ Former domain:
 
 The production homepage uses Run 9 (`nothin-final-refinement`) by default. Older `?try=1..8` modes remain available only for regression comparison.
 
-The hero keeps the KILE B. / JONES typography fixed and front-facing while animated 3D material worlds move inside the glyph masks. Current scenes include midnight stars, a pink balloon rabbit, dark sculptural depth, matte-black rhino, translucent white forms, and metallic ZIO.
+The hero keeps the KILE / JONES typography fixed and front-facing while animated 3D material worlds move inside the glyph masks. The rabbit and rhino also have full-viewport figure scenes below the hero, where their forms are readable at desktop and phone sizes.
+
+The two full-viewport figure assets are original generated raster artwork, self-hosted in `assets/`. Their gentle float uses CSS transforms; they are not animated 3D models. Each image loads lazily when its section approaches the viewport, and the hidden WebGL hero stops drawing while the gallery is on screen.
 
 The renderer uses:
 - `script.js` — production state, pointer/inertia, adaptive quality governor, fallbacks.

@@ -13,6 +13,11 @@ on:
       - 'robots.txt'
       - 'sitemap.xml'
       - 'site.webmanifest'
+      - 'assets/**'
+      - 'og-image-v2.png'
+      - 'icon-192-v2.png'
+      - 'icon-512-v2.png'
+      - 'apple-touch-icon-v2.png'
       - '.github/workflows/visual-qa.yml'
   workflow_dispatch:
 
@@ -47,6 +52,14 @@ jobs:
           for(const id of ['hero-canvas','menu-toggle','music-toggle','mobile-drawer']){
             if(!h.includes('id="'+id+'"'))throw Error('Missing '+id);
           }
+          if(!h.includes('Kile Jones</h1>') || s.includes("fitFont(g, 'KILE B.'"))
+            throw Error('KILE / JONES wordmark missing');
+          for(const file of ['assets/balloon-rabbit-v1.png','assets/matte-rhino-v1.png',
+            'og-image-v2.png','icon-192-v2.png','icon-512-v2.png','apple-touch-icon-v2.png']){
+            if(!fs.existsSync(file))throw Error('Missing figure or brand asset: '+file);
+          }
+          if(!h.includes('id="figures"') || !h.includes('figure-scene-rabbit') || !h.includes('figure-scene-rhino'))
+            throw Error('Full-size figure gallery missing');
           for(const fn of ['drawFoilWorld','drawLiquidSilver','drawVideo','buildMask']){
             if(!s.includes('function '+fn+'('))throw Error('Renderer missing '+fn);
           }
