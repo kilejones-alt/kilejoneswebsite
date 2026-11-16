@@ -42,7 +42,7 @@
   function move(index) {
     const target = (index + reels.length) % reels.length;
     select(target);
-    if (reduced.matches || Math.abs(target - index) > 0 || (target === 0 && index > 0)) {
+    if (reduced.matches || (target === 0 && index > 0)) {
       center(target);
       return;
     }
@@ -71,10 +71,11 @@
   }, {passive:true});
   root.querySelector('.screening').addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { hovering = true; pause(); } });
   root.querySelector('.screening').addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { hovering = false; schedule(); } });
-  root.querySelector('.screening').addEventListener('focusin', () => { focused = true; pause(); });
-  root.querySelector('.screening').addEventListener('focusout', () => { focused = root.querySelector('.screening').contains(document.activeElement); if (!focused) schedule(); });
+  root.querySelector('.screening').addEventListener('focusin', e => { focused = e.target.matches(':focus-visible'); if (focused) pause(); });
+  root.querySelector('.screening').addEventListener('focusout', () => { focused = root.querySelector('.screening').contains(document.activeElement) && document.activeElement.matches(':focus-visible'); if (!focused) schedule(); });
   rail.addEventListener('touchstart', () => { touching = true; pause(); }, {passive:true});
   rail.addEventListener('touchend', () => { touching = false; schedule(); }, {passive:true});
+  rail.addEventListener('touchcancel', () => { touching = false; schedule(); }, {passive:true});
   rail.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); move(current + (e.key === 'ArrowRight' ? 1 : -1)); }
   });
