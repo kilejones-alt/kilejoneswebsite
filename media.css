@@ -33,7 +33,7 @@ body{font-family:"Bricolage Grotesque",Arial,sans-serif}
 #kj-interview-row .reel{
   flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;min-width:0;position:relative;display:grid;place-items:center;
   aspect-ratio:16/9;isolation:isolate;background:#515452 var(--art) center/cover no-repeat;color:#fff;overflow:hidden;
-  filter:saturate(.22);transition:filter 280ms ease;
+  filter:grayscale(1) contrast(1.1);transition:filter 280ms ease;
 }
 #kj-interview-row .reel[data-active]{filter:none}
 #kj-interview-row .reel.levine{--art:url(assets/media/levine-fan.webp)}
