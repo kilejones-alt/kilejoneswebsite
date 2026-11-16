@@ -122,9 +122,11 @@ jobs:
           const writing=fs.readFileSync('writing.html','utf8');
           const projects=fs.readFileSync('projects.html','utf8');
           if(!media.includes('<title>Interviews & Media — Kile Jones</title>') || (media.match(/class="reel /g)||[]).length!==8)throw Error('Interview queue missing');
-          for(const [page,file] of [['interviews',interviews],['writing',writing],['projects',projects]]){
+          if(media.includes('href="interviews.html"'))throw Error('Redundant Interviews self-link');
+          for(const [page,file] of [['writing',writing],['projects',projects]]){
             if(!media.includes('href="'+page+'.html"') || !file.includes('https://kilejones.com/'+page+'.html'))throw Error('Missing destination '+page);
           }
+          if(!writing.includes('href="media.html"') || !projects.includes('href="media.html"'))throw Error('Interviews return navigation missing');
           if(media.includes('Melissa Brodsky') || interviews.includes('Melissa Brodsky') || projects.includes('Melissa Brodsky') || media.includes('Salt Air, Desert Light') || interviews.includes('Salt Air, Desert Light'))throw Error('Removed conversations still listed');
           if(!interviews.includes('History Impossible') || !interviews.includes('Lucy Tabrizi') || !interviews.includes('Jonah Platt') || !interviews.includes('Andrew Pessin'))throw Error('Interview archive incomplete');
           if(!writing.includes('Fathom Journal') || !writing.includes('The Times of Israel') || !writing.includes('The October Turn Finale'))throw Error('Writing archive incomplete');
