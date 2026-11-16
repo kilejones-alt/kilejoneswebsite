@@ -128,7 +128,7 @@ jobs:
           if(media.includes('Melissa Brodsky') || interviews.includes('Melissa Brodsky') || projects.includes('Melissa Brodsky') || media.includes('Salt Air, Desert Light') || interviews.includes('Salt Air, Desert Light'))throw Error('Removed conversations still listed');
           if(!interviews.includes('History Impossible') || !interviews.includes('Lucy Tabrizi') || !interviews.includes('Jonah Platt') || !interviews.includes('Andrew Pessin'))throw Error('Interview archive incomplete');
           if(!writing.includes('Fathom Journal') || !writing.includes('The Times of Israel') || !writing.includes('The October Turn Finale'))throw Error('Writing archive incomplete');
-          if(!media.includes('media.css?v=20261116interviews8') || !media.includes('media.js?v=20261116interviews10'))throw Error('Media asset versions stale');
+          if(!media.includes('media.css?v=20261116interviews9') || !media.includes('media.js?v=20261116interviews10'))throw Error('Media asset versions stale');
           if(!mediaCss.includes('.archive-page') || !mediaJs.includes('IntersectionObserver') || !mediaJs.includes('5000'))throw Error('Media assets incomplete');
           const writingUrls=[...writing.matchAll(/href="(https?:\/\/[^"]+)"/g)].map(m=>m[1]).filter(u=>!u.includes('kilejones.com/writing.html'));
           if(writingUrls.length!==22 || new Set(writingUrls).size!==22)throw Error('Writing archive entry count incorrect or duplicate');
