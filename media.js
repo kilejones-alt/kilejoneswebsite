@@ -16,7 +16,7 @@
   function pause() { clearTimeout(timer); }
   function schedule() {
     pause();
-    if (hovering || focused || touching || document.hidden || reduced.matches) return;
+    if (hovering || focused || touching || document.hidden) return;
     timer = setTimeout(() => move((current + 1) % reels.length), 5000);
   }
   function select(index) {
