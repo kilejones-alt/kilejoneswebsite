@@ -7,7 +7,7 @@
   const next = root.querySelector('.next');
   const title = root.querySelector('[data-title-caption]');
   const source = root.querySelector('[data-source-caption]');
-  const queueIndex = root.querySelector('.index');
+  const description = root.querySelector('[data-description-caption]');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   let current = reels.findIndex(reel => reel.hasAttribute('data-active'));
   let scrollTimer;
@@ -20,7 +20,6 @@
 
   function select(index) {
     current = index;
-    queueIndex.textContent = String(index + 1).padStart(2, '0') + ' / ' + String(reels.length).padStart(2, '0');
     for (const [position, reel] of reels.entries()) {
       const active = index === position;
       const button = reel.querySelector('.take');
@@ -34,7 +33,9 @@
       link.hidden = !active;
     }
     title.textContent = reels[index].dataset.title;
+    title.href = reels[index].querySelector('.watch').href;
     source.textContent = reels[index].dataset.source;
+    description.textContent = reels[index].dataset.description;
     previous.setAttribute('aria-disabled', String(index === 0));
     next.setAttribute('aria-disabled', String(index === reels.length - 1));
   }
