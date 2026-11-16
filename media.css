@@ -22,7 +22,7 @@ body{font-family:"Bricolage Grotesque",Arial,sans-serif}
 #kj-interview-row .mast{display:grid;place-items:center;padding:2px 20px 12px;text-align:center}
 #kj-interview-row .mast h1{font:650 clamp(39px,7cqw,86px)/.94 var(--display);letter-spacing:-.07em;text-wrap:balance}
 #kj-interview-row .screening{padding:10px 0 34px}
-#kj-interview-row .rail{--frame:52%;display:flex;align-items:center;gap:clamp(10px,1.35cqw,20px);overflow-x:auto;overflow-y:hidden;padding:8px calc((100% - var(--frame))/2);scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;touch-action:pan-x pan-y}
+#kj-interview-row .rail{--frame:52cqw;display:flex;align-items:center;gap:clamp(10px,1.35cqw,20px);overflow-x:auto;overflow-y:hidden;padding:8px calc((100cqw - var(--frame))/2);scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;touch-action:pan-x pan-y}
 #kj-interview-row .rail::-webkit-scrollbar{display:none}
 #kj-interview-row .reel{flex:0 0 var(--frame);aspect-ratio:16/9;min-width:0;position:relative;display:grid;place-items:center;overflow:hidden;isolation:isolate;scroll-snap-align:center;scroll-snap-stop:always;background:#222;color:#fff;filter:grayscale(.58) contrast(1.08);transition:filter .2s,transform .25s}
 #kj-interview-row .reel[data-active]{filter:none}
@@ -52,7 +52,7 @@ body{font-family:"Bricolage Grotesque",Arial,sans-serif}
  #kj-interview-row .page-pills{max-width:100%;justify-content:center}
  #kj-interview-row .page-pills a{font-size:9px;min-height:31px;padding:4px 9px}
  #kj-interview-row .mast h1{font-size:clamp(36px,9cqw,59px)}
- #kj-interview-row .rail{--frame:78%;gap:10px}
+ #kj-interview-row .rail{--frame:78cqw;gap:10px}
  #kj-interview-row .info{width:80%;min-height:154px}
  #kj-interview-row .info h2{font-size:clamp(20px,5cqw,32px)}
  #kj-interview-row .take::before,#kj-interview-row .watch::before{width:58px;height:58px}
