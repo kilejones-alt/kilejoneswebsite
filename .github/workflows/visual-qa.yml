@@ -121,13 +121,14 @@ jobs:
           const interviews=fs.readFileSync('interviews.html','utf8');
           const writing=fs.readFileSync('writing.html','utf8');
           const projects=fs.readFileSync('projects.html','utf8');
-          if(!media.includes('<title>Interviews & Media — Kile Jones</title>') || (media.match(/class="reel /g)||[]).length!==14)throw Error('Interview queue missing');
+          if(!media.includes('<title>Interviews & Media — Kile Jones</title>') || (media.match(/class="reel /g)||[]).length!==9)throw Error('Interview queue missing');
           for(const [page,file] of [['interviews',interviews],['writing',writing],['projects',projects]]){
             if(!media.includes('href="'+page+'.html"') || !file.includes('https://kilejones.com/'+page+'.html'))throw Error('Missing destination '+page);
           }
+          if(media.includes('Melissa Brodsky') || interviews.includes('Melissa Brodsky') || projects.includes('Melissa Brodsky'))throw Error('Removed conversations still listed');
           if(!interviews.includes('History Impossible') || !interviews.includes('Lucy Tabrizi') || !interviews.includes('Jonah Platt') || !interviews.includes('Andrew Pessin'))throw Error('Interview archive incomplete');
           if(!writing.includes('Fathom Journal') || !writing.includes('The Times of Israel') || !writing.includes('The October Turn Finale'))throw Error('Writing archive incomplete');
-          if(!media.includes('media.css?v=20261116interviews5') || !media.includes('media.js?v=20261116interviews5'))throw Error('Media asset versions stale');
+          if(!media.includes('media.css?v=20261116interviews6') || !media.includes('media.js?v=20261116interviews6'))throw Error('Media asset versions stale');
           if(!mediaCss.includes('.archive-page') || !mediaJs.includes('IntersectionObserver') || !mediaJs.includes('5000'))throw Error('Media assets incomplete');
           const writingUrls=[...writing.matchAll(/href="(https?:\/\/[^"]+)"/g)].map(m=>m[1]).filter(u=>!u.includes('kilejones.com/writing.html'));
           if(writingUrls.length!==22 || new Set(writingUrls).size!==22)throw Error('Writing archive entry count incorrect or duplicate');
