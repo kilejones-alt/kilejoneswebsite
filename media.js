@@ -1,6 +1,6 @@
 (() => {
   const root = document.getElementById('kj-interview-row');
-  if (!root || root.classList.contains('archive-page')) return;
+  if (!root || !root.querySelector('.rail')) return;
   const rail = root.querySelector('.rail');
   const reels = [...rail.querySelectorAll('.reel')];
   const title = root.querySelector('[data-title-caption]');

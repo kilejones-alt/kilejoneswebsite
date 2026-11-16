@@ -60,7 +60,7 @@ body{font-family:"Bricolage Grotesque",Arial,sans-serif}
 }
 @media(prefers-reduced-motion:reduce){#kj-interview-row *,#kj-interview-row *::before{animation:none!important;transition:none!important}}
 
-/* The three destination pages share the same type and motion as the queue. */
+/* The interview archive and the articles below the queue share editorial type. */
 #kj-interview-row.archive-page .mast{padding-block:35px 42px}
 #kj-interview-row.archive-page .archive-body{max-width:1240px;margin:auto;padding:0 clamp(20px,4vw,58px) 110px}
 #kj-interview-row.archive-page .media-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 22px}
@@ -81,9 +81,9 @@ body{font-family:"Bricolage Grotesque",Arial,sans-serif}
 @media(max-width:700px){#kj-interview-row.archive-page .mast{padding-block:20px 30px}#kj-interview-row.archive-page .media-list{grid-template-columns:1fr;gap:10px}#kj-interview-row.archive-page .media-entry{min-height:112px;padding:18px 20px}}
 @media(prefers-reduced-motion:reduce){.media-enhanced .media-entry{opacity:1!important;transform:none!important}}
 
-/* Essays and projects are editorial pages rather than a tile grid. */
-#kj-interview-row.archive-page.editorial-page .mast,#kj-interview-row.archive-page.projects-page .mast{padding:32px 20px 20px}
-#kj-interview-row.archive-page.editorial-page .archive-body,#kj-interview-row.archive-page.projects-page .archive-body{max-width:1260px;padding-bottom:90px}
+/* Published articles use the same editorial type as the interview queue. */
+#kj-interview-row.archive-page.editorial-page .mast{padding:32px 20px 20px}
+#kj-interview-row.archive-page.editorial-page .archive-body{max-width:1260px;padding-bottom:90px}
 #kj-interview-row .page-intro{max-width:620px;margin:0 auto 56px!important;color:#4b514e;text-align:center;font:500 clamp(14px,1.4vw,18px)/1.48 var(--display)}
 #kj-interview-row .section-kicker{font:500 11px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#666e6a}
 #kj-interview-row .feature-story{display:grid;grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr);gap:26px;padding:28px 0 42px;border-top:2px solid #1a1e1b;border-bottom:1px solid #c8cfca}
@@ -110,20 +110,12 @@ body{font-family:"Bricolage Grotesque",Arial,sans-serif}
 #kj-interview-row.archive-page.editorial-page .media-entry :is(.media-name,.media-meta){margin:0;transform:none!important}
 #kj-interview-row.archive-page.editorial-page .media-entry .media-name{font-size:clamp(17px,1.7vw,23px);line-height:1.22}
 #kj-interview-row.archive-page.editorial-page .media-entry .media-meta{justify-content:flex-end;text-align:right}
-#kj-interview-row .project-intro{max-width:700px}
-#kj-interview-row .project-ledger{border-top:2px solid #1a1e1b}
-#kj-interview-row .project-row{--row-color:#8c30b8;display:grid;grid-template-columns:68px minmax(210px,.95fr) minmax(230px,1fr) 90px;gap:25px;align-items:center;min-height:170px;padding:32px 8px;border-bottom:1px solid #c8cfca;transition:background .28s,padding .28s}
-#kj-interview-row .project-row:nth-child(2){--row-color:#1478ba}
-#kj-interview-row .project-row:nth-child(3){--row-color:#b54719}
-#kj-interview-row .project-row:nth-child(4){--row-color:#2f831a}
-#kj-interview-row .project-row:nth-child(5){--row-color:#b91d73}
-#kj-interview-row .project-row:hover,#kj-interview-row .project-row:focus-within{background:color-mix(in srgb,var(--row-color),white 94%);padding-inline:18px}
-#kj-interview-row .project-num,#kj-interview-row .project-type,#kj-interview-row .project-action{font:500 11px/1.4 var(--mono);text-transform:uppercase;color:#646d67}
-#kj-interview-row .project-title{font:650 clamp(26px,3.2vw,45px)/1.04 var(--display);letter-spacing:-.055em;text-wrap:balance}
-#kj-interview-row .project-title a{transition:color .25s,text-shadow .25s}
-#kj-interview-row .project-title a:hover,#kj-interview-row .project-title a:focus-visible{color:var(--row-color);text-shadow:0 0 20px color-mix(in srgb,var(--row-color),transparent 78%)}
-#kj-interview-row .project-desc{max-width:58ch;margin:10px 0 0!important;font:500 15px/1.48 var(--display);color:#4b514e}
-#kj-interview-row .project-action{text-align:right}
-#kj-interview-row .project-action a{display:inline-block;border-bottom:1px solid currentColor;transition:color .25s,scale .25s}
-#kj-interview-row .project-action a:hover,#kj-interview-row .project-action a:focus-visible{color:var(--row-color);scale:1.09}
-@media(max-width:700px){#kj-interview-row .page-intro{margin-bottom:38px!important}#kj-interview-row .feature-story{grid-template-columns:1fr;gap:18px;padding:23px 0 31px}#kj-interview-row .feature-story .feature-title{font-size:clamp(31px,8.5vw,49px)}#kj-interview-row.archive-page.editorial-page .media-entry{grid-template-columns:50px minmax(0,1fr);gap:7px 12px;padding:17px 3px}#kj-interview-row.archive-page.editorial-page .media-entry .media-meta{grid-column:2;justify-content:flex-start;text-align:left}#kj-interview-row.archive-page.editorial-page .media-entry .media-name{font-size:18px}#kj-interview-row .project-row{grid-template-columns:34px 1fr;gap:8px 14px;min-height:0;padding:24px 4px}#kj-interview-row .project-row:hover,#kj-interview-row .project-row:focus-within{padding-inline:8px}#kj-interview-row .project-row .project-copy,#kj-interview-row .project-row .project-action{grid-column:2}#kj-interview-row .project-action{text-align:left}}
+@media(max-width:700px){#kj-interview-row .page-intro{margin-bottom:38px!important}#kj-interview-row .feature-story{grid-template-columns:1fr;gap:18px;padding:23px 0 31px}#kj-interview-row .feature-story .feature-title{font-size:clamp(31px,8.5vw,49px)}#kj-interview-row.archive-page.editorial-page .media-entry{grid-template-columns:50px minmax(0,1fr);gap:7px 12px;padding:17px 3px}#kj-interview-row.archive-page.editorial-page .media-entry .media-meta{grid-column:2;justify-content:flex-start;text-align:left}#kj-interview-row.archive-page.editorial-page .media-entry .media-name{font-size:18px}}
+
+/* One continuous media page: the queue leads into its articles. */
+#kj-interview-row.archive-page.editorial-page.media-home main > .mast{padding:2px 20px 12px}
+#kj-interview-row.media-home .articles-section{scroll-margin-top:16px}
+#kj-interview-row.archive-page.editorial-page.media-home .article-mast{padding:clamp(46px,7vw,92px) 20px 26px}
+#kj-interview-row.media-home .article-mast h2{font:650 clamp(39px,7cqw,86px)/.94 var(--display);letter-spacing:-.07em;text-wrap:balance}
+#kj-interview-row.media-home .archive-body{padding-bottom:110px}
+@container (max-width:700px){#kj-interview-row.media-home .article-mast h2{font-size:clamp(36px,9cqw,59px)}}
