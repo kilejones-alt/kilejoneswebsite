@@ -8,17 +8,16 @@ body{font-family:"Bricolage Grotesque",Arial,sans-serif}
 #kj-interview-row :is(h1,h2,p){margin:0}
 #kj-interview-row a{color:inherit;text-decoration:none}
 #kj-interview-row [hidden]{display:none!important}
-#kj-interview-row .folio{position:relative;min-height:116px;display:flex;align-items:flex-start;justify-content:flex-end;padding:18px 4% 10px}
+#kj-interview-row .folio{position:relative;min-height:92px;display:flex;align-items:flex-start;justify-content:flex-end;padding:18px 4% 10px}
 #kj-interview-row .brand{position:absolute;left:50%;top:19px;transform:translateX(-50%);font:600 14px/1.25 var(--display);letter-spacing:-.025em;white-space:nowrap;transition:color .25s,scale .25s,text-shadow .25s}
 #kj-interview-row .brand:hover,#kj-interview-row .brand:focus-visible{color:#a52ad4;scale:1.13;text-shadow:0 0 15px #ca63fa80}
-#kj-interview-row .page-pills{display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-start;gap:4px;z-index:1}
-#kj-interview-row .page-pills a{position:relative;isolation:isolate;min-height:24px;display:grid;place-items:center;overflow:hidden;padding:3px 8px;border:1px solid #c6c8c4;border-radius:100px;background:#fff;white-space:nowrap;text-align:center;font:500 9px/1.05 var(--display);letter-spacing:.005em;transition:transform .3s,color .3s,border-color .3s,box-shadow .3s}
-#kj-interview-row .page-pills a::before{content:'';position:absolute;inset:0;z-index:-1;transform:translateY(105%);background:var(--pill-color,#b525d4);transition:transform .45s cubic-bezier(.18,1,.24,1)}
-#kj-interview-row .page-pills a:nth-child(2){--pill-color:#1689e5}
-#kj-interview-row .page-pills a:nth-child(3){--pill-color:#ee5c35}
-#kj-interview-row .page-pills a:hover,#kj-interview-row .page-pills a:focus-visible{transform:translateY(-3px) scale(1.07);color:#fff;border-color:var(--pill-color);box-shadow:0 7px 20px color-mix(in srgb,var(--pill-color),transparent 65%)}
-#kj-interview-row .page-pills a:hover::before,#kj-interview-row .page-pills a:focus-visible::before,#kj-interview-row .page-pills a[aria-current=page]::before{transform:translateY(0)}
-#kj-interview-row .page-pills a[aria-current=page]{color:#fff;border-color:var(--pill-color)}
+#kj-interview-row .page-pills{display:flex;flex-direction:column;align-items:flex-end;gap:6px;z-index:1}
+#kj-interview-row .page-pills a{display:inline-block;padding:0 0 2px;border-bottom:1px solid currentColor;text-align:right;white-space:nowrap;font:500 11px/1.2 var(--display);transition:transform .25s,color .25s,text-shadow .25s,border-color .25s}
+#kj-interview-row .page-pills a:nth-child(1){--link-color:#9b25ca}
+#kj-interview-row .page-pills a:nth-child(2){--link-color:#1689e5}
+#kj-interview-row .page-pills a:nth-child(3){--link-color:#ee5c35}
+#kj-interview-row .page-pills a:hover,#kj-interview-row .page-pills a:focus-visible{transform:translateX(-3px) scale(1.06);color:var(--link-color);text-shadow:0 0 12px color-mix(in srgb,var(--link-color),transparent 55%);border-bottom-width:2px}
+#kj-interview-row .page-pills a[aria-current=page]{color:var(--link-color);border-bottom-width:2px}
 #kj-interview-row .mast{display:grid;place-items:center;padding:2px 20px 12px;text-align:center}
 #kj-interview-row .mast h1{font:650 clamp(39px,7cqw,86px)/.94 var(--display);letter-spacing:-.07em;text-wrap:balance}
 #kj-interview-row .screening{padding:10px 0 34px}
@@ -46,10 +45,10 @@ body{font-family:"Bricolage Grotesque",Arial,sans-serif}
 #kj-interview-row .label:hover,#kj-interview-row .description:hover{color:var(--active-color);transform:scale(1.035)}
 #kj-interview-row .info a:focus-visible,#kj-interview-row .brand:focus-visible,#kj-interview-row .page-pills a:focus-visible{outline:2px solid #191919;outline-offset:3px}
 @container (max-width:700px){
- #kj-interview-row .folio{min-height:116px;padding:16px 15px 8px;justify-content:flex-end}
+ #kj-interview-row .folio{min-height:92px;padding:16px 15px 8px;justify-content:flex-end}
  #kj-interview-row .brand{top:13px}
- #kj-interview-row .page-pills{justify-content:flex-start;align-items:flex-end}
- #kj-interview-row .page-pills a{font-size:9px;min-height:24px;padding:3px 8px}
+ #kj-interview-row .page-pills{align-items:flex-end}
+ #kj-interview-row .page-pills a{font-size:10px}
  #kj-interview-row .mast h1{font-size:clamp(36px,9cqw,59px)}
  #kj-interview-row .rail{--frame:78cqw;gap:10px}
  #kj-interview-row .info{width:80%;min-height:154px}
