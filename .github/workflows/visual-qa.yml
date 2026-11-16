@@ -133,7 +133,7 @@ jobs:
           if(!media.includes('media.css?v=20261116interviews10') || !media.includes('media.js?v=20261116interviews10'))throw Error('Media asset versions stale');
           if(!mediaCss.includes('.archive-page') || !mediaJs.includes('IntersectionObserver') || !mediaJs.includes('5000'))throw Error('Media assets incomplete');
           const writingUrls=[...writing.matchAll(/href="(https?:\/\/[^"]+)"/g)].map(m=>m[1]).filter(u=>!u.includes('kilejones.com/writing.html'));
-          if(writingUrls.length!==22 || new Set(writingUrls).size!==22)throw Error('Writing archive entry count incorrect or duplicate');
+          if(writingUrls.length!==23 || new Set(writingUrls).size!==23)throw Error('Writing archive entry count incorrect or duplicate');
           if(!robots.includes('Sitemap: https://kilejones.com/sitemap.xml'))throw Error('Sitemap discovery missing');
           for(const url of ['https://kilejones.com/','https://kilejones.com/media.html','https://kilejones.com/interviews.html','https://kilejones.com/writing.html','https://kilejones.com/projects.html']){
             if(!sitemap.includes('<loc>'+url+'</loc>'))throw Error('Sitemap missing '+url);
