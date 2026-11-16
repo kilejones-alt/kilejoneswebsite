@@ -1,82 +1,99 @@
 (() => {
   const root = document.getElementById('kj-interview-row');
-  if (!root) return;
+  if (!root || root.classList.contains('archive-page')) return;
   const rail = root.querySelector('.rail');
   const reels = [...rail.querySelectorAll('.reel')];
-  const previous = root.querySelector('.previous');
-  const next = root.querySelector('.next');
   const title = root.querySelector('[data-title-caption]');
   const source = root.querySelector('[data-source-caption]');
   const description = root.querySelector('[data-description-caption]');
-  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  let current = reels.findIndex(reel => reel.hasAttribute('data-active'));
-  let scrollTimer;
-
-  function center(index, behavior) {
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const colors = ['#a52ad4','#008fce','#e52d8a','#7b8d00','#d5540a','#632ed4','#008f87','#bd3b61','#3974e6','#b15400','#a41f71','#3e8c20','#c43a7b','#0079a6'];
+  let current = 0, timer, scrollTimer, hovering = false, focused = false, touching = false, animating = false;
+  function center(index, behavior = 'instant') {
     const reel = reels[index];
-    if (!reel) return;
     rail.scrollTo({left: reel.offsetLeft + (reel.offsetWidth - rail.clientWidth) / 2, behavior});
   }
-
+  function pause() { clearTimeout(timer); }
+  function schedule() {
+    pause();
+    if (hovering || focused || touching || document.hidden || reduced.matches) return;
+    timer = setTimeout(() => move((current + 1) % reels.length), 5000);
+  }
   function select(index) {
     current = index;
-    for (const [position, reel] of reels.entries()) {
+    reels.forEach((reel, position) => {
       const active = index === position;
       const button = reel.querySelector('.take');
       const link = reel.querySelector('.watch');
       reel.toggleAttribute('data-active', active);
-      if (active && document.activeElement === button) {
-        link.hidden = false;
-        link.focus({preventScroll:true});
-      }
+      if (active && document.activeElement === button) link.focus({preventScroll:true});
       button.hidden = active;
       link.hidden = !active;
-    }
-    title.textContent = reels[index].dataset.title;
-    title.href = reels[index].querySelector('.watch').href;
-    source.textContent = reels[index].dataset.source;
-    description.textContent = reels[index].dataset.description;
-    previous.setAttribute('aria-disabled', String(index === 0));
-    next.setAttribute('aria-disabled', String(index === reels.length - 1));
+    });
+    const reel = reels[index];
+    title.textContent = reel.dataset.title;
+    title.href = reel.querySelector('.watch').href;
+    source.textContent = reel.dataset.source;
+    source.hidden = !reel.dataset.source;
+    description.textContent = reel.dataset.description;
+    root.style.setProperty('--active-color', colors[index % colors.length]);
+    schedule();
   }
-
   function move(index) {
-    center(index, reducedMotion.matches ? 'instant' : 'smooth');
+    const target = (index + reels.length) % reels.length;
+    select(target);
+    if (reduced.matches || Math.abs(target - index) > 0 || (target === 0 && index > 0)) {
+      center(target);
+      return;
+    }
+    const destination = reels[target].offsetLeft + (reels[target].offsetWidth - rail.clientWidth) / 2;
+    const start = rail.scrollLeft, change = destination - start;
+    const duration = 280, startTime = performance.now();
+    animating = true;
+    rail.style.scrollSnapType = 'none';
+    function frame(now) {
+      const progress = Math.min(1, (now - startTime) / duration);
+      rail.scrollLeft = start + change * (1 - Math.pow(1 - progress, 3));
+      if (progress < 1) requestAnimationFrame(frame);
+      else { rail.style.scrollSnapType = ''; animating = false; }
+    }
+    requestAnimationFrame(frame);
   }
-
   rail.addEventListener('scroll', () => {
+    if (animating) return;
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(() => {
       const middle = rail.scrollLeft + rail.clientWidth / 2;
-      const distance = reel => Math.abs(middle - reel.offsetLeft - reel.offsetWidth / 2);
-      const nearest = reels.reduce((best, reel) => distance(reel) < distance(best) ? reel : best);
+      const nearest = reels.reduce((best, reel) => Math.abs(middle - reel.offsetLeft - reel.offsetWidth / 2) < Math.abs(middle - best.offsetLeft - best.offsetWidth / 2) ? reel : best);
       const index = reels.indexOf(nearest);
       if (index !== current) select(index);
-    }, 85);
+    }, 90);
   }, {passive:true});
-
-  previous.addEventListener('click', () => move(current - 1));
-  next.addEventListener('click', () => move(current + 1));
-  for (const [index, reel] of reels.entries()) {
-    reel.querySelector('.take').addEventListener('click', () => move(index));
-  }
+  root.querySelector('.screening').addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { hovering = true; pause(); } });
+  root.querySelector('.screening').addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { hovering = false; schedule(); } });
+  root.querySelector('.screening').addEventListener('focusin', () => { focused = true; pause(); });
+  root.querySelector('.screening').addEventListener('focusout', () => { focused = root.querySelector('.screening').contains(document.activeElement); if (!focused) schedule(); });
+  rail.addEventListener('touchstart', () => { touching = true; pause(); }, {passive:true});
+  rail.addEventListener('touchend', () => { touching = false; schedule(); }, {passive:true});
+  rail.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); move(current + (e.key === 'ArrowRight' ? 1 : -1)); }
+  });
+  document.addEventListener('visibilitychange', schedule);
+  reduced.addEventListener('change', schedule);
+  for (const [index, reel] of reels.entries()) reel.querySelector('.take').addEventListener('click', () => move(index));
   root.setAttribute('data-enhanced', '');
-  select(current);
-  center(current, 'instant');
+  select(0);
+  center(0);
   if ('ResizeObserver' in window) {
-    let lastWidth = rail.clientWidth;
-    new ResizeObserver(() => {
-      if (rail.clientWidth === lastWidth) return;
-      lastWidth = rail.clientWidth;
-      center(current, 'instant');
-    }).observe(rail);
+    let width = rail.clientWidth;
+    new ResizeObserver(() => { if (rail.clientWidth !== width) { width = rail.clientWidth; center(current); } }).observe(rail);
   }
 })();
 
 (() => {
   'use strict';
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
-  const targets=[...document.querySelectorAll('.media-entry,.media-section-label')];
+  const targets=[...document.querySelectorAll('.media-entry')];
   if(!targets.length)return;
   document.documentElement.classList.add('media-enhanced');
   const io=new IntersectionObserver(entries=>{
