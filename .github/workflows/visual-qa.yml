@@ -126,11 +126,12 @@ jobs:
           if(media.includes('Melissa Brodsky') || interviews.includes('Melissa Brodsky') || media.includes('Salt Air, Desert Light') || interviews.includes('Salt Air, Desert Light'))throw Error('Removed conversations still listed');
           if(!interviews.includes('History Impossible') || !interviews.includes('Lucy Tabrizi') || !interviews.includes('Jonah Platt') || !interviews.includes('Andrew Pessin'))throw Error('Interview archive incomplete');
           if(!media.includes('Fathom Journal') || !media.includes('MAZL') || !media.includes('Philosophy Now') || !media.includes('Routledge') || !media.includes('Chomsky'))throw Error('Article selection incomplete');
-          if(!media.includes('media.css?v=20261116combined1') || !media.includes('media.js?v=20261116combined1'))throw Error('Media asset versions stale');
+          if(!media.includes('media.css?v=20261117articles1') || !media.includes('media.js?v=20261117articles1'))throw Error('Media asset versions stale');
           if(!mediaCss.includes('.articles-section') || !mediaJs.includes('IntersectionObserver') || !mediaJs.includes('5000'))throw Error('Media assets incomplete');
           const articleSection=media.slice(media.indexOf('id="articles"'));
           const writingUrls=[...articleSection.matchAll(/href="(https?:\/\/[^"]+)"/g)].map(m=>m[1]);
-          if(writingUrls.length!==7 || new Set(writingUrls).size!==6)throw Error('Article entry count incorrect or duplicate');
+          if((articleSection.match(/class="article-slide/g)||[]).length!==6 || writingUrls.length!==6 || new Set(writingUrls).size!==6)throw Error('Article queue entry count incorrect or duplicate');
+          if(!mediaJs.includes('article-deck') || !mediaJs.includes('pointerup') || !mediaCss.includes('.article-slide.is-leaving'))throw Error('Article motion missing');
           if(!robots.includes('Sitemap: https://kilejones.com/sitemap.xml'))throw Error('Sitemap discovery missing');
           for(const url of ['https://kilejones.com/','https://kilejones.com/media.html','https://kilejones.com/interviews.html']){
             if(!sitemap.includes('<loc>'+url+'</loc>'))throw Error('Sitemap missing '+url);

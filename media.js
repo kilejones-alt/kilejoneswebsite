@@ -92,6 +92,71 @@
 })();
 
 (() => {
+  const section = document.querySelector('.articles-section');
+  if (!section) return;
+  const deck = section.querySelector('.article-deck');
+  const stage = deck.querySelector('.article-stage');
+  const slides = [...stage.querySelectorAll('.article-slide')];
+  const dots = [...deck.querySelectorAll('.article-dots button')];
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  let current = 0, timer, leaveTimer, visible = false;
+  let hovering = false, focused = false, touching = false, startX = null, suppressClick = false;
+  function pause() { clearTimeout(timer); }
+  function schedule() {
+    pause();
+    if (!visible || hovering || focused || touching || document.hidden || reduced.matches) return;
+    timer = setTimeout(() => show((current + 1) % slides.length), 5000);
+  }
+  function show(index) {
+    const next = (index + slides.length) % slides.length;
+    if (next === current) { schedule(); return; }
+    clearTimeout(leaveTimer);
+    slides.forEach(slide => slide.classList.remove('is-leaving'));
+    const outgoing = slides[current], incoming = slides[next];
+    outgoing.classList.remove('is-active');
+    outgoing.classList.add('is-leaving');
+    outgoing.inert = true;
+    outgoing.setAttribute('aria-hidden', 'true');
+    outgoing.tabIndex = -1;
+    incoming.inert = false;
+    incoming.removeAttribute('aria-hidden');
+    incoming.removeAttribute('tabindex');
+    incoming.classList.add('is-active');
+    current = next;
+    dots.forEach((dot, i) => dot.setAttribute('aria-pressed', String(i === next)));
+    leaveTimer = setTimeout(() => outgoing.classList.remove('is-leaving'), 380);
+    schedule();
+  }
+  dots.forEach((dot, index) => dot.addEventListener('click', () => show(index)));
+  section.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { hovering = true; pause(); } });
+  section.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { hovering = false; schedule(); } });
+  section.addEventListener('focusin', () => { focused = section.contains(document.activeElement) && document.activeElement.matches(':focus-visible'); if (focused) pause(); });
+  section.addEventListener('focusout', () => { focused = section.contains(document.activeElement) && document.activeElement.matches(':focus-visible'); if (!focused) schedule(); });
+  stage.addEventListener('pointerdown', e => { startX = e.clientX; if (e.pointerType === 'touch') { touching = true; pause(); } });
+  stage.addEventListener('pointerup', e => {
+    if (startX !== null && Math.abs(e.clientX - startX) > 45) {
+      suppressClick = true;
+      show(current + (e.clientX < startX ? 1 : -1));
+      setTimeout(() => { suppressClick = false; }, 250);
+    }
+    startX = null;
+    touching = false;
+    schedule();
+  });
+  stage.addEventListener('pointercancel', () => { startX = null; touching = false; schedule(); });
+  stage.addEventListener('dragstart', e => e.preventDefault());
+  stage.addEventListener('click', e => { if (suppressClick) { e.preventDefault(); e.stopPropagation(); suppressClick = false; } }, true);
+  deck.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); show(current + (e.key === 'ArrowRight' ? 1 : -1)); }
+  });
+  document.addEventListener('visibilitychange', schedule);
+  reduced.addEventListener('change', schedule);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(entries => { visible = entries[0].isIntersecting; schedule(); }, {threshold:.15}).observe(section);
+  } else { visible = true; schedule(); }
+})();
+
+(() => {
   'use strict';
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
   const targets=[...document.querySelectorAll('.media-entry')];
