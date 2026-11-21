@@ -145,7 +145,20 @@
   deck.querySelector('.article-controls').hidden = false;
   indexButtons.forEach((button, i) => button.addEventListener('click', () => show(i)));
   picker.addEventListener('change', () => show(Number(picker.value)));
-  rotation.addEventListener('click', () => setPaused(!paused));
+  rotation.addEventListener('click', () => {
+    if (paused) {
+      hovered = false;
+      focused = false;
+    }
+    setPaused(!paused);
+  });
+  deck.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'touch') {
+      hovered = false;
+      focused = false;
+      schedule();
+    }
+  });
   motion.addEventListener('change', () => setPaused(motion.matches));
   setPaused(paused);
 

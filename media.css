@@ -157,8 +157,21 @@ body{font-family:"Bricolage Grotesque",Arial,sans-serif}
   text-decoration-color: currentColor;
 }
 #articles .article-controls .rotation-toggle { white-space: nowrap; font-size: 14px; }
-#articles .rotation-toggle::before { content: 'Ⅱ'; display: inline-block; width: 1.2em; }
-#articles .rotation-toggle[aria-pressed=true]::before { content: '▷'; }
+#articles .rotation-toggle::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 10px;
+  margin-right: 6px;
+  border-inline: 2px solid currentColor;
+}
+#articles .rotation-toggle[aria-pressed=true]::before {
+  width: 0;
+  height: 0;
+  border: 5px solid transparent;
+  border-right: 0;
+  border-left: 7px solid currentColor;
+}
 #articles .compact-index { display: none; }
 #articles :is(button,select,a):focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 #articles .article-stage { display: grid; gap: 42px; }

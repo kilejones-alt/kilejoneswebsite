@@ -12,7 +12,8 @@ try {
     const deck = page.locator('#articles .article-deck');
     const active = deck.locator('.article-slide.is-active');
     const rotation = deck.locator('.rotation-toggle');
-    await rotation.click();
+    if (phone) await rotation.tap();
+    else await rotation.click();
     assert.match(await active.locator('h3').innerText(), /Gazology/);
     await page.screenshot({path: 'qa-screenshots/articles-' + width + '.png'});
     const selectors = deck.locator('.article-index button');
