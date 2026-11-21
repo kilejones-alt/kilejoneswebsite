@@ -48,11 +48,16 @@ jobs:
           const css=fs.readFileSync('styles.css','utf8');
           const gpu=fs.readFileSync('hero-webgl.js','utf8');
           const nav=h.substring(h.indexOf('<aside class="mobile-drawer"'),h.indexOf('</aside>'));
-          for(const word of ['Inverted World','Unlikely Zio','Glossary','AZ Detector','Media']){
-            if(!nav.includes(word))throw Error('Missing menu item: '+word);
-          }
-          if(nav.indexOf('Inverted World')>nav.indexOf('Unlikely Zio'))throw Error('Menu order');
-          if(!nav.includes('https://kilejones.substack.com/subscribe'))throw Error('Wrong Substack destination');
+          const expectedLinks = [
+            'https://kilejones.substack.com/',
+            'https://antizionistdetector.netlify.app/',
+            'https://kilejones-alt.github.io/TheAntizionistGlossary/',
+            'media.html',
+            'media.html#articles',
+            'https://kilejones-alt.github.io/the-unlikely-zionists/'
+          ];
+          const menuLinks = Array.from(nav.matchAll(/<a href="([^"]+)"/g), match => match[1]);
+          if (JSON.stringify(menuLinks) !== JSON.stringify(expectedLinks)) throw Error('Homepage menu destinations or order changed');
           if(nav.includes('Projects') || h.includes('>Projects<'))throw Error('Projects must be removed from homepage navigation');
           for(const id of ['hero-canvas','menu-toggle','music-toggle','mobile-drawer']){
             if(!h.includes('id="'+id+'"'))throw Error('Missing '+id);
