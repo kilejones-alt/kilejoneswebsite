@@ -144,3 +144,25 @@ jobs:
           if(sitemap.includes('writing.html') || sitemap.includes('projects.html'))throw Error('Retired pages in sitemap');
                     console.log('Navigation, visual engine and accessibility selectors validated.');
           NODE
+
+  articles:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Check the article carousel on desktop, laptop and phone
+        run: |
+          python3 -m http.server 8842 --bind 127.0.0.1 > /tmp/article-qa-server.log 2>&1 &
+          node tests/article-carousel.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: article-layouts
+          path: qa-screenshots/articles-*.png

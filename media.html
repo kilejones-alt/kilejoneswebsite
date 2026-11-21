@@ -25,7 +25,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-v2.png">
 <link rel="manifest" href="site.webmanifest">
-<link rel="stylesheet" href="media.css?v=20261121interviews2">
+<link rel="stylesheet" href="media.css?v=20261121reading">
 </head>
 <body>
 <div id="kj-interview-row" class="archive-page editorial-page media-home">
@@ -93,45 +93,82 @@
   <!-- Published articles follow the interview queue on this same page. -->
   <section id="articles" class="articles-section" aria-labelledby="articles-heading">
     <div class="mast article-mast"><h2 id="articles-heading">Articles</h2></div>
-    <div class="article-deck" aria-label="Published articles">
-      <div class="article-stage">
-        <a class="article-slide is-active" href="https://fathomjournal.org/gazology-antizionism-and-the-manufacture-of-conviction-what-the-shelf-requires/" target="_blank" rel="noopener noreferrer">
-          <div class="article-art"><img src="https://fathomjournal.org/wp-content/uploads/2026/07/three_books_combined_matched-wxwc.png" alt="Three book covers accompanying the Fathom essay" loading="eager" decoding="async"></div>
-          <div class="article-copy"><p class="article-source">Fathom Journal <span>· July 2026</span></p><h3>Gazology, Antizionism, and the Manufacture of Conviction: What the Shelf Requires</h3><p class="article-excerpt">“Readers think they are choosing a book. The shelf has already chosen their direction.”</p></div>
-        </a>
-        <a class="article-slide" href="https://mazl1948.substack.com/p/i-was-wrong-about-israel-what-antizionism" target="_blank" rel="noopener noreferrer" inert aria-hidden="true" tabindex="-1">
-          <div class="article-art"><span class="article-imprint">MAZL</span></div>
-          <div class="article-copy"><p class="article-source">MAZL <span>· June 30, 2026</span></p><h3>I Was Wrong About Israel: What Antizionism Did to a Good Man</h3></div>
-        </a>
-        <a class="article-slide" href="https://philosophynow.org/issues/115/all_the_consequences_of_this" target="_blank" rel="noopener noreferrer" inert aria-hidden="true" tabindex="-1">
-          <div class="article-art"><span class="article-imprint article-imprint-long">PHILOSOPHY<br>NOW</span></div>
-          <div class="article-copy"><p class="article-source">Philosophy Now <span>· 2016 · Existentialism issue</span></p><h3>“all the consequences of this”</h3></div>
-        </a>
-        <a class="article-slide" href="https://blogs.timesofisrael.com/sorry-mr-chomsky-i-no-longer-agree-my-journey-out-of-anti-zionism/" target="_blank" rel="noopener noreferrer" inert aria-hidden="true" tabindex="-1">
-          <div class="article-art"><span class="article-imprint article-imprint-long">THE TIMES<br>OF ISRAEL</span></div>
-          <div class="article-copy"><p class="article-source">The Times of Israel <span>· January 17, 2026</span></p><h3>Sorry, Mr. Chomsky, I no longer agree: My journey out of anti-Zionism</h3></div>
-        </a>
-        <a class="article-slide" href="https://mazl1948.substack.com/p/i-was-wrong-about-israel-part-ii" target="_blank" rel="noopener noreferrer" inert aria-hidden="true" tabindex="-1">
-          <div class="article-art"><span class="article-imprint">MAZL</span></div>
-          <div class="article-copy"><p class="article-source">MAZL <span>· July 28, 2026</span></p><h3>I Was Wrong About Israel: Part II</h3></div>
-        </a>
-        <a class="article-slide" href="https://openlibrary.org/books/OL27790812M/The_Routledge_history_of_social_protest_in_popular_music" target="_blank" rel="noopener noreferrer" inert aria-hidden="true" tabindex="-1">
-          <div class="article-art"><img class="article-book" src="https://d1iiivw74516uk.cloudfront.net/eyJidWNrZXQiOiJwcmVzdG8tY292ZXItaW1hZ2VzIiwia2V5IjoiNzU0MTQ0MS4xLmpwZyIsImVkaXRzIjp7InRvRm9ybWF0IjoianBlZyJ9LCJ0aW1lc3RhbXAiOjE2NzY0OTYwNTN9" alt="Cover of The Routledge History of Social Protest in Popular Music" loading="lazy" decoding="async"></div>
-          <div class="article-copy"><p class="article-source">The Routledge History of Social Protest in Popular Music <span>· 2013</span></p><h3>Bob Dylan: An American Tragedian</h3></div>
-        </a>
+    <div class="article-deck">
+      <div class="article-controls" hidden>
+        <div class="article-index" role="group" aria-label="Choose an article">
+            <button type="button" aria-pressed="true">Fathom</button>
+            <button type="button" aria-pressed="false">MAZL I</button>
+            <button type="button" aria-pressed="false">Existentialism</button>
+            <button type="button" aria-pressed="false">Chomsky</button>
+            <button type="button" aria-pressed="false">MAZL II</button>
+            <button type="button" aria-pressed="false">Dylan</button>
+        </div>
+        <label class="compact-index">Choose an article
+          <select>
+              <option value="0">Fathom</option>
+              <option value="1">MAZL I</option>
+              <option value="2">Existentialism</option>
+              <option value="3">Chomsky</option>
+              <option value="4">MAZL II</option>
+              <option value="5">Dylan</option>
+          </select>
+        </label>
+        <button class="rotation-toggle" type="button" aria-label="Pause article rotation" aria-pressed="false">Pause</button>
       </div>
-      <div class="article-dots" role="group" aria-label="Choose article">
-        <button type="button" aria-label="Show Gazology, Antizionism, and the Manufacture of Conviction: What the Shelf Requires" aria-pressed="true" data-article-index="0"><span></span></button>
-        <button type="button" aria-label="Show I Was Wrong About Israel: What Antizionism Did to a Good Man" aria-pressed="false" data-article-index="1"><span></span></button>
-        <button type="button" aria-label="Show “all the consequences of this”" aria-pressed="false" data-article-index="2"><span></span></button>
-        <button type="button" aria-label="Show Sorry, Mr. Chomsky, I no longer agree: My journey out of anti-Zionism" aria-pressed="false" data-article-index="3"><span></span></button>
-        <button type="button" aria-label="Show I Was Wrong About Israel: Part II" aria-pressed="false" data-article-index="4"><span></span></button>
-        <button type="button" aria-label="Show Bob Dylan: An American Tragedian" aria-pressed="false" data-article-index="5"><span></span></button>
+      <div class="article-stage">
+        <article class="article-slide is-active">
+          <figure class="article-art"><img src="assets/articles/fathom-books.webp" alt="The three book covers discussed in the Fathom essay" loading="lazy" decoding="async"></figure>
+          <div class="article-copy">
+            <p class="article-source">Fathom Journal <span>· July 2026</span></p>
+            <h3><a href="https://fathomjournal.org/gazology-antizionism-and-the-manufacture-of-conviction-what-the-shelf-requires/" target="_blank" rel="noopener noreferrer">Gazology, Antizionism, and the Manufacture of Conviction: What the Shelf Requires</a></h3>
+            <p class="article-excerpt">“Readers think they are choosing a book. The shelf has already chosen their direction.”</p>
+          </div>
+        </article>
+        <article class="article-slide">
+          <figure class="article-art"><div class="opening-line"><small>MAZL · Opening line</small><strong>“They knew him.”</strong><small>Kile B. Jones</small></div></figure>
+          <div class="article-copy">
+            <p class="article-source">MAZL <span>· June 30, 2026</span></p>
+            <h3><a href="https://mazl1948.substack.com/p/i-was-wrong-about-israel-what-antizionism" target="_blank" rel="noopener noreferrer">I Was Wrong About Israel: What Antizionism Did to a Good Man</a></h3>
+            <p class="article-excerpt">“A man I knew had been turned into a category.”</p>
+          </div>
+        </article>
+        <article class="article-slide">
+          <figure class="article-art"><img src="assets/articles/philosophy-oedipus.webp" alt="Antigone guiding her father Oedipus" loading="lazy" decoding="async"><figcaption><i>Oedipus and Antigone</i> · Eugène-Ernest Hillemacher</figcaption></figure>
+          <div class="article-copy">
+            <p class="article-source">Philosophy Now <span>· 2016 · Existentialism issue</span></p>
+            <h3><a href="https://philosophynow.org/issues/115/all_the_consequences_of_this" target="_blank" rel="noopener noreferrer">“all the consequences of this”</a></h3>
+            <p class="article-excerpt">“Existentialism, as I understand it, is primarily a philosophy of tragedy.”</p>
+          </div>
+        </article>
+        <article class="article-slide">
+          <figure class="article-art"><img src="assets/articles/chomsky-toronto.webp" alt="Noam Chomsky speaking in Toronto in 2011" loading="lazy" decoding="async"><figcaption>Noam Chomsky, Toronto, 2011 · <a href="https://commons.wikimedia.org/wiki/File:Noam_Chomsky_Toronto_2011.jpg">Andrew Rusk</a> · <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a></figcaption></figure>
+          <div class="article-copy">
+            <p class="article-source">The Times of Israel <span>· January 17, 2026</span></p>
+            <h3><a href="https://blogs.timesofisrael.com/sorry-mr-chomsky-i-no-longer-agree-my-journey-out-of-anti-zionism/" target="_blank" rel="noopener noreferrer">Sorry, Mr. Chomsky, I no longer agree: My journey out of anti-Zionism</a></h3>
+            <p class="article-excerpt">“What passed as “critique” revived old libels.”</p>
+          </div>
+        </article>
+        <article class="article-slide">
+          <figure class="article-art"><img src="assets/articles/mazl-park-east.webp" alt="Façade of Park East Synagogue in New York City" loading="lazy" decoding="async"><figcaption>Park East Synagogue, New York · <a href="https://commons.wikimedia.org/wiki/File:Park-east-synagogue.jpg">Americasroof</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a></figcaption></figure>
+          <div class="article-copy">
+            <p class="article-source">MAZL <span>· July 28, 2026</span></p>
+            <h3><a href="https://mazl1948.substack.com/p/i-was-wrong-about-israel-part-ii" target="_blank" rel="noopener noreferrer">I Was Wrong About Israel: Part II</a></h3>
+            <p class="article-excerpt">“These weren’t embassies. They were synagogues.”</p>
+          </div>
+        </article>
+        <article class="article-slide">
+          <figure class="article-art"><img src="assets/articles/routledge-protest.webp" alt="Cover of The Routledge History of Social Protest in Popular Music" loading="lazy" decoding="async"></figure>
+          <div class="article-copy">
+            <p class="article-source">The Routledge History of Social Protest in Popular Music <span>· 2013</span></p>
+            <h3><a href="https://doi.org/10.4324/9780203124888-14" target="_blank" rel="noopener noreferrer">Bob Dylan: An American Tragedian</a></h3>
+            <p class="article-excerpt">“Tragedy has been an essential mode of representing the human condition throughout history.”</p>
+          </div>
+        </article>
       </div>
     </div>
   </section>
   </main>
 </div>
-<script src="media.js?v=20261121interviews2"></script>
+<script src="media.js?v=20261121reading"></script>
 </body>
 </html>

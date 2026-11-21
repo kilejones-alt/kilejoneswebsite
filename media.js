@@ -92,67 +92,108 @@
 })();
 
 (() => {
-  const section = document.querySelector('.articles-section');
-  if (!section) return;
-  const deck = section.querySelector('.article-deck');
+  const deck = document.querySelector('#articles .article-deck');
+  if (!deck) return;
   const stage = deck.querySelector('.article-stage');
   const slides = [...stage.querySelectorAll('.article-slide')];
-  const dots = [...deck.querySelectorAll('.article-dots button')];
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  let current = 0, timer, leaveTimer, visible = false;
-  let hovering = false, focused = false, touching = false, startX = null, suppressClick = false;
-  function pause() { clearTimeout(timer); }
+  const indexButtons = [...deck.querySelectorAll('.article-index button')];
+  const picker = deck.querySelector('select');
+  const rotation = deck.querySelector('.rotation-toggle');
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  let current = 0, timer, exitTimer, touchStart;
+  let paused = motion.matches, hovered = false, focused = false, visible = false;
+  let swallowClick = false;
+
   function schedule() {
-    pause();
-    if (!visible || hovering || focused || touching || document.hidden || reduced.matches) return;
-    timer = setTimeout(() => show((current + 1) % slides.length), 5000);
+    clearTimeout(timer);
+    if (visible && !document.hidden && !paused && !hovered && !focused && !touchStart) {
+      timer = setTimeout(() => show(current + 1), 5000);
+    }
   }
+
+  function setPaused(value) {
+    paused = value;
+    rotation.textContent = paused ? 'Resume' : 'Pause';
+    rotation.setAttribute('aria-label', paused ? 'Resume article rotation' : 'Pause article rotation');
+    rotation.setAttribute('aria-pressed', String(paused));
+    schedule();
+  }
+
   function show(index) {
     const next = (index + slides.length) % slides.length;
-    if (next === current) { schedule(); return; }
-    clearTimeout(leaveTimer);
-    slides.forEach(slide => slide.classList.remove('is-leaving'));
-    const outgoing = slides[current], incoming = slides[next];
-    outgoing.classList.remove('is-active');
-    outgoing.classList.add('is-leaving');
-    outgoing.inert = true;
-    outgoing.setAttribute('aria-hidden', 'true');
-    outgoing.tabIndex = -1;
-    incoming.inert = false;
-    incoming.removeAttribute('aria-hidden');
-    incoming.removeAttribute('tabindex');
-    incoming.classList.add('is-active');
-    current = next;
-    dots.forEach((dot, i) => dot.setAttribute('aria-pressed', String(i === next)));
-    leaveTimer = setTimeout(() => outgoing.classList.remove('is-leaving'), 380);
+    if (next !== current) {
+      const outgoing = slides[current];
+      const incoming = slides[next];
+      clearTimeout(exitTimer);
+      slides.forEach(slide => slide.classList.remove('is-leaving'));
+      outgoing.classList.remove('is-active');
+      outgoing.classList.add('is-leaving');
+      outgoing.inert = true;
+      incoming.inert = false;
+      incoming.classList.add('is-active');
+      indexButtons[current].setAttribute('aria-pressed', 'false');
+      indexButtons[next].setAttribute('aria-pressed', 'true');
+      picker.value = String(next);
+      current = next;
+      exitTimer = setTimeout(() => outgoing.classList.remove('is-leaving'), 320);
+    }
     schedule();
   }
-  dots.forEach((dot, index) => dot.addEventListener('click', () => show(index)));
-  section.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { hovering = true; pause(); } });
-  section.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { hovering = false; schedule(); } });
-  section.addEventListener('focusin', () => { focused = section.contains(document.activeElement) && document.activeElement.matches(':focus-visible'); if (focused) pause(); });
-  section.addEventListener('focusout', () => { focused = section.contains(document.activeElement) && document.activeElement.matches(':focus-visible'); if (!focused) schedule(); });
-  stage.addEventListener('pointerdown', e => { startX = e.clientX; if (e.pointerType === 'touch') { touching = true; pause(); } });
-  stage.addEventListener('pointerup', e => {
-    if (startX !== null && Math.abs(e.clientX - startX) > 45) {
-      suppressClick = true;
-      show(current + (e.clientX < startX ? 1 : -1));
-      setTimeout(() => { suppressClick = false; }, 250);
-    }
-    startX = null;
-    touching = false;
+
+  slides.forEach((slide, i) => { slide.inert = i !== current; });
+  deck.dataset.rotating = '';
+  deck.querySelector('.article-controls').hidden = false;
+  indexButtons.forEach((button, i) => button.addEventListener('click', () => show(i)));
+  picker.addEventListener('change', () => show(Number(picker.value)));
+  rotation.addEventListener('click', () => setPaused(!paused));
+  motion.addEventListener('change', () => setPaused(motion.matches));
+  setPaused(paused);
+
+  deck.addEventListener('pointerenter', event => {
+    if (event.pointerType === 'mouse') { hovered = true; schedule(); }
+  });
+  deck.addEventListener('pointerleave', event => {
+    if (event.pointerType === 'mouse') { hovered = false; schedule(); }
+  });
+  deck.addEventListener('focusin', event => { focused = event.target.matches(':focus-visible'); schedule(); });
+  deck.addEventListener('focusout', event => { focused = deck.contains(event.relatedTarget) && event.relatedTarget.matches(':focus-visible'); schedule(); });
+  deck.addEventListener('keydown', event => {
+    if (event.target === picker || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    const reading = stage.contains(event.target);
+    show(current + (event.key === 'ArrowRight' ? 1 : -1));
+    const target = reading ? slides[current].querySelector('h3 a') : indexButtons[current];
+    target.focus({preventScroll: true});
+  });
+
+  stage.addEventListener('pointerdown', event => {
+    touchStart = {x: event.clientX, y: event.clientY};
+    swallowClick = false;
     schedule();
   });
-  stage.addEventListener('pointercancel', () => { startX = null; touching = false; schedule(); });
-  stage.addEventListener('dragstart', e => e.preventDefault());
-  stage.addEventListener('click', e => { if (suppressClick) { e.preventDefault(); e.stopPropagation(); suppressClick = false; } }, true);
-  deck.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); show(current + (e.key === 'ArrowRight' ? 1 : -1)); }
+  stage.addEventListener('pointercancel', () => { touchStart = null; schedule(); });
+  stage.addEventListener('pointerup', event => {
+    if (!touchStart) return;
+    const dx = event.clientX - touchStart.x, dy = event.clientY - touchStart.y;
+    touchStart = null;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) {
+      swallowClick = true;
+      show(current + (dx < 0 ? 1 : -1));
+    } else if (event.pointerType === 'touch' && event.target.closest('.article-excerpt')) {
+      setPaused(true);
+    }
+    schedule();
   });
+  stage.addEventListener('pointerleave', event => {
+    if (event.pointerType === 'mouse') { touchStart = null; schedule(); }
+  });
+  stage.addEventListener('click', event => {
+    if (swallowClick) { event.preventDefault(); swallowClick = false; }
+  }, true);
+  stage.addEventListener('dragstart', event => event.preventDefault());
   document.addEventListener('visibilitychange', schedule);
-  reduced.addEventListener('change', schedule);
   if ('IntersectionObserver' in window) {
-    new IntersectionObserver(entries => { visible = entries[0].isIntersecting; schedule(); }, {threshold:.15}).observe(section);
+    new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; schedule(); }, {threshold: .15}).observe(stage);
   } else { visible = true; schedule(); }
 })();
 
