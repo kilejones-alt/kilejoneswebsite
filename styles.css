@@ -388,3 +388,23 @@ body{overflow-x:hidden;overflow-y:auto;background:var(--paper)}
 @media (max-width: 700px) {
   .publication { min-height: 68svh; }
 }
+
+.detector-feature {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 clamp(24px, 6vw, 96px) clamp(24px, 4vw, 50px);
+  background: white;
+  color: #121212;
+  text-transform: none;
+}
+.detector-feature a {
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  font-family: "Instrument Sans", Arial, sans-serif;
+}
+.detector-feature img { width: clamp(48px, 5vw, 64px); height: auto; border-radius: 12px; }
+.detector-feature strong { display: block; font-size: clamp(17px, 1.6vw, 23px); letter-spacing: -.035em; }
+.detector-feature small { display: block; margin-top: 4px; font-size: 14px; text-decoration: underline; text-underline-offset: .24em; }
+.detector-feature a:is(:hover,:focus-visible) { color: #7534a8; }
+@media (max-width: 700px) { .detector-feature { justify-content: flex-start; } }
