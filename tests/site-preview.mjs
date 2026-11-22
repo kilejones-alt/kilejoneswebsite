@@ -42,16 +42,15 @@ try{
     await page.waitForFunction(()=>!!window.__KBJ_DIAGNOSTICS,undefined,{timeout:15000});
     if((await page.locator('h1').textContent())?.trim()!=='Kile Jones')
       throw new Error('The homepage name is not Kile Jones');
-    if(await page.locator('.figure-scene').count()!==6)
-      throw new Error('All six full-size sculpture scenes must be present');
+    if(await page.locator('main > section').count()!==1)
+      throw new Error('The homepage must have a single opening stage');
+    if(await page.locator('.pill-nav a').count()!==0)
+      throw new Error('Substack should appear only in the dropdown');
+    const detector=page.locator('.detector-feature a');
+    if(await detector.getAttribute('href')!=='https://antizionistdetector.netlify.app/'
+      || !(await detector.isVisible()))
+      throw new Error('Detector link is missing from the homepage');
     await page.screenshot({path:'qa-screenshots/'+spec.name+'-hero.png'});
-
-    const publication = page.locator('main > .hero + #substack');
-    await page.getByRole('link', {name:'Scroll to Inverted World on Substack'}).click();
-    await page.waitForFunction(() => Math.abs(document.querySelector('#substack').getBoundingClientRect().top) < 2);
-    if (await publication.getByRole('link', {name:'Read on Substack'}).getAttribute('href') !== 'https://kilejones.substack.com/')
-      throw new Error('First scroll must link directly to the publication');
-    await page.screenshot({path:'qa-screenshots/'+spec.name+'-substack.png'});
 
     await page.goto(base+'?scene=6',{waitUntil:'domcontentloaded',timeout:30000});
     await page.waitForFunction(()=>{
@@ -65,28 +64,12 @@ try{
       return film && !film.paused && film.readyState>=2 && film.currentTime>.2;
     },undefined,{timeout:15000});
     await page.screenshot({path:'qa-screenshots/'+spec.name+'-lenin-film.png'});
-    await page.locator('.figure-scene-midnight').scrollIntoViewIfNeeded();
-    await page.waitForFunction(()=>
-      document.querySelector('.hero-art-plate-lenin video')?.paused,
-      undefined,{timeout:5000});
-
-    for(const name of ['midnight','rabbit','amber','rhino','glass','foil']){
-      await page.locator('.figure-scene-'+name).scrollIntoViewIfNeeded();
-      await page.locator('.figure-art-'+name).evaluate(img=>img.decode());
-      await page.screenshot({path:'qa-screenshots/'+spec.name+'-'+name+'.png'});
-    }
-
-    const figures=await page.locator('.figure-art').evaluateAll(els=>
-      els.map(img=>({loaded:img.complete&&img.naturalWidth>0,
-        width:img.getBoundingClientRect().width})));
-    if(figures.some(x=>!x.loaded||x.width<100))
-      throw new Error('Figure asset missing or unreadable: '+JSON.stringify(figures));
     const bounds=await page.evaluate(()=>({
       scrollWidth:document.documentElement.scrollWidth,innerWidth:innerWidth,
       scrollHeight:document.documentElement.scrollHeight,innerHeight:innerHeight
     }));
-    if(bounds.scrollWidth>bounds.innerWidth+2 || bounds.scrollHeight<bounds.innerHeight*6.8)
-      throw new Error('Gallery layout overflow or missing depth: '+JSON.stringify(bounds));
+    if(bounds.scrollWidth>bounds.innerWidth+2 || bounds.scrollHeight>bounds.innerHeight+2)
+      throw new Error('Homepage has overflow or extra panels: '+JSON.stringify(bounds));
 
     await page.locator('#music-toggle').click();
     await page.waitForFunction(()=>{
@@ -96,13 +79,14 @@ try{
     await page.locator('#music-toggle').click();
     await page.locator('#menu-toggle').click();
     if(await page.locator('#menu-toggle').getAttribute('aria-expanded')!=='true'
-      || await page.locator('#mobile-drawer a').count()!==6)
+      || await page.locator('#mobile-drawer a').count()!==6
+      || await page.locator('#mobile-drawer a').first().innerText()!=='Inverted World')
       throw new Error('Menu failed');
     await page.keyboard.press('Escape');
     if(await page.locator('#menu-toggle').getAttribute('aria-expanded')!=='false')
       throw new Error('Menu did not close');
     if(errors.length)throw new Error('Browser exceptions: '+errors.join('; '));
-    console.log(JSON.stringify({device:spec.name,figures,bounds,controls:'passed'}));
+    console.log(JSON.stringify({device:spec.name,bounds,controls:'passed'}));
     await context.close();
   }
 }finally{

@@ -72,8 +72,10 @@ jobs:
             'og-image-v2.png','icon-192-v2.png','icon-512-v2.png','apple-touch-icon-v2.png']){
             if(!fs.existsSync(file))throw Error('Missing figure or brand asset: '+file);
           }
-          if(!h.includes('id="figures"') || (h.match(/class="figure-scene figure-scene-/g)||[]).length!==6)
-            throw Error('Six-scene sculpture gallery missing');
+          if(h.includes('id="figures"') || h.includes('id="substack"') || h.includes('class="figure-scene') || h.includes('>Substack</a>'))
+            throw Error('Removed homepage sections or duplicate Substack link returned');
+          if(!nav.includes('>Inverted World</a>') || !h.includes('class="detector-feature"'))
+            throw Error('Homepage navigation or detector feature missing');
           for(const fn of ['drawFoilWorld','drawLiquidSilver','drawVideo','buildMask']){
             if(!s.includes('function '+fn+'('))throw Error('Renderer missing '+fn);
           }

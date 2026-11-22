@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://cdn.creativeclaw.co" crossorigin />
   <link rel="preload" as="image" href="assets/midnight-ceramic-v1.png" />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,300..900&family=Bowlby+One+SC&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Instrument+Sans:wdth,wght@75..100,400..700&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20261122detector" />
+  <link rel="stylesheet" href="styles.css?v=20261122home" />
 </head>
 <body>
   <div class="page-plane">
@@ -38,7 +38,6 @@
 
     <header class="site-header">
       <nav class="pill-nav" aria-label="Primary navigation">
-        <a href="https://kilejones.substack.com/" aria-label="Read Inverted World on Substack">Substack</a>
         <button class="music-pill" id="music-toggle" type="button" aria-pressed="false" aria-label="Play background music">
           <span class="music-led" aria-hidden="true"></span><span>Music</span>
         </button>
@@ -49,7 +48,7 @@
     </header>
 
     <aside class="mobile-drawer" id="mobile-drawer" aria-label="Website links" aria-hidden="true" inert>
-      <a href="https://kilejones.substack.com/">Inverted World on Substack</a>
+      <a href="https://kilejones.substack.com/">Inverted World</a>
       <a href="https://antizionistdetector.netlify.app/">Antizionism Detector</a>
       <a href="https://kilejones-alt.github.io/TheAntizionistGlossary/">The Antizionist Glossary</a>
       <a href="media.html">Interviews &amp; Podcasts</a>
@@ -61,38 +60,13 @@
       <section class="hero" aria-labelledby="hero-title">
         <canvas id="hero-canvas" aria-hidden="true"></canvas>
         <h1 id="hero-title" class="sr-only">Kile Jones</h1>
-        <a class="figure-cue" href="#substack" aria-label="Scroll to Inverted World on Substack"><span aria-hidden="true">↓</span></a>
+        <aside class="detector-feature" aria-label="Featured app">
+          <a href="https://antizionistdetector.netlify.app/">
+            <img src="assets/detector-app.png" width="64" height="64" alt="" decoding="async">
+            <span><strong>Antizionism Detector</strong><small>Explore the Android app</small></span>
+          </a>
+        </aside>
       </section>
-      <section class="publication" id="substack" aria-labelledby="publication-name">
-        <h2 id="publication-name"><a href="https://kilejones.substack.com/">Inverted<br>World</a></h2>
-        <a class="publication-link" href="https://kilejones.substack.com/">Read on Substack</a>
-      </section>
-      <aside class="detector-feature" aria-label="Featured app">
-        <a href="https://antizionistdetector.netlify.app/">
-          <img src="assets/detector-app.png" width="64" height="64" alt="" decoding="async">
-          <span><strong>Antizionism Detector</strong><small>Explore the Android app</small></span>
-        </a>
-      </aside>
-      <div class="figure-gallery" id="figures">
-        <section class="figure-scene figure-scene-midnight" aria-label="Midnight ceramic sculpture">
-          <img class="figure-art figure-art-midnight" src="assets/midnight-ceramic-v1.png" width="1024" height="1536" loading="lazy" decoding="async" alt="Deep blue hand-glazed ceramic sculpture" />
-        </section>
-        <section class="figure-scene figure-scene-rabbit" aria-label="Pink balloon rabbit sculpture">
-          <img class="figure-art figure-art-rabbit" src="assets/balloon-rabbit-v1.png" width="1133" height="1388" loading="lazy" decoding="async" alt="Glossy pink balloon rabbit sculpture" />
-        </section>
-        <section class="figure-scene figure-scene-amber" aria-label="Amber resin sculpture">
-          <img class="figure-art figure-art-amber" src="assets/amber-resin-v1.png" width="1536" height="1024" loading="lazy" decoding="async" alt="Hand-cast translucent amber resin sculpture" />
-        </section>
-        <section class="figure-scene figure-scene-rhino" aria-label="Black rhinoceros sculpture">
-          <img class="figure-art figure-art-rhino" src="assets/matte-rhino-v1.png" width="1536" height="1024" loading="lazy" decoding="async" alt="Matte black rhinoceros sculpture" />
-        </section>
-        <section class="figure-scene figure-scene-glass" aria-label="Folded glass sculpture">
-          <img class="figure-art figure-art-glass" src="assets/folded-glass-v1.png" width="1536" height="1024" loading="lazy" decoding="async" alt="Folded translucent glass and brushed metal sculpture" />
-        </section>
-        <section class="figure-scene figure-scene-foil" aria-label="Silver foil ZIO sculpture">
-          <img class="figure-art figure-art-foil" src="assets/silver-zio-v1.png" width="2172" height="724" loading="lazy" decoding="async" alt="Silver inflated foil letters ZIO" />
-        </section>
-      </div>
     </main>
   </div>
 
