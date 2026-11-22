@@ -46,6 +46,13 @@ try{
       throw new Error('All six full-size sculpture scenes must be present');
     await page.screenshot({path:'qa-screenshots/'+spec.name+'-hero.png'});
 
+    const publication = page.locator('main > .hero + #substack');
+    await page.getByRole('link', {name:'Scroll to Inverted World on Substack'}).click();
+    await page.waitForFunction(() => Math.abs(document.querySelector('#substack').getBoundingClientRect().top) < 2);
+    if (await publication.getByRole('link', {name:'Read on Substack'}).getAttribute('href') !== 'https://kilejones.substack.com/')
+      throw new Error('First scroll must link directly to the publication');
+    await page.screenshot({path:'qa-screenshots/'+spec.name+'-substack.png'});
+
     await page.goto(base+'?scene=6',{waitUntil:'domcontentloaded',timeout:30000});
     await page.waitForFunction(()=>{
       const film=document.querySelector('.hero-art-plate-archive video');
@@ -89,7 +96,7 @@ try{
     await page.locator('#music-toggle').click();
     await page.locator('#menu-toggle').click();
     if(await page.locator('#menu-toggle').getAttribute('aria-expanded')!=='true'
-      || await page.locator('#mobile-drawer a').count()!==5)
+      || await page.locator('#mobile-drawer a').count()!==6)
       throw new Error('Menu failed');
     await page.keyboard.press('Escape');
     if(await page.locator('#menu-toggle').getAttribute('aria-expanded')!=='false')
