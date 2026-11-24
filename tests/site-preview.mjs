@@ -51,7 +51,7 @@ try{
     await page.locator('#menu-toggle').click();
     if(await page.locator('.mobile-drawer a').nth(1).getAttribute('href')!=='https://play.google.com/store/apps/details?id=com.kilejones.antizionismdetector')
       throw new Error('Detector menu link must open Google Play');
-    await page.locator('#menu-toggle').click();
+    await page.keyboard.press('Escape');
     await page.screenshot({path:'qa-screenshots/'+spec.name+'-hero.png'});
 
     const clean=await page.evaluate(()=>({
@@ -67,6 +67,13 @@ try{
     if(clean.renderer==='WebGL2 ink mask' && !Array.isArray(clean.trail))
       throw new Error('Ink renderer must expose its delayed pointer state');
     if(!spec.mobile){
+      const corner={x:spec.width-260,y:spec.height-230,width:190,height:160};
+      const before=await page.screenshot({clip:corner});
+      await page.mouse.move(corner.x+95,corner.y+80);
+      await page.waitForTimeout(160);
+      const after=await page.screenshot({clip:corner});
+      if(before.equals(after))throw new Error('The open canvas does not react away from the lettering');
+      await page.screenshot({path:'qa-screenshots/desktop-pointer.png'});
       const menuBox=await page.locator('#menu-toggle').evaluate(el=>el.getBoundingClientRect().left);
       await page.mouse.move(spec.width-10,spec.height/2);
       await page.waitForFunction(()=>window.__KBJ_DIAGNOSTICS.scene[0]<-1,undefined,{timeout:4000});
@@ -79,6 +86,7 @@ try{
       await page.mouse.down();
       await page.mouse.move(spec.width-20,spec.height/2,{steps:8});
       await page.waitForFunction(()=>Math.abs(window.__KBJ_DIAGNOSTICS.scene[0])>1,undefined,{timeout:4000});
+      await page.screenshot({path:'qa-screenshots/phone-touch.png'});
       await page.mouse.up();
       await page.waitForFunction(()=>Math.abs(window.__KBJ_DIAGNOSTICS.scene[0])<.5,undefined,{timeout:4000});
     }
