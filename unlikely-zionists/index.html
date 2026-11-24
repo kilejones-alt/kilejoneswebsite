@@ -1050,6 +1050,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
 </style>
 <link rel="stylesheet" href="content-update.css">
+  <link rel="stylesheet" href="story-viewer.css">
 </head>
 <body>
   <div id="app">
@@ -1114,9 +1115,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
           <div class="story-deck" id="story-deck" role="group" aria-label="Photographic story positions">
             <button type="button" class="story-card photo-slot has-photo is-portrait" data-index="0" aria-label="Open the first story: Kile B. Jones" style="--offset:0"><span class="card-sheet"><span class="photo-surface"><span class="photo-plane"><img src="assets/kile-family-portrait.jpg" alt="" decoding="async"><span class="story-card-copy"><strong>Kile B. Jones</strong><em>A PERSONAL STORY</em></span></span></span></span></button>
             <button type="button" class="story-card copy-card" data-index="1" aria-label="Open Kile story details" style="--offset:1"><span class="card-sheet"><span class="photo-surface"><span class="photo-plane"><span class="photo-placeholder-art" aria-hidden="true"><i></i><i></i><i></i></span><span class="story-card-copy"><strong>Kile is non-Jewish.</strong><p>He’s an atheist. He’s a liberal. He’s never been to Israel.</p></span></span></span></span></button>
-            <button type="button" class="story-card photo-slot has-photo is-newspaper" data-index="2" aria-label="Open the historical New York Times headline in Kile’s story" style="--offset:2"><span class="card-sheet"><span class="photo-surface"><span class="photo-plane"><img src="assets/nyt-october-2023-original.jpg" alt="" decoding="async"><span class="story-card-copy"><strong>The headlines.</strong></span></span></span></span></button>
-            <button type="button" class="story-card copy-card" data-index="3" aria-label="Open Kile story text" style="--offset:-2"><span class="card-sheet"><span class="photo-surface"><span class="photo-plane"><span class="photo-placeholder-art" aria-hidden="true"><i></i><i></i><i></i></span><span class="story-card-copy"><strong>Kile's story</strong><p></p></span></span></span></span></button>
-            <button type="button" class="story-card copy-card" data-index="4" aria-label="Read Kile’s full story" style="--offset:-1"><span class="card-sheet"><span class="photo-surface"><span class="photo-plane"><span class="photo-placeholder-art" aria-hidden="true"><i></i><i></i><i></i></span><span class="story-card-copy"><strong>Read the full story.</strong><p>Continue to Kile’s complete account.</p></span></span></span></span></button>
+            <button type="button" class="story-card photo-slot has-photo is-newspaper" data-index="2" aria-label="Open the historical New York Times headline in Kile’s story" style="--offset:2"><span class="card-sheet"><span class="photo-surface"><span class="photo-plane"><img src="assets/nyt-october-2023-original.jpg" alt="" decoding="async"><span class="story-card-copy"><strong>An unlikely story</strong></span></span></span></span></button>
           </div>
           <div class="deck-controls">
             <button id="deck-prev" type="button" class="round-arrow" aria-label="Previous photograph position"><svg viewBox="0 0 34 30" aria-hidden="true"><path d="M32 15H2m12-12L2 15l12 12"/></svg></button>
@@ -1147,13 +1146,9 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
                   <p class="archive-step-name">WHAT I BELIEVED</p>
                   <p class="archive-step-copy"></p>
                 </div>
-                <button class="archive-artifact" id="archive-artifact" type="button" aria-haspopup="dialog" aria-label="Examine October 2023 newspaper headline artifact">
-                  <span class="archive-artifact-top">OCTOBER 2023 / MEDIA ARTIFACT</span>
-                  <span class="archive-nyt">The New York Times</span>
-                  <span class="archive-headline">Israeli Strike Kills Hundreds in Hospital, Palestinians Say</span>
+                <button class="archive-artifact" id="archive-artifact" type="button" aria-haspopup="dialog" aria-label="Original October 2023 New York Times screenshot">
                   <img class="archive-original" id="archive-original" src="./assets/nyt-october-2023-original.jpg" alt="Original October 2023 New York Times screenshot" loading="lazy" decoding="async" onload="document.getElementById('archive-original-status').hidden=true" onerror="this.hidden=true;document.getElementById('archive-original-status').hidden=false">
-                  <span class="archive-examine">EXAMINE HISTORICAL HEADLINE ↗</span>
-                  <span id="archive-original-status" class="archive-original-status" hidden>Original source image temporarily unavailable — no substitute image used.</span>
+                  <span id="archive-original-status" class="archive-original-status" hidden></span>
                 </button>
               </div>
             </div>
@@ -1304,16 +1299,17 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
       <div class="viewer-door viewer-door-left" aria-hidden="true"></div>
       <div class="viewer-door viewer-door-right" aria-hidden="true"></div>
       <header class="viewer-header"><span>STORIES</span><button type="button" id="viewer-close" class="viewer-close" aria-label="Close story view"><svg viewBox="0 0 30 30" aria-hidden="true"><path d="M2 2l26 26M28 2L2 28"/></svg></button></header>
-      <button class="viewer-photo" type="button" id="viewer-photo" aria-label="Add a real photograph to this empty story template"><div class="viewer-photo-shape"></div><span class="viewer-photo-mark" aria-hidden="true">+</span><img alt="" id="viewer-image" hidden></button>
-      <button class="viewer-nyt-artifact" type="button" id="viewer-nyt-artifact" aria-label="Examine original October 2023 New York Times headline"><img src="assets/nyt-october-2023-original.jpg" alt="Original October 2023 New York Times front-page screenshot" loading="lazy" decoding="async"><span>2023 / HISTORICAL HEADLINE ↗</span></button>
-       <article id="viewer-public-story" class="viewer-public-story" hidden aria-live="polite"><h3 id="viewer-public-name"></h3><div id="viewer-public-text"></div><div id="viewer-public-turning-point"></div><nav class="viewer-sources" id="viewer-first-person-sources" aria-label="Kile’s published firsthand accounts" hidden><a href="https://kilejones.substack.com/p/how-fast-they-believed-it-part-i" target="_blank" rel="noopener noreferrer">How Fast They Believed It — Kile’s account</a><a href="https://kilejones.substack.com/p/i-was-taught-israel-was-evil" target="_blank" rel="noopener noreferrer">I Was Taught Israel Was Evil — extended account</a></nav></article>
+      <div class="viewer-content"><button class="viewer-photo" type="button" id="viewer-photo" aria-label="Add a real photograph to this empty story template"><div class="viewer-photo-shape"></div><span class="viewer-photo-mark" aria-hidden="true">+</span><img alt="" id="viewer-image" hidden></button>
+       <article id="viewer-public-story" class="viewer-public-story" hidden aria-live="polite"><h3 id="viewer-public-name"></h3><div id="viewer-public-text"></div><div id="viewer-public-turning-point"></div></article>
       <div class="viewer-story-template" aria-hidden="true"><div class="viewer-template-rule"></div><div class="viewer-template-heading"></div><div class="viewer-template-line"></div><div class="viewer-template-line"></div><div class="viewer-template-line"></div><div class="viewer-template-line"></div><div class="viewer-template-line"></div><div class="viewer-template-foot"></div></div>
+      </div>
       <div class="viewer-controls"><button type="button" id="viewer-prev" aria-label="Previous story"><svg viewBox="0 0 34 30" aria-hidden="true"><path d="M32 15H2m12-12L2 15l12 12"/></svg></button><button type="button" id="viewer-next" aria-label="Next story"><svg viewBox="0 0 34 30" aria-hidden="true"><path d="M2 15h30M20 3l12 12-12 12"/></svg></button></div>
     </div>
     <div class="reading-progress" aria-hidden="true"><span></span></div>
     <input type="file" id="image-picker" accept="image/*" hidden aria-label="Select an approved photograph for local preview">
   </div>
   <script src="form-mail.js"></script>
+  <script src="story-content.js"></script>
   <script defer>
 (() => {
   'use strict';
@@ -1325,38 +1321,17 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     viewerOpen: false,
     lastFocus: null,
     fileTarget: 2,
-    photos: Array(5).fill(null),
+    photos: Array(3).fill(null),
     published: [],
     rafPending: false
   };
 
+  const person = window.UZStoryContent;
   const staticStories = [
-    {
-        "name": "Kile is an unlikely Zionist.",
-        "story": "Kile is an unlikely Zionist.",
-        "turning_point": ""
-    },
-    {
-        "name": "Kile",
-        "story": "Kile is non-Jewish. He's an atheist. He's a liberal. He's never been to Israel.",
-        "turning_point": ""
-    },
-    {
-        "name": "The headlines",
-        "story": "An original October 2023 New York Times front-page screenshot, preserved as part of the media record Kile was encountering. The report attributed the claim to Palestinians; its initial allegations should not be treated as independently established facts.",
-        "turning_point": "Read the original image as a historical news artifact."
-    },
-    {
-        "name": "Kile's story",
-        "story": "",
-        "turning_point": "Swipe right to read Kile's full story."
-    },
-    {
-        "name": "Kile's story",
-        "story": "",
-        "turning_point": ""
-    }
-];
+    {name: person.firstName + ' is an unlikely Zionist.', story: person.introQuote, turning_point: ''},
+    {name: person.firstName, story: person.background, turning_point: ''},
+    {name: person.reasonTitle, story: person.reasonQuote, turning_point: ''}
+  ];
 
   const header = document.querySelector('#site-header');
   const menu = document.querySelector('#site-menu');
@@ -1373,7 +1348,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   const progressLine = document.querySelector('#deck-progress-line');
   const progress = document.querySelector('.reading-progress');
   const orderedScenes = [...document.querySelectorAll('[data-section]')];
-  const staticPhotoUrls = ['assets/kile-family-portrait.jpg',null,'assets/nyt-october-2023-original.jpg',null,null];
+  const staticPhotoUrls = [person.photos[0]?.src || null, person.photos[1]?.src || null, person.reasonImage || null];
 
   function setMenu(open) {
     state.menuOpen = open;
@@ -1398,8 +1373,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     for (const card of cards) {
       const idx = Number(card.dataset.index);
       const raw = idx - state.active;
-      const midpoint = Math.floor(cards.length / 2);
-      const offset = ((raw + cards.length + midpoint) % cards.length) - midpoint;
+      const offset = raw;
       const abs = Math.abs(offset);
       card.style.setProperty('--offset', String(offset));
       card.style.setProperty('--abs-offset', String(abs));
@@ -1421,11 +1395,14 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
         card.classList.add('is-swapping');
       }
     }
+    progressLine.style.width = (100 / cards.length) + '%';
     progressLine.style.transform = `translateX(${state.active * 100}%)`;
+    ['deck-prev','viewer-prev'].forEach(id=>document.getElementById(id).disabled=state.active===0);
+    ['deck-next','viewer-next'].forEach(id=>document.getElementById(id).disabled=state.active===cards.length-1);
   }
 
   function rotate(step) {
-    state.active = (state.active + step + cards.length) % cards.length;
+    state.active = Math.max(0, Math.min(cards.length - 1, state.active + step));
     window.dispatchEvent(new CustomEvent('uz-story-rotate',{detail:{index:state.active}}));
     renderCards(true);
   }
@@ -1469,10 +1446,10 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     const staticItem = staticStories[state.active];
     const url = published ? (published.photos[0] || null) : (state.photos[state.active] || staticPhotoUrls[state.active]);
     viewer.classList.toggle('published-story', Boolean(published || staticItem));
-    viewer.classList.toggle('is-text-chapter', !published && (state.active===3 || state.active===4));
+    viewer.classList.toggle('is-text-chapter', !url);
+    viewer.classList.toggle('is-intro-chapter', state.active===0);
     viewer.classList.toggle('is-kile-portrait', !published && state.active === 0);
     viewer.classList.toggle('is-news-photo', !published && state.active === 2);
-    document.getElementById('viewer-first-person-sources').hidden = Boolean(published || state.active !== 4);
     const publishedArticle = document.getElementById('viewer-public-story');
     publishedArticle.hidden = !(published || staticItem);
     if (published) {
@@ -1484,6 +1461,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
       document.getElementById('viewer-public-text').textContent = staticItem.story;
       document.getElementById('viewer-public-turning-point').textContent = staticItem.turning_point || '';
     }
+    document.getElementById('viewer-public-text').hidden = !document.getElementById('viewer-public-text').textContent.trim();
+    document.getElementById('viewer-public-turning-point').hidden = !document.getElementById('viewer-public-turning-point').textContent.trim();
     viewer.classList.toggle('has-real-photo', Boolean(url));
     const viewerPhoto = document.querySelector('#viewer-photo');
     viewerPhoto.setAttribute('aria-label', published
@@ -1503,6 +1482,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   }
 
   function openViewer() {
+    state.active = 0;
+    renderCards(false);
     state.lastFocus = document.activeElement;
     updateViewerImage();
     state.viewerOpen = true;
@@ -1538,11 +1519,11 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   document.querySelector('#viewer-next').addEventListener('click', () => moveViewer(1));
   viewerClose.addEventListener('click', closeViewer);
   document.querySelector('#viewer-photo').addEventListener('click', () => {
-    if (!state.published[state.active] && !staticPhotoUrls[state.active]) showPicker(state.active);
+    document.querySelector('.viewer-examine')?.click();
   });
   viewer.addEventListener('click', event => { if (event.target === viewer) closeViewer(); });
 
-  // Swipe and drag are gesture controls. A tap selects a card or supplies a real image.
+  // Swipes browse the deck; every story entry opens at the introduction.
   let drag = null;
   const deck = document.querySelector('#story-deck');
   deck.addEventListener('pointerdown', event => {
@@ -1585,13 +1566,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   deck.addEventListener('click', event => {
     const card = event.target.closest('.story-card');
     if (!card || deck.dataset.dragged) return;
-    const idx = Number(card.dataset.index);
-    if (idx !== state.active) {
-      state.active = idx;
-      renderCards(true);
-    } else {
-      openViewer();
-    }
+    openViewer();
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
@@ -1973,7 +1948,19 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
       // A local/offline standalone preview is intentionally empty.
     }
   }
-  loadApprovedStories();
+  // Reviewed people will use the same first-name heading and approved quote model.
+  window.UZStory = Object.freeze({
+    content: person,
+    chapters: staticStories.map(item=>item.name),
+    goTo(index) {
+      if (!state.viewerOpen) return;
+      state.active = Math.max(0, Math.min(cards.length - 1, index));
+      renderCards(false);
+      updateViewerImage();
+      window.dispatchEvent(new CustomEvent('uz-chapter-change', {detail:{index:state.active}}));
+    }
+  });
+  cards.forEach((card,index)=>{if(staticPhotoUrls[index])renderPhoto(index);});
   renderCards(false);
   requestAnimationFrame(() => {
     document.documentElement.classList.add('is-ready');
@@ -2001,8 +1988,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     {id:'home',kind:0,number:14},
     {id:'stories',kind:1,number:14},
     {id:'community',kind:2,number:10},
-    {id:'resources',kind:3,number:12},
-    {id:'story-viewer',kind:4,number:12}
+    {id:'resources',kind:3,number:12}
   ];
   const vert = `#version 300 es
     precision highp float;
@@ -2347,214 +2333,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
       });
     });
   }
-  /* A tactile chapter rail without visible numbering; uses existing chapter UI. */
-  const rail=doc.createElement('div');
-  rail.className='chapter-rail';
-  rail.setAttribute('role','group');
-  rail.setAttribute('aria-label','Navigate the story');
-  const chapterButtons=[];
-  const names=['Introduction','Background','Photograph','Turning point','Full account'];
-  names.forEach((label,index)=>{
-    const button=doc.createElement('button');
-    button.type='button';
-    button.setAttribute('aria-label',label);
-    button.title=label;
-    button.addEventListener('click',()=>{
-      const active=doc.querySelector('.story-card.is-active');
-      if (!active)return;
-      let current=Number(active.dataset.index);
-      const next=doc.getElementById('viewer-next');
-      for(let i=0;i<(index-current+names.length)%names.length;i++)next.click();
-      syncRail();
-    });
-    rail.appendChild(button);
-    chapterButtons.push(button);
-  });
-  viewer.appendChild(rail);
-  function syncRail(){
-    const card=doc.querySelector('.story-card.is-active');
-    if (!card)return;
-    const active=Number(card.dataset.index);
-    chapterButtons.forEach((b,i)=>{
-      if(i===active)b.setAttribute('aria-current','step');
-      else b.removeAttribute('aria-current');
-    });
-  }
-  syncRail();
-  addEventListener('uz-story-rotate',syncRail);
-  addEventListener('uz-chapter-change',syncRail);
-  addEventListener('uz-viewer-open',syncRail);
-  /* Full-size photographic inspection: explicit tap/click, never upload. */
-  const examine=doc.createElement('button');
-  examine.type='button';
-  examine.className='viewer-examine';
-  examine.textContent='EXPLORE IMAGE';
-  viewer.appendChild(examine);
-  const lightbox=doc.createElement('div');
-  lightbox.className='artifact-inspector';
-  lightbox.hidden=true;
-  lightbox.setAttribute('role','dialog');
-  lightbox.setAttribute('aria-modal','true');
-  lightbox.setAttribute('aria-label','Photograph detail');
-  lightbox.innerHTML='<button type="button" class="artifact-close" aria-label="Close image">×</button><img alt="Enlarged story photograph">';
-  doc.body.appendChild(lightbox);
-  const lightboxImage=lightbox.querySelector('img');
-  const closeButton=lightbox.querySelector('button');
-  let previousFocus=null;
-  function closeLightbox(){
-    if(lightbox.hidden)return;
-    lightbox.hidden=true;
-    lightboxImage.removeAttribute('src');
-    if(previousFocus instanceof HTMLElement)previousFocus.focus({preventScroll:true});
-  }
-  function openLightbox(){
-    if(image.hidden || !image.currentSrc && !image.src)return;
-    previousFocus=doc.activeElement;
-    lightboxImage.src=image.currentSrc||image.src;
-    lightbox.hidden=false;
-    closeButton.focus({preventScroll:true});
-  }
-  const nytArtifact=doc.getElementById('viewer-nyt-artifact');
-  if(nytArtifact)nytArtifact.addEventListener('click',()=>{
-    const source=nytArtifact.querySelector('img');
-    if(!source || !source.src)return;
-    previousFocus=doc.activeElement;
-    lightboxImage.src=source.src;
-    lightboxImage.alt='Original October 2023 New York Times headline, displayed as a historical artifact';
-    lightbox.hidden=false;
-    closeButton.focus({preventScroll:true});
-  });
-  examine.addEventListener('click',openLightbox);
-  image.addEventListener('dblclick',openLightbox);
-  closeButton.addEventListener('click',closeLightbox);
-  lightbox.addEventListener('click',e=>{if(e.target===lightbox)closeLightbox();});
-  addEventListener('keydown',e=>{
-    if(!lightbox.hidden && e.key==='Escape'){
-      e.preventDefault();e.stopImmediatePropagation();closeLightbox();
-    }
-    if(!lightbox.hidden && e.key==='Tab'){
-      e.preventDefault();closeButton.focus();
-    }
-  },true);
-  /* FLIP-inspired portal from the selected photographic card to the viewer. */
-  function portal() {
-    if(reduced.matches)return;
-    const selected=doc.querySelector('.story-card.is-active');
-    if(!selected)return;
-    const source=selected.querySelector('.photo-plane')||selected;
-    const from=source.getBoundingClientRect();
-    const to=photo.getBoundingClientRect();
-    if(from.width<20||to.width<20)return;
-    const ghost=doc.createElement('div');
-    ghost.className='cinematic-ghost';
-    const img=source.querySelector('img');
-    if(img && img.currentSrc){
-      const element=doc.createElement('img');element.src=img.currentSrc;element.alt='';ghost.appendChild(element);
-    }
-    doc.body.appendChild(ghost);
-    ghost.style.left=from.left+'px';
-    ghost.style.top=from.top+'px';
-    ghost.style.width=from.width+'px';
-    ghost.style.height=from.height+'px';
-    const anim=ghost.animate([
-      {transform:'translate3d(0,0,0) rotate(-4deg)',opacity:1,filter:'brightness(1)'},
-      {transform:'translate3d('+(to.left-from.left)+'px,'+(to.top-from.top)+'px,0) scale('+(to.width/from.width)+','+(to.height/from.height)+') rotate(0deg)',transformOrigin:'top left',opacity:.08,filter:'brightness(1.15)'}
-    ],{duration:900,easing:'cubic-bezier(.17,.8,.18,1)',fill:'forwards'});
-    anim.onfinish=()=>ghost.remove();
-    anim.oncancel=()=>ghost.remove();
-    setTimeout(()=>ghost.remove(),1600);
-  }
-  addEventListener('uz-viewer-open',()=>requestAnimationFrame(portal));
-  /* WebGL2 renders the *real* photograph as a texture, preserving its content.
-     If GPU upload is blocked, the native HTML image remains visible. */
-  if(reduced.matches)return;
-  const canvas=doc.createElement('canvas');
-  canvas.className='story-photo-webgl';
-  canvas.hidden=true;
-  photo.appendChild(canvas);
-  let gl=null,program=null,tex=null,buffer=null,uni={},ready=false;
-  let imageRatio=1,px=0,py=0,lastAppear=0,hasFrame=false,stop=false;
-  const vs='#version 300 es\nprecision highp float;\nlayout(location=0) in vec2 a_pos;\nout vec2 uv;\nvoid main(){uv=(a_pos+1.0)*0.5;gl_Position=vec4(a_pos,0.0,1.0);}';
-  const fs='#version 300 es\nprecision highp float;\nin vec2 uv;\nout vec4 col;\nuniform sampler2D imageTex;\nuniform vec2 pointer;\nuniform float appear;\nuniform float imageAspect;\nuniform float canvasAspect;\nvoid main(){vec2 p=uv; if(canvasAspect>imageAspect){p.y=(p.y-.5)*imageAspect/canvasAspect+.5;}else{p.x=(p.x-.5)*canvasAspect/imageAspect+.5;}p+=(pointer-.5)*.008;float wave=sin(p.y*23.0-appear*15.0)*.008*(1.0-appear);p.x+=wave;col=texture(imageTex,clamp(p,vec2(0.001),vec2(.999)));}';
-  function shader(type,source){
-    const s=gl.createShader(type);
-    gl.shaderSource(s,source);
-    gl.compileShader(s);
-    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error('Photo shader failed');
-    return s;
-  }
-  function init(){
-    try{
-      gl=canvas.getContext('webgl2',{alpha:false,antialias:false,powerPreference:'low-power'});
-      if(!gl)return false;
-      program=gl.createProgram();
-      gl.attachShader(program,shader(gl.VERTEX_SHADER,vs));
-      gl.attachShader(program,shader(gl.FRAGMENT_SHADER,fs));
-      gl.linkProgram(program);
-      if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error('Photo GPU link failed');
-      gl.useProgram(program);
-      buffer=gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
-      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
-      gl.enableVertexAttribArray(0);
-      gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
-      tex=gl.createTexture();
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D,tex);
-      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-      ['pointer','appear','imageAspect','canvasAspect','imageTex'].forEach(key=>uni[key]=gl.getUniformLocation(program,key));
-      gl.uniform1i(uni.imageTex,0);
-      return true;
-    }catch{gl=null;return false;}
-  }
-  if(!init()){canvas.remove();return;}
-  function upload(){
-    if(!gl||image.hidden||!image.naturalWidth){ready=false;canvas.hidden=true;viewer.classList.remove('photo-webgl-ready');return;}
-    try{
-      imageRatio=image.naturalWidth/image.naturalHeight;
-      gl.bindTexture(gl.TEXTURE_2D,tex);
-      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
-      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
-      ready=true;canvas.hidden=false;
-      viewer.classList.add('photo-webgl-ready');
-      lastAppear=performance.now();
-    }catch{ready=false;canvas.hidden=true;viewer.classList.remove('photo-webgl-ready');}
-  }
-  image.addEventListener('load',upload);
-  new MutationObserver(()=>{if(image.hidden || !image.getAttribute('src')){ready=false;canvas.hidden=true;viewer.classList.remove('photo-webgl-ready');}}).observe(image,{attributes:true,attributeFilter:['src','hidden']});
-  if(image.complete && image.naturalWidth)upload();
-  photo.addEventListener('pointermove',e=>{
-    if(coarse.matches)return;
-    const r=photo.getBoundingClientRect();
-    px=clamp((e.clientX-r.left)/r.width-.5,-.5,.5);
-    py=clamp((e.clientY-r.top)/r.height-.5,-.5,.5);
-  },{passive:true});
-  photo.addEventListener('pointerleave',()=>{px=0;py=0;});
-  addEventListener('uz-chapter-change',()=>{lastAppear=performance.now();});
-  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();ready=false;viewer.classList.remove('photo-webgl-ready');},{passive:false});
-  addEventListener('pagehide',()=>{stop=true;});
-  function draw(now){
-    if(stop)return;
-    requestAnimationFrame(draw);
-    if(!ready || !viewer.classList.contains('is-open') || doc.hidden)return;
-    if(now-lastAppear>1000 && coarse.matches && hasFrame)return;
-    const width=clamp(Math.round(photo.clientWidth*Math.min(devicePixelRatio||1,1.7)),1,1400);
-    const height=clamp(Math.round(photo.clientHeight*Math.min(devicePixelRatio||1,1.7)),1,1400);
-    if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;}
-    gl.viewport(0,0,width,height);
-    gl.useProgram(program);
-    gl.uniform2f(uni.pointer,.5+px,.5+py);
-    gl.uniform1f(uni.appear,clamp((now-lastAppear)/820,0,1));
-    gl.uniform1f(uni.imageAspect,imageRatio);
-    gl.uniform1f(uni.canvasAspect,width/height);
-    gl.drawArrays(gl.TRIANGLES,0,6);
-    hasFrame=true;
-  }
-  addEventListener('uz-chapter-change',()=>{hasFrame=false;});
-  requestAnimationFrame(draw);
+
 })();
 </script>
 
@@ -2608,8 +2387,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   const artifact=document.getElementById('archive-artifact');
   const modal=document.createElement('dialog');
   modal.className='archive-lightbox';
-  modal.setAttribute('aria-label','Examine historical newspaper artifact');
-  modal.innerHTML='<button type="button" class="archive-lightbox-close" aria-label="Close artifact">×</button><div class="archive-lightbox-inner"><img alt="Original New York Times screenshot, October 2023" hidden><div class="archive-lightbox-fallback"><p>The New York Times / October 2023</p><b>Israeli Strike Kills Hundreds in Hospital, Palestinians Say</b><p>Original screenshot will appear here once it is connected.</p></div></div>';
+  modal.setAttribute('aria-label','Original October 2023 New York Times screenshot');
+  modal.innerHTML='<button type="button" class="archive-lightbox-close" aria-label="Close artifact">×</button><div class="archive-lightbox-inner"><img alt="Original New York Times screenshot, October 2023" hidden><div class="archive-lightbox-fallback"></div></div>';
   document.body.appendChild(modal);
   const image=modal.querySelector('img');
   const fallback=modal.querySelector('.archive-lightbox-fallback');
@@ -2648,5 +2427,6 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 })();
 </script>
 
+<script src="story-presentation.js"></script>
 </body>
 </html>

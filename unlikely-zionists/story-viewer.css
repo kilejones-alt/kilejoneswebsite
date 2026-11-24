@@ -1,0 +1,50 @@
+/* Plain story backgrounds, full photographs, and a reusable first-name introduction. */
+#story-viewer{background:#fff!important;overflow-y:auto;overscroll-behavior:contain}
+#story-viewer.is-open{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:100px clamp(20px,5vw,80px) 150px;gap:24px}
+#story-viewer::before,#story-viewer::after,#story-viewer .viewer-door,#story-viewer .gpu-scene,#story-viewer .viewer-story-template,#story-viewer .viewer-photo-shape,#story-viewer .viewer-photo-mark{display:none!important}
+#story-viewer .viewer-content{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:center;gap:clamp(28px,5vw,80px);width:100%;max-width:1240px;margin:auto;min-height:0;flex:1}
+#story-viewer #viewer-photo{position:relative!important;inset:auto!important;translate:none!important;transform:none!important;animation:none!important;opacity:1!important;visibility:visible!important;filter:none!important;width:100%!important;height:min(64dvh,650px)!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0;border:0;box-shadow:none!important;background:transparent!important;overflow:hidden;transition:none!important}
+#story-viewer #viewer-photo::before,#story-viewer #viewer-photo::after{display:none!important}
+#story-viewer #viewer-image{inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;transform:none!important;opacity:1!important}
+#story-viewer #viewer-image[hidden]{display:none!important}
+#story-viewer #viewer-public-story{position:static!important;inset:auto!important;translate:none!important;transform:none!important;width:100%!important;max-height:none!important;padding:0!important;border:0!important;box-shadow:none!important;background:transparent!important;opacity:1!important;white-space:normal;overflow:visible;min-width:0;text-align:left;transition:none!important}
+#story-viewer #viewer-public-name{font-size:clamp(23px,2.4vw,34px);line-height:1.2;margin:0 0 22px;text-wrap:balance}
+#story-viewer.is-intro-chapter #viewer-public-name{font-size:clamp(17px,2vw,31px);white-space:nowrap;text-align:center;letter-spacing:-.03em}
+#story-viewer.is-intro-chapter #viewer-public-text{font-family:'Fraunces',Georgia,serif;font-size:clamp(20px,2vw,28px);line-height:1.5;text-align:center}
+#story-viewer #viewer-public-text[hidden],#story-viewer #viewer-public-turning-point[hidden]{display:none!important}
+#story-viewer.is-text-chapter .viewer-content{grid-template-columns:minmax(0,1fr);max-width:900px}
+#story-viewer.is-text-chapter #viewer-photo{display:none!important}
+#story-viewer .viewer-header{top:24px;left:clamp(20px,5vw,80px);right:clamp(20px,5vw,80px);opacity:1;transition:none}
+#story-viewer .viewer-controls{position:fixed;bottom:22px;left:50%;gap:14px;opacity:1;transition:none}
+#story-viewer .chapter-rail{position:fixed;bottom:92px;left:50%;background:transparent;border:0;padding:0;gap:12px}
+#story-viewer .viewer-examine{position:fixed;bottom:25px;right:clamp(20px,5vw,80px);background:transparent;opacity:1;transform:none;pointer-events:auto}
+#story-viewer .viewer-controls button:disabled,.deck-controls button:disabled{opacity:.25;cursor:default;pointer-events:none}
+.story-presentation{position:fixed;inset:0;box-sizing:border-box;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;padding:75px clamp(20px,5vw,80px) 100px;border:0;background:#fff;color:var(--ruby);overflow:auto}
+.story-presentation::backdrop{background:#fff}
+.story-presentation .presentation-stage{height:100%;min-height:0;display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(24px,4vw,70px);align-items:center;max-width:1500px;margin:auto}
+.story-presentation.has-quote .presentation-stage{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+.story-presentation img{display:block;object-fit:contain;width:100%;height:100%;min-height:0;max-height:calc(100dvh - 175px);transform:none;box-shadow:none}
+.story-presentation blockquote{font:400 clamp(23px,2.7vw,42px)/1.45 'Fraunces',Georgia,serif;margin:0;text-wrap:pretty}
+.story-presentation blockquote[hidden]{display:none}
+.presentation-close{position:fixed;top:20px;right:clamp(20px,5vw,80px);width:48px;height:48px;font-size:28px;background:#fff;border:1px solid var(--ruby);color:var(--ruby)}
+.presentation-controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:20px;align-items:center;background:#fff;padding:6px}
+.presentation-controls button{width:45px;height:45px;border:1px solid var(--ruby);background:#fff;color:var(--ruby);font-size:23px}
+.presentation-controls progress{appearance:none;width:90px;height:2px;border:0;background:rgba(158,0,60,.15)}
+.presentation-controls progress::-webkit-progress-bar{background:rgba(158,0,60,.15)}
+.presentation-controls progress::-webkit-progress-value{background:var(--ruby)}
+.presentation-controls progress::-moz-progress-bar{background:var(--ruby)}
+@media(max-width:750px){
+ #story-viewer.is-open{padding:83px 20px 150px;gap:18px}
+ #story-viewer .viewer-content{grid-template-columns:minmax(0,1fr);gap:22px;flex:0 0 auto}
+ #story-viewer #viewer-photo{height:min(44dvh,420px)!important}
+ #story-viewer #viewer-public-name{text-align:center;font-size:25px;margin-bottom:16px}
+ #story-viewer.is-intro-chapter #viewer-public-name{font-size:clamp(16px,4.7vw,26px)}
+ #story-viewer .viewer-examine{bottom:28px;right:20px;padding:12px;font-size:10px}
+ #story-viewer .viewer-controls{left:20px;transform:none}
+ #story-viewer .viewer-controls button{width:45px;height:45px}
+ #story-viewer .chapter-rail{bottom:93px}
+ .story-presentation{padding:80px 20px 95px}
+ .story-presentation.has-quote .presentation-stage{grid-template-columns:minmax(0,1fr);height:auto;gap:24px}
+ .story-presentation.has-quote img{height:52dvh}
+ .story-presentation blockquote{font-size:22px;line-height:1.45;padding-bottom:10px}
+}
