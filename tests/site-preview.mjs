@@ -67,10 +67,20 @@ try{
     if(clean.renderer==='WebGL2 ink mask' && !Array.isArray(clean.trail))
       throw new Error('Ink renderer must expose its delayed pointer state');
     if(!spec.mobile){
+      const menuBox=await page.locator('#menu-toggle').evaluate(el=>el.getBoundingClientRect().left);
       await page.mouse.move(spec.width-10,spec.height/2);
-      await page.waitForFunction(()=>window.__KBJ_DIAGNOSTICS.parallax[0]>1,undefined,{timeout:4000});
+      await page.waitForFunction(()=>window.__KBJ_DIAGNOSTICS.scene[0]<-1,undefined,{timeout:4000});
       await page.mouse.move(10,spec.height/2);
-      await page.waitForFunction(()=>window.__KBJ_DIAGNOSTICS.parallax[0]<-1,undefined,{timeout:4000});
+      await page.waitForFunction(()=>window.__KBJ_DIAGNOSTICS.scene[0]>1,undefined,{timeout:4000});
+      const menuBoxAfter=await page.locator('#menu-toggle').evaluate(el=>el.getBoundingClientRect().left);
+      if(Math.abs(menuBoxAfter-menuBox)>.1)throw new Error('The dropdown controls must stay outside the parallax stage');
+    }else{
+      await page.mouse.move(20,spec.height/2);
+      await page.mouse.down();
+      await page.mouse.move(spec.width-20,spec.height/2,{steps:8});
+      await page.waitForFunction(()=>Math.abs(window.__KBJ_DIAGNOSTICS.scene[0])>1,undefined,{timeout:4000});
+      await page.mouse.up();
+      await page.waitForFunction(()=>Math.abs(window.__KBJ_DIAGNOSTICS.scene[0])<.5,undefined,{timeout:4000});
     }
     const bounds=await page.evaluate(()=>({
       scrollWidth:document.documentElement.scrollWidth,innerWidth:innerWidth,

@@ -57,7 +57,7 @@ jobs:
             'https://kilejones-alt.github.io/TheAntizionistGlossary/',
             'media.html',
             'articles.html',
-            '/unlikely-zionists/'
+            'https://kilejones-alt.github.io/the-unlikely-zionists/'
           ];
           const menuLinks = Array.from(nav.matchAll(/<a href="([^"]+)"/g), match => match[1]);
           if (JSON.stringify(menuLinks) !== JSON.stringify(expectedLinks)) throw Error('Homepage menu destinations or order changed');
@@ -99,7 +99,7 @@ jobs:
           const plates=fs.readFileSync('hero-art-plates.js','utf8');
           const overlay=fs.readFileSync('hero-gpu.js','utf8');
           if(!fs.existsSync('hero-art-plates.js') || !fs.existsSync('hero-gpu.js'))throw Error('Preserved material renderer missing');
-          if(!h.includes('hero-ink.js?v=20261124ink2') || !h.includes('script.js?v=20261124ink2'))throw Error('Production hero cache-buster stale');
+          if(!h.includes('hero-ink.js?v=20261124ink2') || !h.includes('script.js?v=20261124scene') || !h.includes('styles.css?v=20261124scene'))throw Error('Production hero cache-buster stale');
           for(const dormant of ['hero-webgl.js','hero-art-plates.js','hero-stage.js','hero-scenes.js','hero-gpu.js']){
             if(h.includes('<script src="'+dormant))throw Error('Dormant material script should not load: '+dormant);
           }

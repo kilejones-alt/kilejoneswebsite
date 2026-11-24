@@ -3,6 +3,7 @@
 
   const canvas = document.querySelector('#hero-canvas');
   if (!canvas) return;
+  const hero = canvas.parentElement;
 
   const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
   if (!ctx) return;
@@ -100,6 +101,10 @@
     cleanTrailVX: 0,
     cleanTrailVY: 0,
     cleanGpuActive: false,
+    sceneX: 0,
+    sceneY: 0,
+    sceneVX: 0,
+    sceneVY: 0,
     // The typography itself stays front-facing. Pointer energy is routed into
     // the internal world rather than scaling or tilting the wordmark.
     letterScale: 1,
@@ -275,14 +280,18 @@
       pointer.nx=state.w?(x/state.w)*2-1:0;
       pointer.ny=state.h?(y/state.h)*2-1:0;
       pointer.active=true;
-      pointer.overCanvas=x>=0&&y>=0&&x<=state.w&&y<=state.h;
+      pointer.overCanvas=x>=0&&y>=0&&x<=state.w&&y<=state.h
+        && !e.target?.closest?.('.site-header,.mobile-drawer');
     };
     // Listen to pointermove unconditionally; raw updates are an additional
     // high-frequency input when the browser provides them, never the only one.
     addEventListener('pointermove',updatePointer,{passive:true});
     if('onpointerrawupdate' in window)
       addEventListener('pointerrawupdate',updatePointer,{passive:true});
-    addEventListener('pointerdown',updatePointer,{passive:true});
+    addEventListener('pointerdown',e=>{pointer.down=true;updatePointer(e);},{passive:true});
+    for(const name of ['pointerup','pointercancel'])
+      addEventListener(name,()=>{pointer.down=false;},{passive:true});
+    addEventListener('blur',()=>{pointer.active=false;pointer.down=false;pointer.overCanvas=false;});
     canvas.addEventListener('pointerenter',e=>{pointer.overCanvas=true;updatePointer(e);},{passive:true});
     canvas.addEventListener('pointerleave',()=>{pointer.overCanvas=false;},{passive:true});
   }
@@ -592,6 +601,7 @@
       window.__KBJ_DIAGNOSTICS = {
         renderer:state.cleanGpuActive ? 'WebGL2 ink mask' : 'Canvas 2D clean wordmark',heroTry:HERO_TRY,
         materialsEnabled:false,parallax:[+state.cleanX.toFixed(2),+state.cleanY.toFixed(2)],
+        scene:[+state.sceneX.toFixed(2),+state.sceneY.toFixed(2)],
         warp:[+state.cleanWarpX.toFixed(3),+state.cleanWarpY.toFixed(3)],
         trail:[+state.cleanTrailX.toFixed(3),+state.cleanTrailY.toFixed(3)],
         viewport:[state.w,state.h],dpr:+state.dpr.toFixed(2),
@@ -714,23 +724,32 @@
   }
 
   function drawCleanWordmark(dt) {
-    const targetX = reduceMotion || coarsePointer || !pointer.active ? 0
-      : Math.max(-1,Math.min(1,pointer.nx)) * Math.min(11,state.w*.011);
-    const targetY = reduceMotion || coarsePointer || !pointer.active ? 0
-      : Math.max(-1,Math.min(1,pointer.ny)) * Math.min(7,state.h*.009);
+    const activeInput = !reduceMotion && pointer.active && pointer.overCanvas
+      && (!coarsePointer || pointer.down);
+    const nx = activeInput ? Math.max(-1,Math.min(1,pointer.nx)) : 0;
+    const ny = activeInput ? Math.max(-1,Math.min(1,pointer.ny)) : 0;
+    // The entire stage has its own camera response. The menu and music
+    // controls are siblings of the stage, so they remain fixed and sharp.
+    [state.sceneX,state.sceneVX] = springAxis(state.sceneX,state.sceneVX,
+      -nx*Math.min(state.mobile?10:18,state.w*.018),dt,8);
+    [state.sceneY,state.sceneVY] = springAxis(state.sceneY,state.sceneVY,
+      -ny*Math.min(state.mobile?7:12,state.h*.015),dt,8);
+    hero.style.transform=`translate3d(${state.sceneX.toFixed(2)}px,${state.sceneY.toFixed(2)}px,0)`;
+    const targetX = nx * Math.min(6,state.w*.006);
+    const targetY = ny * Math.min(4,state.h*.005);
     [state.cleanX,state.cleanVX] = springAxis(state.cleanX,state.cleanVX,targetX,dt);
     [state.cleanY,state.cleanVY] = springAxis(state.cleanY,state.cleanVY,targetY,dt);
-    const warpTargetX = reduceMotion || coarsePointer ? 0 : Math.max(-.65,Math.min(.65,pointer.nvx*.22));
-    const warpTargetY = reduceMotion || coarsePointer ? 0 : Math.max(-.65,Math.min(.65,pointer.nvy*.22));
+    const warpTargetX = activeInput ? Math.max(-.65,Math.min(.65,pointer.nvx*.22)) : 0;
+    const warpTargetY = activeInput ? Math.max(-.65,Math.min(.65,pointer.nvy*.22)) : 0;
     [state.cleanWarpX,state.cleanWarpVX] = springAxis(state.cleanWarpX,state.cleanWarpVX,warpTargetX,dt);
     [state.cleanWarpY,state.cleanWarpVY] = springAxis(state.cleanWarpY,state.cleanWarpVY,warpTargetY,dt);
-    const anchorX = reduceMotion || coarsePointer || !pointer.active ? 0 : pointer.nx;
-    const anchorY = reduceMotion || coarsePointer || !pointer.active ? 0 : pointer.ny;
+    const anchorX = nx;
+    const anchorY = ny;
     [state.cleanTrailX,state.cleanTrailVX] = springAxis(state.cleanTrailX,state.cleanTrailVX,anchorX,dt,9);
     [state.cleanTrailY,state.cleanTrailVY] = springAxis(state.cleanTrailY,state.cleanTrailVY,anchorY,dt,9);
     state.cleanGpuActive = !!inkRenderer?.render({
       width:state.w,height:state.h,x:state.cleanX,y:state.cleanY,
-      pointerX:pointer.nx,pointerY:pointer.ny,
+      pointerX:nx,pointerY:ny,
       trailX:state.cleanTrailX,trailY:state.cleanTrailY,
       impulseX:state.cleanWarpX,impulseY:state.cleanWarpY
     });
