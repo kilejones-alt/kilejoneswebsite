@@ -54,18 +54,21 @@ try{
     await page.locator('#menu-toggle').click();
     await page.screenshot({path:'qa-screenshots/'+spec.name+'-hero.png'});
 
-    await page.goto(base+'?scene=6',{waitUntil:'domcontentloaded',timeout:30000});
-    await page.waitForFunction(()=>{
-      const film=document.querySelector('.hero-art-plate-archive video');
-      return film && !film.paused && film.readyState>=2 && film.currentTime>.2;
-    },undefined,{timeout:15000});
-    await page.screenshot({path:'qa-screenshots/'+spec.name+'-archival-film.png'});
-    await page.goto(base+'?scene=7',{waitUntil:'domcontentloaded',timeout:30000});
-    await page.waitForFunction(()=>{
-      const film=document.querySelector('.hero-art-plate-lenin video');
-      return film && !film.paused && film.readyState>=2 && film.currentTime>.2;
-    },undefined,{timeout:15000});
-    await page.screenshot({path:'qa-screenshots/'+spec.name+'-lenin-film.png'});
+    const clean=await page.evaluate(()=>({
+      renderer:window.__KBJ_DIAGNOSTICS?.renderer,
+      materialsEnabled:window.__KBJ_DIAGNOSTICS?.materialsEnabled,
+      nativeFilmLoaded:!!document.querySelector('#hero-video')?.getAttribute('src'),
+      plateCount:document.querySelectorAll('.hero-art-plate,.hero-gpu-layer').length
+    }));
+    if(clean.renderer!=='Canvas 2D clean wordmark' || clean.materialsEnabled!==false
+      || clean.nativeFilmLoaded || clean.plateCount)
+      throw new Error('Artwork is still active on the clean homepage: '+JSON.stringify(clean));
+    if(!spec.mobile){
+      await page.mouse.move(spec.width-10,spec.height/2);
+      await page.waitForFunction(()=>window.__KBJ_DIAGNOSTICS.parallax[0]>1,undefined,{timeout:4000});
+      await page.mouse.move(10,spec.height/2);
+      await page.waitForFunction(()=>window.__KBJ_DIAGNOSTICS.parallax[0]<-1,undefined,{timeout:4000});
+    }
     const bounds=await page.evaluate(()=>({
       scrollWidth:document.documentElement.scrollWidth,innerWidth:innerWidth,
       scrollHeight:document.documentElement.scrollHeight,innerHeight:innerHeight

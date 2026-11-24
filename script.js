@@ -24,7 +24,10 @@
   const isIOS=/iPhone|iPad|iPod/.test(ua) || iPadDesktop;
   const isSafari=/Safari/.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR|FxiOS/.test(ua);
 
-  const PAPER = '#f3f5f7';
+  // Keep the full material pipeline below for future art direction. The public
+  // homepage presents only the wordmark until a new visual direction is chosen.
+  const SHOW_MATERIALS = false;
+  const PAPER = '#ffffff';
   const INK = '#09090a';
   const MODE_SECONDS = 6.8;
   const TRANSITION_SECONDS = 1.35;
@@ -84,6 +87,10 @@
     highFpsWindows: 0,
     qualityChangedAt: performance.now(),
     targetFps: 60,
+    cleanX: 0,
+    cleanY: 0,
+    cleanVX: 0,
+    cleanVY: 0,
     // The typography itself stays front-facing. Pointer energy is routed into
     // the internal world rather than scaling or tilting the wordmark.
     letterScale: 1,
@@ -122,11 +129,11 @@
   const sceneBCtx = sceneB.getContext('2d');
 
   // Progressive GPU stage; the established 2D/video renderer stays intact.
-  const gpuRenderer = window.KBJGpuRenderer?.create(canvas, video) || null;
+  const gpuRenderer = SHOW_MATERIALS ? (window.KBJGpuRenderer?.create(canvas, video) || null) : null;
 
   setupUI();
   setupCursor();
-  setupVideo();
+  if (SHOW_MATERIALS) setupVideo();
   resize();
   document.fonts?.ready.then(() => { if(state.running) resize(); });
   addEventListener('resize', debounce(resize, 80), { passive: true });
@@ -220,6 +227,7 @@
 
   function setupVideo() {
     if (!video) return;
+    if (!video.getAttribute('src') && video.dataset.src) video.src = video.dataset.src;
     video.muted = true;
     video.loop = true;
     video.playsInline = true;
@@ -568,6 +576,16 @@
     }
     updateLetterHover();
     updateEntry(now,Math.min(.05,elapsed));
+    if (!SHOW_MATERIALS) {
+      drawCleanWordmark(dt);
+      window.__KBJ_DIAGNOSTICS = {
+        renderer:'Canvas 2D clean wordmark',heroTry:HERO_TRY,
+        materialsEnabled:false,parallax:[+state.cleanX.toFixed(2),+state.cleanY.toFixed(2)],
+        viewport:[state.w,state.h],dpr:+state.dpr.toFixed(2),
+        reducedMotion:reduceMotion,isIOS,isSafari
+      };
+      return;
+    }
     updateMode(now);
 
     // The GPU draws the actual glyph mask and footage without readback.
@@ -669,6 +687,34 @@
       renderer: 'original Canvas 2D fallback',
       gpu: gpuRenderer?.diagnostic() || {status:'not supported or reduced motion'},
     };
+  }
+
+  // Critically damped pointer response: stable across frame rates and without
+  // the overshoot that makes a plain wordmark feel like a floating card.
+  function springAxis(position, velocity, target, dt) {
+    const omega = 15;
+    const f = 1 + 2 * omega * dt;
+    const inv = 1 / (f + omega * omega * dt * dt);
+    return [
+      (f * position + dt * velocity + omega * omega * dt * dt * target) * inv,
+      (velocity + omega * omega * dt * (target - position)) * inv
+    ];
+  }
+
+  function drawCleanWordmark(dt) {
+    const targetX = reduceMotion || coarsePointer || !pointer.active ? 0
+      : Math.max(-1,Math.min(1,pointer.nx)) * Math.min(11,state.w*.011);
+    const targetY = reduceMotion || coarsePointer || !pointer.active ? 0
+      : Math.max(-1,Math.min(1,pointer.ny)) * Math.min(7,state.h*.009);
+    [state.cleanX,state.cleanVX] = springAxis(state.cleanX,state.cleanVX,targetX,dt);
+    [state.cleanY,state.cleanVY] = springAxis(state.cleanY,state.cleanVY,targetY,dt);
+    canvas.style.visibility = 'visible';
+    ctx.setTransform(state.dpr,0,0,state.dpr,0,0);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = PAPER;
+    ctx.fillRect(0,0,state.w,state.h);
+    ctx.drawImage(maskCanvas,state.cleanX,state.cleanY,state.w,state.h);
   }
 
   function renderMode(g, mode, t, dt) {

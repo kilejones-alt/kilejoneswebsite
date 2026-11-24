@@ -97,7 +97,7 @@ jobs:
           const plates=fs.readFileSync('hero-art-plates.js','utf8');
           const overlay=fs.readFileSync('hero-gpu.js','utf8');
           if(!h.includes('src="hero-art-plates.js') || h.includes('src="hero-object-worlds.js'))throw Error('Production art renderer incorrect');
-          if(!h.includes('hero-art-plates.js?v=20261111lenin1') || !h.includes('hero-gpu.js?v=20261111lenin1') || !h.includes('script.js?v=20261111lenin1'))throw Error('Production hero cache-buster stale');
+          if(!h.includes('hero-art-plates.js?v=20261111lenin1') || !h.includes('hero-gpu.js?v=20261111lenin1') || !h.includes('script.js?v=20261124clean'))throw Error('Production hero cache-buster stale');
           for(const file of ['midnight-ceramic-v1.png','amber-resin-v1.png','folded-glass-v1.png','silver-zio-v1.png'])
             if(!plates.includes(file))throw Error('Missing art plate: '+file);
           for(const file of ['archival-film-v1.mp4','lenin-film-v1.mp4'])
@@ -109,8 +109,9 @@ jobs:
           if(!overlay.includes('updatePhysicalTransform') || !overlay.includes('speedBoost') || !overlay.includes('finalQ') || !overlay.includes('256'))throw Error('Run 9 GPU refinement missing');
           if(!overlay.includes('qualityScale') || !overlay.includes('webglcontextrestored') || !overlay.includes('this.isIOS'))throw Error('GPU adaptive/iOS recovery missing');
           if(!s.includes('HERO_TRY>=9){pointer.glyphHover=false;return;}'))throw Error('Production pixel-readback removal missing');
-          if(!css.includes('.noise{display:none!important}'))throw Error('Mobile compositing cleanup missing');
-          if(!h.includes('preload="metadata"') || !h.includes('cdn.creativeclaw.co" crossorigin'))throw Error('Production media loading optimization missing');
+          if(!css.includes('.noise{display:none!important}'))throw Error('Clean homepage must hide grain');
+          if(!s.includes('const SHOW_MATERIALS = false') || !h.includes('preload="none"') || !h.includes('data-src="https://cdn.creativeclaw.co/'))throw Error('Material system must stay dormant and reversible');
+          if(h.includes('rel="preload" as="image"') || h.includes('rel="preconnect" href="https://cdn.creativeclaw.co"'))throw Error('Dormant hero art should not download');
           if(fs.existsSync('index (1).html'))throw Error('Obsolete Projects page must not return');
           const cname=fs.readFileSync('CNAME','utf8').trim();
           const robots=fs.readFileSync('robots.txt','utf8');
