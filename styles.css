@@ -285,32 +285,3 @@ body,body a,body button,#hero-canvas{cursor:default!important}
 /* The homepage is a single stage. */
 body{overflow:hidden;background:var(--paper)}
 .page-plane{position:relative;inset:auto;min-height:100svh;overflow:hidden}
-.detector-feature{
-  position:absolute;
-  right:clamp(16px,3vw,44px);
-  bottom:calc(clamp(18px,3vh,36px) + env(safe-area-inset-bottom,0px));
-  z-index:11;
-  max-width:calc(100vw - 32px);
-  color:#121212;
-  text-transform:none;
-}
-.detector-feature a{
-  display:inline-flex;
-  align-items:center;
-  gap:12px;
-  padding:9px 11px;
-  border-radius:12px;
-  background:rgba(248,249,250,.94);
-  font-family:"Instrument Sans",Arial,sans-serif;
-  transition:transform .25s var(--ease),color .25s ease;
-}
-.detector-feature a:is(:hover,:focus-visible){color:#7534a8;transform:translateY(-3px)}
-.detector-feature img{display:block;width:52px;height:52px;border-radius:10px}
-.detector-feature strong{display:block;font-size:18px;line-height:1.15;letter-spacing:-.035em}
-.detector-feature small{display:block;margin-top:3px;font-size:13px;line-height:1.3;text-decoration:underline;text-underline-offset:.22em}
-@media(max-width:700px){
-  .detector-feature a{padding:7px 9px;gap:9px}
-  .detector-feature img{width:44px;height:44px}
-  .detector-feature strong{font-size:16px}
-}
-@media(prefers-reduced-motion:reduce){.detector-feature a{transition:none}}

@@ -46,10 +46,12 @@ try{
       throw new Error('The homepage must have a single opening stage');
     if(await page.locator('.pill-nav a').count()!==0)
       throw new Error('Substack should appear only in the dropdown');
-    const detector=page.locator('.detector-feature a');
-    if(await detector.getAttribute('href')!=='https://antizionistdetector.netlify.app/'
-      || !(await detector.isVisible()))
-      throw new Error('Detector link is missing from the homepage');
+    if(await page.locator('.detector-feature').count()!==0)
+      throw new Error('Detector image returned to the homepage');
+    await page.locator('#menu-toggle').click();
+    if(await page.locator('.mobile-drawer a').nth(1).getAttribute('href')!=='https://play.google.com/store/apps/details?id=com.kilejones.antizionismdetector')
+      throw new Error('Detector menu link must open Google Play');
+    await page.locator('#menu-toggle').click();
     await page.screenshot({path:'qa-screenshots/'+spec.name+'-hero.png'});
 
     await page.goto(base+'?scene=6',{waitUntil:'domcontentloaded',timeout:30000});

@@ -96,27 +96,16 @@
   if (!deck) return;
   const stage = deck.querySelector('.article-stage');
   const slides = [...stage.querySelectorAll('.article-slide')];
-  const indexButtons = [...deck.querySelectorAll('.article-index button')];
-  const picker = deck.querySelector('select');
-  const rotation = deck.querySelector('.rotation-toggle');
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   let current = 0, timer, exitTimer, touchStart;
-  let paused = motion.matches, hovered = false, focused = false, visible = false;
+  let clicked = false, hovered = false, focused = false, visible = false;
   let swallowClick = false;
 
   function schedule() {
     clearTimeout(timer);
-    if (visible && !document.hidden && !paused && !hovered && !focused && !touchStart) {
+    if (visible && !document.hidden && !motion.matches && !clicked && !hovered && !focused && !touchStart) {
       timer = setTimeout(() => show(current + 1), 5000);
     }
-  }
-
-  function setPaused(value) {
-    paused = value;
-    rotation.textContent = paused ? 'Resume' : 'Pause';
-    rotation.setAttribute('aria-label', paused ? 'Resume article rotation' : 'Pause article rotation');
-    rotation.setAttribute('aria-pressed', String(paused));
-    schedule();
   }
 
   function show(index) {
@@ -131,9 +120,6 @@
       outgoing.inert = true;
       incoming.inert = false;
       incoming.classList.add('is-active');
-      indexButtons[current].setAttribute('aria-pressed', 'false');
-      indexButtons[next].setAttribute('aria-pressed', 'true');
-      picker.value = String(next);
       current = next;
       exitTimer = setTimeout(() => outgoing.classList.remove('is-leaving'), 320);
     }
@@ -142,16 +128,6 @@
 
   slides.forEach((slide, i) => { slide.inert = i !== current; });
   deck.dataset.rotating = '';
-  deck.querySelector('.article-controls').hidden = false;
-  indexButtons.forEach((button, i) => button.addEventListener('click', () => show(i)));
-  picker.addEventListener('change', () => show(Number(picker.value)));
-  rotation.addEventListener('click', () => {
-    if (paused) {
-      hovered = false;
-      focused = false;
-    }
-    setPaused(!paused);
-  });
   deck.addEventListener('pointerdown', event => {
     if (event.pointerType === 'touch') {
       hovered = false;
@@ -159,24 +135,22 @@
       schedule();
     }
   });
-  motion.addEventListener('change', () => setPaused(motion.matches));
-  setPaused(paused);
+  motion.addEventListener('change', schedule);
+  schedule();
 
   deck.addEventListener('pointerenter', event => {
     if (event.pointerType === 'mouse') { hovered = true; schedule(); }
   });
   deck.addEventListener('pointerleave', event => {
-    if (event.pointerType === 'mouse') { hovered = false; schedule(); }
+    if (event.pointerType === 'mouse') { hovered = false; clicked = false; schedule(); }
   });
   deck.addEventListener('focusin', event => { focused = event.target.matches(':focus-visible'); schedule(); });
   deck.addEventListener('focusout', event => { focused = deck.contains(event.relatedTarget) && event.relatedTarget.matches(':focus-visible'); schedule(); });
   deck.addEventListener('keydown', event => {
-    if (event.target === picker || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
     event.preventDefault();
-    const reading = stage.contains(event.target);
     show(current + (event.key === 'ArrowRight' ? 1 : -1));
-    const target = reading ? slides[current].querySelector('h3 a') : indexButtons[current];
-    target.focus({preventScroll: true});
+    slides[current].querySelector('h3 a').focus({preventScroll: true});
   });
 
   stage.addEventListener('pointerdown', event => {
@@ -192,8 +166,6 @@
     if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) {
       swallowClick = true;
       show(current + (dx < 0 ? 1 : -1));
-    } else if (event.pointerType === 'touch' && event.target.closest('.article-excerpt')) {
-      setPaused(true);
     }
     schedule();
   });
@@ -202,7 +174,11 @@
   });
   stage.addEventListener('click', event => {
     if (swallowClick) { event.preventDefault(); swallowClick = false; }
+    else if (!event.target.closest('a')) { clicked = !clicked; schedule(); }
   }, true);
+  document.addEventListener('pointerdown', event => {
+    if (!deck.contains(event.target) && clicked) { clicked = false; schedule(); }
+  });
   stage.addEventListener('dragstart', event => event.preventDefault());
   document.addEventListener('visibilitychange', schedule);
   if ('IntersectionObserver' in window) {

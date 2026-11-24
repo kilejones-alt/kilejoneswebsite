@@ -9,6 +9,7 @@ on:
       - 'hero-art-plates.js'
       - 'styles.css'
       - 'media.html'
+      - 'articles.html'
       - 'interviews.html'
       - 'writing.html'
       - 'media.css'
@@ -50,10 +51,10 @@ jobs:
           const nav=h.substring(h.indexOf('<aside class="mobile-drawer"'),h.indexOf('</aside>'));
           const expectedLinks = [
             'https://kilejones.substack.com/',
-            'https://antizionistdetector.netlify.app/',
+            'https://play.google.com/store/apps/details?id=com.kilejones.antizionismdetector',
             'https://kilejones-alt.github.io/TheAntizionistGlossary/',
             'media.html',
-            'media.html#articles',
+            'articles.html',
             'https://kilejones-alt.github.io/the-unlikely-zionists/'
           ];
           const menuLinks = Array.from(nav.matchAll(/<a href="([^"]+)"/g), match => match[1]);
@@ -74,8 +75,8 @@ jobs:
           }
           if(h.includes('id="figures"') || h.includes('id="substack"') || h.includes('class="figure-scene') || h.includes('>Substack</a>'))
             throw Error('Removed homepage sections or duplicate Substack link returned');
-          if(!nav.includes('>Inverted World</a>') || !h.includes('class="detector-feature"'))
-            throw Error('Homepage navigation or detector feature missing');
+          if(!nav.includes('>Inverted World</a>') || h.includes('class="detector-feature"') || h.includes('antizionistdetector.netlify.app'))
+            throw Error('Homepage navigation or removed detector feature incorrect');
           for(const fn of ['drawFoilWorld','drawLiquidSilver','drawVideo','buildMask']){
             if(!s.includes('function '+fn+'('))throw Error('Renderer missing '+fn);
           }
@@ -115,31 +116,34 @@ jobs:
           const robots=fs.readFileSync('robots.txt','utf8');
           const sitemap=fs.readFileSync('sitemap.xml','utf8');
           const media=fs.readFileSync('media.html','utf8');
+          const articles=fs.readFileSync('articles.html','utf8');
           const mediaCss=fs.readFileSync('media.css','utf8');
           const mediaJs=fs.readFileSync('media.js','utf8');
           if(cname!=='kilejones.com')throw Error('Production CNAME must remain kilejones.com');
-          for(const [name,text] of [['index.html',h],['media.html',media],['robots.txt',robots],['sitemap.xml',sitemap]]){
+          for(const [name,text] of [['index.html',h],['media.html',media],['articles.html',articles],['robots.txt',robots],['sitemap.xml',sitemap]]){
             if(text.includes('kilebardenjones.com'))throw Error('Old domain leaked into '+name);
           }
           if(!h.includes('rel="canonical" href="https://kilejones.com/"'))throw Error('Homepage canonical incorrect');
           if(!media.includes('rel="canonical" href="https://kilejones.com/media.html"'))throw Error('Media canonical incorrect');
+          if(!articles.includes('rel="canonical" href="https://kilejones.com/articles.html"'))throw Error('Articles canonical incorrect');
           const interviews=fs.readFileSync('interviews.html','utf8');
           const writing=fs.readFileSync('writing.html','utf8');
-          if(!media.includes('<title>Interviews & Media — Kile Jones</title>') || (media.match(/class="reel /g)||[]).length!==10)throw Error('Interview queue missing');
+          if(!media.includes('<title>Interviews & Podcasts — Kile Jones</title>') || (media.match(/class="reel /g)||[]).length!==10)throw Error('Interview queue missing');
           if(media.includes('href="interviews.html"'))throw Error('Redundant Interviews self-link');
-          if(!media.includes('href="#articles"') || !media.includes('id="articles"') || !writing.includes('url=media.html#articles'))throw Error('Articles must be on the Media page');
+          if(media.includes('id="articles"') || media.includes('Selected Articles') || !articles.includes('id="articles"') || !writing.includes('url=articles.html'))throw Error('Articles must be on their own page');
           if(fs.existsSync('projects.html') || media.includes('href="projects.html"') || interviews.includes('href="projects.html"'))throw Error('Projects destination still present');
           if(media.includes('Melissa Brodsky') || interviews.includes('Melissa Brodsky'))throw Error('Removed conversations still listed');
           if(!interviews.includes('History Impossible') || !interviews.includes('Lucy Tabrizi') || !interviews.includes('Jonah Platt') || !interviews.includes('Andrew Pessin'))throw Error('Interview archive incomplete');
-          if(!media.includes('Fathom Journal') || !media.includes('MAZL') || !media.includes('Philosophy Now') || !media.includes('Routledge') || !media.includes('Chomsky'))throw Error('Article selection incomplete');
-          if(!media.includes('media.css?v=20261121reading') || !media.includes('media.js?v=20261121reading'))throw Error('Media asset versions stale');
+          if(!articles.includes('Fathom Journal') || !articles.includes('MAZL') || !articles.includes('Philosophy Now') || !articles.includes('Routledge') || !articles.includes('Chomsky'))throw Error('Article selection incomplete');
+          if(!articles.includes('media.css?v=20261124articles') || !articles.includes('media.js?v=20261124articles'))throw Error('Article asset versions stale');
           if(!mediaCss.includes('.articles-section') || !mediaJs.includes('IntersectionObserver') || !mediaJs.includes('5000'))throw Error('Media assets incomplete');
-          const articleSection=media.slice(media.indexOf('id="articles"'));
+          const articleSection=articles.slice(articles.indexOf('id="articles"'));
           const writingUrls=[...articleSection.matchAll(/<h3><a href="(https?:\/\/[^"]+)"/g)].map(m=>m[1]);
-          if((articleSection.match(/class="article-slide/g)||[]).length!==6 || writingUrls.length!==6 || new Set(writingUrls).size!==6)throw Error('Article queue entry count incorrect or duplicate');
+          if((articleSection.match(/class="article-slide/g)||[]).length!==5 || writingUrls.length!==5 || new Set(writingUrls).size!==5)throw Error('Article queue entry count incorrect or duplicate');
+          if(articleSection.includes('I Was Wrong About Israel') || articleSection.includes('Choose an article') || articleSection.includes('rotation-toggle'))throw Error('Removed article title or controls returned');
           if(!mediaJs.includes('article-deck') || !mediaJs.includes('pointerup') || !mediaCss.includes('.article-slide.is-leaving'))throw Error('Article motion missing');
           if(!robots.includes('Sitemap: https://kilejones.com/sitemap.xml'))throw Error('Sitemap discovery missing');
-          for(const url of ['https://kilejones.com/','https://kilejones.com/media.html','https://kilejones.com/interviews.html']){
+          for(const url of ['https://kilejones.com/','https://kilejones.com/media.html','https://kilejones.com/interviews.html','https://kilejones.com/articles.html']){
             if(!sitemap.includes('<loc>'+url+'</loc>'))throw Error('Sitemap missing '+url);
           }
           if(sitemap.includes('writing.html') || sitemap.includes('projects.html'))throw Error('Retired pages in sitemap');
