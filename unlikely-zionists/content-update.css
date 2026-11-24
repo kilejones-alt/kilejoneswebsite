@@ -1,5 +1,5 @@
 /* Only the requested photo framing, hero readability, and resource fit change. */
-.hero .statement{font-size:clamp(15px,1.35vw,20px);font-weight:600;line-height:1.45;letter-spacing:0;color:var(--ruby);background:#fff;padding:.65em 1em;max-width:calc(100vw - 40px);text-wrap:balance}
+.hero .statement{font-size:clamp(15px,1.35vw,20px);font-weight:600;line-height:1.45;letter-spacing:0;color:var(--ruby);background:transparent;padding:.65em 1em;max-width:calc(100vw - 40px);text-wrap:balance}
 .stories .story-card.is-portrait .photo-plane,.stories .story-card .photo-plane:has(>img[src*="kile-family-portrait"]){display:grid;grid-template-rows:minmax(0,1fr) auto;transform:none!important;background:#fff}
 .stories .story-card .photo-plane>img[src*="kile-family-portrait"]{position:static!important;inset:auto!important;width:100%!important;height:100%!important;max-width:100%;min-height:0;object-fit:contain!important;object-position:center top!important;transform:none!important;grid-row:1}
 .stories .story-card .photo-plane:has(>img[src*="kile-family-portrait"]) .story-card-copy{position:relative;inset:auto;grid-row:2;width:100%;max-width:100%;max-height:none;margin:0;padding:12px 15px;box-shadow:none;border:0;border-top:1px solid rgba(158,0,60,.2)}
