@@ -752,7 +752,8 @@
       pointerX:nx,pointerY:ny,
       trailX:state.cleanTrailX,trailY:state.cleanTrailY,
       impulseX:state.cleanWarpX,impulseY:state.cleanWarpY,
-      time:(performance.now()-state.start)/1000,energy:activeInput?pointer.speedN:0
+      time:(performance.now()-state.start)/1000,energy:activeInput?pointer.speedN:0,
+      active:activeInput
     });
     if (state.cleanGpuActive) {
       canvas.style.visibility = 'hidden';
@@ -767,23 +768,13 @@
   }
 
   function drawSurfaceFallback(g,w,h,nx,ny,active) {
-    g.fillStyle='#f5f5f5';g.fillRect(0,0,w,h);
-    const spacing=Math.max(56,Math.min(w,h)*.17);
-    const offset=(active?nx:0)*spacing*.4;
-    for(let i=-8;i<Math.ceil(w/spacing)+10;i++){
-      const x=i*spacing+offset;
-      g.save();g.translate(x,h/2);g.rotate(-.58+(active?ny*.075:0));
-      const gradient=g.createLinearGradient(-65,0,65,0);
-      gradient.addColorStop(0,'rgba(25,25,27,0)');
-      gradient.addColorStop(.38,'rgba(38,38,42,.10)');
-      gradient.addColorStop(.60,'rgba(255,255,255,.85)');
-      gradient.addColorStop(1,'rgba(25,25,27,0)');
-      g.fillStyle=gradient;g.fillRect(-65,-h*1.6,130,h*3.2);g.restore();
-    }
+    g.fillStyle='#fff';g.fillRect(0,0,w,h);
     if(active){
-      const spot=g.createRadialGradient(pointer.x,pointer.y,0,pointer.x,pointer.y,Math.max(w,h)*.4);
-      spot.addColorStop(0,'rgba(255,255,255,.75)');
-      spot.addColorStop(.5,'rgba(65,65,70,.08)');
+      const radius=Math.max(w,h)*.7;
+      const spot=g.createRadialGradient(pointer.x,pointer.y,0,pointer.x,pointer.y,radius);
+      spot.addColorStop(0,'rgba(17,17,20,.22)');
+      spot.addColorStop(.2,'rgba(36,36,40,.12)');
+      spot.addColorStop(.5,'rgba(50,50,55,.055)');
       spot.addColorStop(1,'rgba(255,255,255,0)');
       g.fillStyle=spot;g.fillRect(0,0,w,h);
     }
