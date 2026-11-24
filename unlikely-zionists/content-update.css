@@ -1,0 +1,14 @@
+/* Only the requested photo framing, hero readability, and resource fit change. */
+.hero .statement{font-size:clamp(15px,1.35vw,20px);font-weight:600;line-height:1.45;letter-spacing:0;color:var(--ruby);background:#fff;padding:.65em 1em;max-width:calc(100vw - 40px);text-wrap:balance}
+.stories .story-card.is-portrait .photo-plane,.stories .story-card .photo-plane:has(>img[src*="kile-family-portrait"]){display:grid;grid-template-rows:minmax(0,1fr) auto;transform:none!important;background:#fff}
+.stories .story-card .photo-plane>img[src*="kile-family-portrait"]{position:static!important;inset:auto!important;width:100%!important;height:100%!important;max-width:100%;min-height:0;object-fit:contain!important;object-position:center top!important;transform:none!important;grid-row:1}
+.stories .story-card .photo-plane:has(>img[src*="kile-family-portrait"]) .story-card-copy{position:relative;inset:auto;grid-row:2;width:100%;max-width:100%;max-height:none;margin:0;padding:12px 15px;box-shadow:none;border:0;border-top:1px solid rgba(158,0,60,.2)}
+.story-viewer.is-kile-portrait #viewer-image,.story-viewer #viewer-image[src*="kile-family-portrait"]{width:100%!important;height:100%!important;max-width:100%;inset:0!important;object-fit:contain!important;object-position:center!important;transform:none!important;background:#fff}
+.resources .res-panel{text-decoration:none;min-width:0}
+.resources .res-panel>div{height:100%;width:100%;min-width:0;padding:clamp(16px,2.3vw,32px);display:flex;align-items:flex-end;overflow:hidden}
+.resources .res-label{font-size:clamp(21px,2.6vw,42px);line-height:1.15;letter-spacing:-.025em;max-width:100%;width:100%;white-space:normal;word-break:normal;overflow-wrap:normal;text-wrap:balance}
+.resource-reading-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(18px,3vw,40px);margin:clamp(30px,5vh,65px) auto 0;max-width:1400px}
+.resource-reading-list a{display:block;min-width:0;font-family:'DM Sans',Arial,sans-serif;font-size:16px;line-height:1.5;overflow-wrap:break-word;text-decoration:underline;text-underline-offset:5px;padding-block:12px;border-top:1px solid var(--ruby)}
+.resource-reading-list a:hover{color:#171d21}.resource-reading-list a:focus-visible{outline:2px solid var(--ruby);outline-offset:5px}
+@media(max-width:650px){.resources .resources-panels{display:grid;grid-template-columns:1fr;gap:20px;min-height:0;margin-top:50px;overflow:visible;perspective:none}.resources .res-panel,.resources .res-panel:nth-child(2),.resources .res-panel:nth-child(3){height:190px;min-height:190px;width:100%;transform:none!important;opacity:1}.resources .res-label{font-size:30px;line-height:1.15;max-width:15ch}.resources .res-panel>div{padding:24px}.resource-reading-list{grid-template-columns:1fr;gap:12px}.hero .statement{font-size:15px}}
+.resources .res-panel>div{position:relative;inset:auto;margin:0;box-sizing:border-box}

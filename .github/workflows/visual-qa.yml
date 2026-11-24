@@ -57,7 +57,7 @@ jobs:
             'https://kilejones-alt.github.io/TheAntizionistGlossary/',
             'media.html',
             'articles.html',
-            'https://kilejones-alt.github.io/the-unlikely-zionists/'
+            '/unlikely-zionists/'
           ];
           const menuLinks = Array.from(nav.matchAll(/<a href="([^"]+)"/g), match => match[1]);
           if (JSON.stringify(menuLinks) !== JSON.stringify(expectedLinks)) throw Error('Homepage menu destinations or order changed');
