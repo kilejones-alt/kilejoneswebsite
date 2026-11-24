@@ -17,6 +17,7 @@
   in vec2 uv;
   uniform sampler2D mask;
   uniform vec2 pointer;
+  uniform vec2 trail;
   uniform vec2 shift;
   uniform vec2 impulse;
   uniform float aspect;
@@ -25,8 +26,13 @@
     // A local, velocity-led displacement gives the ink weight without
     // bending the entire wordmark or revealing a second visual layer.
     vec2 distanceToPointer = (uv - pointer) * vec2(aspect,1.);
+    vec2 distanceToTrail = (uv - trail) * vec2(aspect,1.);
     float reach = exp(-dot(distanceToPointer,distanceToPointer) * 19.);
-    vec2 samplePoint = uv - shift - impulse * reach * .018;
+    float wake = exp(-dot(distanceToTrail,distanceToTrail) * 11.);
+    // Two response times give nearby letter edges a physical drag. The
+    // slower field follows the pointer; both fields return to the same mask.
+    vec2 lag = clamp(pointer - trail,vec2(-.25),vec2(.25));
+    vec2 samplePoint = uv - shift - impulse * reach * .012 - lag * wake * .055;
     float ink = texture(mask, samplePoint).a;
     color = vec4(vec3(1. - ink),1.);
   }`;
@@ -68,7 +74,7 @@
       gl.deleteShader(fragment);
       if (!gl.getProgramParameter(program,gl.LINK_STATUS))
         throw new Error(gl.getProgramInfoLog(program) || 'Ink program failed');
-      uniforms = Object.fromEntries(['mask','pointer','shift','impulse','aspect']
+      uniforms = Object.fromEntries(['mask','pointer','trail','shift','impulse','aspect']
         .map(name => [name,gl.getUniformLocation(program,name)]));
       texture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D,texture);
@@ -107,13 +113,14 @@
         if (lost || !ready) return;
         uploadMask(maskCanvas);
       },
-      render({width,height,x,y,pointerX,pointerY,impulseX,impulseY}) {
+      render({width,height,x,y,pointerX,pointerY,trailX,trailY,impulseX,impulseY}) {
         if (lost || !ready) return false;
         gl.useProgram(program);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D,texture);
         gl.uniform1i(uniforms.mask,0);
         gl.uniform2f(uniforms.pointer,(pointerX+1)*.5,(1-pointerY)*.5);
+        gl.uniform2f(uniforms.trail,(trailX+1)*.5,(1-trailY)*.5);
         gl.uniform2f(uniforms.shift,x/width,-y/height);
         gl.uniform2f(uniforms.impulse,impulseX,-impulseY);
         gl.uniform1f(uniforms.aspect,width/height);

@@ -56,6 +56,7 @@ try{
 
     const clean=await page.evaluate(()=>({
       renderer:window.__KBJ_DIAGNOSTICS?.renderer,
+      trail:window.__KBJ_DIAGNOSTICS?.trail,
       materialsEnabled:window.__KBJ_DIAGNOSTICS?.materialsEnabled,
       nativeFilmLoaded:!!document.querySelector('#hero-video')?.getAttribute('src'),
       plateCount:document.querySelectorAll('.hero-art-plate,.hero-gpu-layer').length
@@ -63,6 +64,8 @@ try{
     if(!['Canvas 2D clean wordmark','WebGL2 ink mask'].includes(clean.renderer) || clean.materialsEnabled!==false
       || clean.nativeFilmLoaded || clean.plateCount)
       throw new Error('Artwork is still active on the clean homepage: '+JSON.stringify(clean));
+    if(clean.renderer==='WebGL2 ink mask' && !Array.isArray(clean.trail))
+      throw new Error('Ink renderer must expose its delayed pointer state');
     if(!spec.mobile){
       await page.mouse.move(spec.width-10,spec.height/2);
       await page.waitForFunction(()=>window.__KBJ_DIAGNOSTICS.parallax[0]>1,undefined,{timeout:4000});
@@ -91,7 +94,7 @@ try{
     if(await page.locator('#menu-toggle').getAttribute('aria-expanded')!=='false')
       throw new Error('Menu did not close');
     if(errors.length)throw new Error('Browser exceptions: '+errors.join('; '));
-    console.log(JSON.stringify({device:spec.name,bounds,controls:'passed'}));
+    console.log(JSON.stringify({device:spec.name,renderer:clean.renderer,bounds,controls:'passed'}));
     await context.close();
   }
 }finally{

@@ -95,6 +95,10 @@
     cleanWarpY: 0,
     cleanWarpVX: 0,
     cleanWarpVY: 0,
+    cleanTrailX: 0,
+    cleanTrailY: 0,
+    cleanTrailVX: 0,
+    cleanTrailVY: 0,
     cleanGpuActive: false,
     // The typography itself stays front-facing. Pointer energy is routed into
     // the internal world rather than scaling or tilting the wordmark.
@@ -589,6 +593,7 @@
         renderer:state.cleanGpuActive ? 'WebGL2 ink mask' : 'Canvas 2D clean wordmark',heroTry:HERO_TRY,
         materialsEnabled:false,parallax:[+state.cleanX.toFixed(2),+state.cleanY.toFixed(2)],
         warp:[+state.cleanWarpX.toFixed(3),+state.cleanWarpY.toFixed(3)],
+        trail:[+state.cleanTrailX.toFixed(3),+state.cleanTrailY.toFixed(3)],
         viewport:[state.w,state.h],dpr:+state.dpr.toFixed(2),
         reducedMotion:reduceMotion,isIOS,isSafari
       };
@@ -699,8 +704,7 @@
 
   // Critically damped pointer response: stable across frame rates and without
   // the overshoot that makes a plain wordmark feel like a floating card.
-  function springAxis(position, velocity, target, dt) {
-    const omega = 15;
+  function springAxis(position, velocity, target, dt, omega = 15) {
     const f = 1 + 2 * omega * dt;
     const inv = 1 / (f + omega * omega * dt * dt);
     return [
@@ -720,9 +724,14 @@
     const warpTargetY = reduceMotion || coarsePointer ? 0 : Math.max(-.65,Math.min(.65,pointer.nvy*.22));
     [state.cleanWarpX,state.cleanWarpVX] = springAxis(state.cleanWarpX,state.cleanWarpVX,warpTargetX,dt);
     [state.cleanWarpY,state.cleanWarpVY] = springAxis(state.cleanWarpY,state.cleanWarpVY,warpTargetY,dt);
+    const anchorX = reduceMotion || coarsePointer || !pointer.active ? 0 : pointer.nx;
+    const anchorY = reduceMotion || coarsePointer || !pointer.active ? 0 : pointer.ny;
+    [state.cleanTrailX,state.cleanTrailVX] = springAxis(state.cleanTrailX,state.cleanTrailVX,anchorX,dt,9);
+    [state.cleanTrailY,state.cleanTrailVY] = springAxis(state.cleanTrailY,state.cleanTrailVY,anchorY,dt,9);
     state.cleanGpuActive = !!inkRenderer?.render({
       width:state.w,height:state.h,x:state.cleanX,y:state.cleanY,
       pointerX:pointer.nx,pointerY:pointer.ny,
+      trailX:state.cleanTrailX,trailY:state.cleanTrailY,
       impulseX:state.cleanWarpX,impulseY:state.cleanWarpY
     });
     if (state.cleanGpuActive) {
