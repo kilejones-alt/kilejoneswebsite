@@ -5,6 +5,7 @@
 .stories .story-card .photo-plane:has(>img[src*="kile-family-portrait"]) .story-card-copy{position:relative;inset:auto;grid-row:2;width:100%;max-width:100%;max-height:none;margin:0;padding:12px 15px;box-shadow:none;border:0;border-top:1px solid rgba(158,0,60,.2)}
 .story-viewer.is-kile-portrait #viewer-image,.story-viewer #viewer-image[src*="kile-family-portrait"]{width:100%!important;height:100%!important;max-width:100%;inset:0!important;object-fit:contain!important;object-position:center!important;transform:none!important;background:#fff}
 .resources .res-panel{text-decoration:none;min-width:0}
+.resources .res-panel[data-resource-inactive]{cursor:default}
 .resources .res-panel>div{height:100%;width:100%;min-width:0;padding:clamp(16px,2.3vw,32px);display:flex;align-items:flex-end;overflow:hidden}
 .resources .res-label{font-size:clamp(21px,2.6vw,42px);line-height:1.15;letter-spacing:-.025em;max-width:100%;width:100%;white-space:normal;word-break:normal;overflow-wrap:normal;text-wrap:balance}
 .resource-reading-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(18px,3vw,40px);margin:clamp(30px,5vh,65px) auto 0;max-width:1400px}

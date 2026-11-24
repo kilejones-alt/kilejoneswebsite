@@ -1176,13 +1176,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
       <section class="resources scene" id="resources" data-section="resources" aria-labelledby="resources-title">
         <div class="resources-head reveal"><h2 id="resources-title">RESOURCES</h2></div>
-        <div class="resources-panels"><a class="res-panel" href="https://kilejones.substack.com/p/the-october-turn-the-attorney"><div><span class="res-label">Other Unlikely Zionists</span></div></a><div class="res-panel"><div><span class="res-label">Challenging Stereotypes</span></div></div><div class="res-panel"><div><span class="res-label">How to Respond</span></div></div></div>
+        <div class="resources-panels"><div class="res-panel" data-resource-inactive><div><span class="res-label">Other Unlikely Zionists</span></div></div><div class="res-panel"><div><span class="res-label">Challenging Stereotypes</span></div></div><div class="res-panel"><div><span class="res-label">How to Respond</span></div></div></div>
         <div class="resources-underline" aria-hidden="true"></div>
-        <nav class="resource-reading-list" aria-label="The October Turn">
-          <a href="https://kilejones.substack.com/p/the-october-turn-the-attorney">The October Turn: The Attorney</a>
-          <a href="https://kilejones.substack.com/p/the-october-turn-part-ii-names-withheld">The October Turn, Part II: Names Withheld</a>
-          <a href="https://kilejones.substack.com/p/the-october-turn-part-iii">The October Turn, Part III</a>
-        </nav>
 
         <div class="resource-discovery" id="resource-discovery" aria-live="polite" hidden>
           <p class="resource-discovery-label">COLLECTION IN DEVELOPMENT</p>
@@ -2407,7 +2402,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   const detail=document.getElementById('resource-discovery-title');
   const choices=[...document.querySelectorAll('.resources .res-panel')];
   choices.forEach((panel,i)=>{
-    if(panel.matches('a[href]'))return;
+    if(panel.matches('a[href],[data-resource-inactive]'))return;
     panel.setAttribute('role','button');
     panel.setAttribute('tabindex','0');
     panel.setAttribute('aria-label','Explore '+panel.textContent.trim());
