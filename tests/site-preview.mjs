@@ -60,7 +60,7 @@ try{
       nativeFilmLoaded:!!document.querySelector('#hero-video')?.getAttribute('src'),
       plateCount:document.querySelectorAll('.hero-art-plate,.hero-gpu-layer').length
     }));
-    if(clean.renderer!=='Canvas 2D clean wordmark' || clean.materialsEnabled!==false
+    if(!['Canvas 2D clean wordmark','WebGL2 ink mask'].includes(clean.renderer) || clean.materialsEnabled!==false
       || clean.nativeFilmLoaded || clean.plateCount)
       throw new Error('Artwork is still active on the clean homepage: '+JSON.stringify(clean));
     if(!spec.mobile){

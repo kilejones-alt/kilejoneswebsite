@@ -91,6 +91,11 @@
     cleanY: 0,
     cleanVX: 0,
     cleanVY: 0,
+    cleanWarpX: 0,
+    cleanWarpY: 0,
+    cleanWarpVX: 0,
+    cleanWarpVY: 0,
+    cleanGpuActive: false,
     // The typography itself stays front-facing. Pointer energy is routed into
     // the internal world rather than scaling or tilting the wordmark.
     letterScale: 1,
@@ -130,6 +135,7 @@
 
   // Progressive GPU stage; the established 2D/video renderer stays intact.
   const gpuRenderer = SHOW_MATERIALS ? (window.KBJGpuRenderer?.create(canvas, video) || null) : null;
+  const inkRenderer = !SHOW_MATERIALS && !reduceMotion ? (window.KBJInkRenderer?.create(canvas) || null) : null;
 
   setupUI();
   setupCursor();
@@ -317,6 +323,7 @@
       state.entry.settled=reduceMotion||staticHero;
     }
     buildMask();
+    inkRenderer?.resize(maskCanvas);
     gpuRenderer?.resize(state.w,state.h,state.dpr,maskCanvas,state.qualityScale,isIOS);
     // Put the WebGL plane above the viewport before first paint so there is
     // no flash of the final wordmark followed by a belated fall.
@@ -579,8 +586,9 @@
     if (!SHOW_MATERIALS) {
       drawCleanWordmark(dt);
       window.__KBJ_DIAGNOSTICS = {
-        renderer:'Canvas 2D clean wordmark',heroTry:HERO_TRY,
+        renderer:state.cleanGpuActive ? 'WebGL2 ink mask' : 'Canvas 2D clean wordmark',heroTry:HERO_TRY,
         materialsEnabled:false,parallax:[+state.cleanX.toFixed(2),+state.cleanY.toFixed(2)],
+        warp:[+state.cleanWarpX.toFixed(3),+state.cleanWarpY.toFixed(3)],
         viewport:[state.w,state.h],dpr:+state.dpr.toFixed(2),
         reducedMotion:reduceMotion,isIOS,isSafari
       };
@@ -708,6 +716,19 @@
       : Math.max(-1,Math.min(1,pointer.ny)) * Math.min(7,state.h*.009);
     [state.cleanX,state.cleanVX] = springAxis(state.cleanX,state.cleanVX,targetX,dt);
     [state.cleanY,state.cleanVY] = springAxis(state.cleanY,state.cleanVY,targetY,dt);
+    const warpTargetX = reduceMotion || coarsePointer ? 0 : Math.max(-.65,Math.min(.65,pointer.nvx*.22));
+    const warpTargetY = reduceMotion || coarsePointer ? 0 : Math.max(-.65,Math.min(.65,pointer.nvy*.22));
+    [state.cleanWarpX,state.cleanWarpVX] = springAxis(state.cleanWarpX,state.cleanWarpVX,warpTargetX,dt);
+    [state.cleanWarpY,state.cleanWarpVY] = springAxis(state.cleanWarpY,state.cleanWarpVY,warpTargetY,dt);
+    state.cleanGpuActive = !!inkRenderer?.render({
+      width:state.w,height:state.h,x:state.cleanX,y:state.cleanY,
+      pointerX:pointer.nx,pointerY:pointer.ny,
+      impulseX:state.cleanWarpX,impulseY:state.cleanWarpY
+    });
+    if (state.cleanGpuActive) {
+      canvas.style.visibility = 'hidden';
+      return;
+    }
     canvas.style.visibility = 'visible';
     ctx.setTransform(state.dpr,0,0,state.dpr,0,0);
     ctx.globalCompositeOperation = 'source-over';

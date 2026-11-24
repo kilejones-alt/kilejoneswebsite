@@ -6,6 +6,7 @@ on:
       - 'script.js'
       - 'hero-webgl.js'
       - 'hero-gpu.js'
+      - 'hero-ink.js'
       - 'hero-art-plates.js'
       - 'styles.css'
       - 'media.html'
@@ -38,6 +39,7 @@ jobs:
           node --check script.js
           node --check hero-webgl.js
           node --check hero-gpu.js
+          node --check hero-ink.js
           node --check hero-art-plates.js
           node --check media.js
       - name: Verify navigation, links and hero renderer
@@ -97,7 +99,7 @@ jobs:
           const plates=fs.readFileSync('hero-art-plates.js','utf8');
           const overlay=fs.readFileSync('hero-gpu.js','utf8');
           if(!h.includes('src="hero-art-plates.js') || h.includes('src="hero-object-worlds.js'))throw Error('Production art renderer incorrect');
-          if(!h.includes('hero-art-plates.js?v=20261111lenin1') || !h.includes('hero-gpu.js?v=20261111lenin1') || !h.includes('script.js?v=20261124clean'))throw Error('Production hero cache-buster stale');
+          if(!h.includes('hero-art-plates.js?v=20261111lenin1') || !h.includes('hero-gpu.js?v=20261111lenin1') || !h.includes('hero-ink.js?v=20261124ink1') || !h.includes('script.js?v=20261124ink1'))throw Error('Production hero cache-buster stale');
           for(const file of ['midnight-ceramic-v1.png','amber-resin-v1.png','folded-glass-v1.png','silver-zio-v1.png'])
             if(!plates.includes(file))throw Error('Missing art plate: '+file);
           for(const file of ['archival-film-v1.mp4','lenin-film-v1.mp4'])
@@ -111,6 +113,8 @@ jobs:
           if(!s.includes('HERO_TRY>=9){pointer.glyphHover=false;return;}'))throw Error('Production pixel-readback removal missing');
           if(!css.includes('.noise{display:none!important}'))throw Error('Clean homepage must hide grain');
           if(!s.includes('const SHOW_MATERIALS = false') || !h.includes('preload="none"') || !h.includes('data-src="https://cdn.creativeclaw.co/'))throw Error('Material system must stay dormant and reversible');
+          const ink=fs.readFileSync('hero-ink.js','utf8');
+          if(!ink.includes('webglcontextrestored') || !ink.includes('uniform sampler2D mask') || !s.includes('window.KBJInkRenderer?.create'))throw Error('Responsive monochrome wordmark missing');
           if(h.includes('rel="preload" as="image"') || h.includes('rel="preconnect" href="https://cdn.creativeclaw.co"'))throw Error('Dormant hero art should not download');
           if(fs.existsSync('index (1).html'))throw Error('Obsolete Projects page must not return');
           const cname=fs.readFileSync('CNAME','utf8').trim();
