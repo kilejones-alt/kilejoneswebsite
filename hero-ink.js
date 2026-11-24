@@ -21,20 +21,36 @@
   uniform vec2 shift;
   uniform vec2 impulse;
   uniform float aspect;
+  uniform float time;
+  uniform float energy;
   out vec4 color;
   void main() {
-    // A local, velocity-led displacement gives the ink weight without
-    // bending the entire wordmark or revealing a second visual layer.
+    // One continuous, lit surface spans the viewport. Broad oblique folds
+    // respond to the pointer; there are no separate pictures behind type.
     vec2 distanceToPointer = (uv - pointer) * vec2(aspect,1.);
     vec2 distanceToTrail = (uv - trail) * vec2(aspect,1.);
-    float reach = exp(-dot(distanceToPointer,distanceToPointer) * 19.);
-    float wake = exp(-dot(distanceToTrail,distanceToTrail) * 11.);
-    // Two response times give nearby letter edges a physical drag. The
-    // slower field follows the pointer; both fields return to the same mask.
+    float reach = exp(-dot(distanceToPointer,distanceToPointer) * 8.);
+    float wake = exp(-dot(distanceToTrail,distanceToTrail) * 3.5);
     vec2 lag = clamp(pointer - trail,vec2(-.25),vec2(.25));
-    vec2 samplePoint = uv - shift - impulse * reach * .012 - lag * wake * .055;
+    vec2 flow = impulse * reach * .048 + lag * wake * .22;
+    vec2 samplePoint = uv - shift - flow*.52;
     float ink = texture(mask, samplePoint).a;
-    color = vec4(vec3(1. - ink),1.);
+    vec2 p = uv * vec2(aspect,1.);
+    vec2 q = p - flow * vec2(aspect,1.);
+    float phase = q.x*8.5 - q.y*5.6 + sin(q.y*3.4 + time*.15)*.38;
+    float broad = sin(phase)*.5 + sin(phase*.53 + 1.2)*.28;
+    float micro = sin(phase*2.3 + sin(q.x*4.0))*.08;
+    float normal = cos(phase)*.5 + cos(phase*.53+1.2)*.14;
+    float brightness = .915 + broad*.095 + micro*.028 + normal*.057;
+    // The moving pressure ring is part of the surface, visible even when
+    // the pointer is far from a letter.
+    float radius = length(distanceToPointer);
+    float pressure = exp(-radius*radius*10.) * (sin(radius*31. - time*2.1)*.045 + .035);
+    brightness += pressure * min(1.,energy + .3);
+    float edge = smoothstep(.04,.34,uv.x)*smoothstep(.04,.34,1.-uv.x);
+    brightness += edge*.035;
+    vec3 paper = vec3(clamp(brightness, .73, 1.));
+    color = vec4(mix(paper,vec3(.025),ink),1.);
   }`;
 
   function compile(gl, type, source) {
@@ -74,7 +90,7 @@
       gl.deleteShader(fragment);
       if (!gl.getProgramParameter(program,gl.LINK_STATUS))
         throw new Error(gl.getProgramInfoLog(program) || 'Ink program failed');
-      uniforms = Object.fromEntries(['mask','pointer','trail','shift','impulse','aspect']
+      uniforms = Object.fromEntries(['mask','pointer','trail','shift','impulse','aspect','time','energy']
         .map(name => [name,gl.getUniformLocation(program,name)]));
       texture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D,texture);
@@ -113,7 +129,7 @@
         if (lost || !ready) return;
         uploadMask(maskCanvas);
       },
-      render({width,height,x,y,pointerX,pointerY,trailX,trailY,impulseX,impulseY}) {
+      render({width,height,x,y,pointerX,pointerY,trailX,trailY,impulseX,impulseY,time=0,energy=0}) {
         if (lost || !ready) return false;
         gl.useProgram(program);
         gl.activeTexture(gl.TEXTURE0);
@@ -123,6 +139,8 @@
         gl.uniform2f(uniforms.trail,(trailX+1)*.5,(1-trailY)*.5);
         gl.uniform2f(uniforms.shift,x/width,-y/height);
         gl.uniform2f(uniforms.impulse,impulseX,-impulseY);
+        gl.uniform1f(uniforms.time,time);
+        gl.uniform1f(uniforms.energy,energy);
         gl.uniform1f(uniforms.aspect,width/height);
         gl.drawArrays(gl.TRIANGLES,0,3);
         if (firstFrame) {

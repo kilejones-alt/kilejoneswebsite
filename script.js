@@ -25,8 +25,8 @@
   const isIOS=/iPhone|iPad|iPod/.test(ua) || iPadDesktop;
   const isSafari=/Safari/.test(ua) && !/Chrome|CriOS|Chromium|Edg|OPR|FxiOS/.test(ua);
 
-  // Keep the full material pipeline below for future art direction. The public
-  // homepage presents only the wordmark until a new visual direction is chosen.
+  // Keep the earlier material pipeline available for future art direction.
+  // The public homepage uses one continuous, responsive surface and type.
   const SHOW_MATERIALS = false;
   const PAPER = '#ffffff';
   const INK = '#09090a';
@@ -358,14 +358,14 @@
     // The wordmark is deliberately smaller than the previous full-width build,
     // while the broad glyph strokes retain large windows into the moving worlds.
     if(HERO_TRY>=9){
-      const targetW = state.w * (state.mobile ? .86 : .74) / horizontal;
+      const targetW = state.w * (state.mobile ? .90 : .91) / horizontal;
       const maxSize = Math.min(
         state.w * .60,
         state.h * (state.mobile ? .35 : .55)
       );
       const size = fitTrackedFont(g,'JONES',family,weight,targetW,maxSize);
       const tracking = size * (state.mobile ? .040 : .045);
-      const left = state.w * (state.mobile ? .06 : .08);
+      const left = state.w * (state.mobile ? .045 : .045);
       const centerY = state.h * (state.mobile ? .52 : .53);
       const lineGap = Math.min(size * .82, state.h * (state.mobile ? .22 : .30));
       const yTop = centerY - lineGap * .5;
@@ -728,13 +728,13 @@
       && (!coarsePointer || pointer.down);
     const nx = activeInput ? Math.max(-1,Math.min(1,pointer.nx)) : 0;
     const ny = activeInput ? Math.max(-1,Math.min(1,pointer.ny)) : 0;
-    // The entire stage has its own camera response. The menu and music
-    // controls are siblings of the stage, so they remain fixed and sharp.
+    // The surface moves within its viewport; never translate the viewport
+    // itself and expose empty gutters along its edges.
     [state.sceneX,state.sceneVX] = springAxis(state.sceneX,state.sceneVX,
       -nx*Math.min(state.mobile?10:18,state.w*.018),dt,8);
     [state.sceneY,state.sceneVY] = springAxis(state.sceneY,state.sceneVY,
       -ny*Math.min(state.mobile?7:12,state.h*.015),dt,8);
-    hero.style.transform=`translate3d(${state.sceneX.toFixed(2)}px,${state.sceneY.toFixed(2)}px,0)`;
+    hero.style.transform='none';
     const targetX = nx * Math.min(6,state.w*.006);
     const targetY = ny * Math.min(4,state.h*.005);
     [state.cleanX,state.cleanVX] = springAxis(state.cleanX,state.cleanVX,targetX,dt);
@@ -751,7 +751,8 @@
       width:state.w,height:state.h,x:state.cleanX,y:state.cleanY,
       pointerX:nx,pointerY:ny,
       trailX:state.cleanTrailX,trailY:state.cleanTrailY,
-      impulseX:state.cleanWarpX,impulseY:state.cleanWarpY
+      impulseX:state.cleanWarpX,impulseY:state.cleanWarpY,
+      time:(performance.now()-state.start)/1000,energy:activeInput?pointer.speedN:0
     });
     if (state.cleanGpuActive) {
       canvas.style.visibility = 'hidden';
@@ -761,9 +762,31 @@
     ctx.setTransform(state.dpr,0,0,state.dpr,0,0);
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
-    ctx.fillStyle = PAPER;
-    ctx.fillRect(0,0,state.w,state.h);
+    drawSurfaceFallback(ctx,state.w,state.h,nx,ny,activeInput);
     ctx.drawImage(maskCanvas,state.cleanX,state.cleanY,state.w,state.h);
+  }
+
+  function drawSurfaceFallback(g,w,h,nx,ny,active) {
+    g.fillStyle='#f5f5f5';g.fillRect(0,0,w,h);
+    const spacing=Math.max(56,Math.min(w,h)*.17);
+    const offset=(active?nx:0)*spacing*.4;
+    for(let i=-8;i<Math.ceil(w/spacing)+10;i++){
+      const x=i*spacing+offset;
+      g.save();g.translate(x,h/2);g.rotate(-.58+(active?ny*.075:0));
+      const gradient=g.createLinearGradient(-65,0,65,0);
+      gradient.addColorStop(0,'rgba(25,25,27,0)');
+      gradient.addColorStop(.38,'rgba(38,38,42,.10)');
+      gradient.addColorStop(.60,'rgba(255,255,255,.85)');
+      gradient.addColorStop(1,'rgba(25,25,27,0)');
+      g.fillStyle=gradient;g.fillRect(-65,-h*1.6,130,h*3.2);g.restore();
+    }
+    if(active){
+      const spot=g.createRadialGradient(pointer.x,pointer.y,0,pointer.x,pointer.y,Math.max(w,h)*.4);
+      spot.addColorStop(0,'rgba(255,255,255,.75)');
+      spot.addColorStop(.5,'rgba(65,65,70,.08)');
+      spot.addColorStop(1,'rgba(255,255,255,0)');
+      g.fillStyle=spot;g.fillRect(0,0,w,h);
+    }
   }
 
   function renderMode(g, mode, t, dt) {

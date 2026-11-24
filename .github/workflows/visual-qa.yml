@@ -65,7 +65,7 @@ jobs:
           for(const id of ['hero-canvas','menu-toggle','music-toggle','mobile-drawer']){
             if(!h.includes('id="'+id+'"'))throw Error('Missing '+id);
           }
-          if(!h.includes('Kile Jones</h1>') || s.includes("fitFont(g, 'KILE B.'") || !s.includes('Bowlby One SC') || !s.includes("drawTrackedText(g,'KILE',0,yTop,tracking)") || !s.includes("drawTrackedText(g,'JONES',0,yBottom,tracking)") || !s.includes("state.mobile ? .86 : .74") || !s.includes("state.mobile ? .06 : .08") || !s.includes("g.textAlign='left'") || !s.includes("state.h * (state.mobile ? .35 : .55)") || !s.includes("const lineGap = Math.min(size * .82"))
+          if(!h.includes('Kile Jones</h1>') || s.includes("fitFont(g, 'KILE B.'") || !s.includes('Bowlby One SC') || !s.includes("drawTrackedText(g,'KILE',0,yTop,tracking)") || !s.includes("drawTrackedText(g,'JONES',0,yBottom,tracking)") || !s.includes("state.mobile ? .90 : .91") || !s.includes("state.mobile ? .045 : .045") || !s.includes("g.textAlign='left'") || !s.includes("state.h * (state.mobile ? .35 : .55)") || !s.includes("const lineGap = Math.min(size * .82"))
             throw Error('KILE / JONES wordmark missing');
           for(const file of ['assets/midnight-ceramic-v1.png','assets/balloon-rabbit-v1.png',
             'assets/amber-resin-v1.png','assets/matte-rhino-v1.png',
@@ -99,7 +99,7 @@ jobs:
           const plates=fs.readFileSync('hero-art-plates.js','utf8');
           const overlay=fs.readFileSync('hero-gpu.js','utf8');
           if(!fs.existsSync('hero-art-plates.js') || !fs.existsSync('hero-gpu.js'))throw Error('Preserved material renderer missing');
-          if(!h.includes('hero-ink.js?v=20261124ink2') || !h.includes('script.js?v=20261124scene') || !h.includes('styles.css?v=20261124scene'))throw Error('Production hero cache-buster stale');
+          if(!h.includes('hero-ink.js?v=20261124surface') || !h.includes('script.js?v=20261124surface') || !h.includes('styles.css?v=20261124surface'))throw Error('Production hero cache-buster stale');
           for(const dormant of ['hero-webgl.js','hero-art-plates.js','hero-stage.js','hero-scenes.js','hero-gpu.js']){
             if(h.includes('<script src="'+dormant))throw Error('Dormant material script should not load: '+dormant);
           }
