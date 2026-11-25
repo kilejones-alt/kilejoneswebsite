@@ -61,10 +61,10 @@ try{
       nativeFilmLoaded:!!document.querySelector('#hero-video')?.getAttribute('src'),
       plateCount:document.querySelectorAll('.hero-art-plate,.hero-gpu-layer').length
     }));
-    if(!['Canvas 2D clean wordmark','WebGL2 ink mask'].includes(clean.renderer) || clean.materialsEnabled!==false
+    if(!['Canvas 2D ink reveal','WebGL2 fluid ink reveal'].includes(clean.renderer) || clean.materialsEnabled!==false
       || clean.nativeFilmLoaded || clean.plateCount)
       throw new Error('Artwork is still active on the clean homepage: '+JSON.stringify(clean));
-    if(clean.renderer==='WebGL2 ink mask' && !Array.isArray(clean.trail))
+    if(clean.renderer==='WebGL2 fluid ink reveal' && !Array.isArray(clean.trail))
       throw new Error('Ink renderer must expose its delayed pointer state');
     if(!spec.mobile){
       const corner={x:spec.width-260,y:spec.height-230,width:190,height:160};

@@ -101,6 +101,9 @@
     cleanTrailVX: 0,
     cleanTrailVY: 0,
     cleanGpuActive: false,
+    inkBlobs: [],
+    lastInkAt: 0,
+    lastInkPoint: null,
     sceneX: 0,
     sceneY: 0,
     sceneVX: 0,
@@ -599,7 +602,7 @@
     if (!SHOW_MATERIALS) {
       drawCleanWordmark(dt);
       window.__KBJ_DIAGNOSTICS = {
-        renderer:state.cleanGpuActive ? 'WebGL2 ink mask' : 'Canvas 2D clean wordmark',heroTry:HERO_TRY,
+        renderer:state.cleanGpuActive ? 'WebGL2 fluid ink reveal' : 'Canvas 2D ink reveal',heroTry:HERO_TRY,
         materialsEnabled:false,parallax:[+state.cleanX.toFixed(2),+state.cleanY.toFixed(2)],
         scene:[+state.sceneX.toFixed(2),+state.sceneY.toFixed(2)],
         warp:[+state.cleanWarpX.toFixed(3),+state.cleanWarpY.toFixed(3)],
@@ -753,7 +756,7 @@
       trailX:state.cleanTrailX,trailY:state.cleanTrailY,
       impulseX:state.cleanWarpX,impulseY:state.cleanWarpY,
       time:(performance.now()-state.start)/1000,energy:activeInput?pointer.speedN:0,
-      active:activeInput
+      active:activeInput,dt
     });
     if (state.cleanGpuActive) {
       canvas.style.visibility = 'hidden';
@@ -763,21 +766,38 @@
     ctx.setTransform(state.dpr,0,0,state.dpr,0,0);
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
-    drawSurfaceFallback(ctx,state.w,state.h,nx,ny,activeInput);
-    ctx.drawImage(maskCanvas,state.cleanX,state.cleanY,state.w,state.h);
+    drawSurfaceFallback(ctx,state.w,state.h,activeInput);
   }
 
-  function drawSurfaceFallback(g,w,h,nx,ny,active) {
+  function drawSurfaceFallback(g,w,h,active) {
+    const now=performance.now();
     g.fillStyle='#fff';g.fillRect(0,0,w,h);
-    if(active){
-      const radius=Math.max(w,h)*.7;
-      const spot=g.createRadialGradient(pointer.x,pointer.y,0,pointer.x,pointer.y,radius);
-      spot.addColorStop(0,'rgba(17,17,20,.22)');
-      spot.addColorStop(.2,'rgba(36,36,40,.12)');
-      spot.addColorStop(.5,'rgba(50,50,55,.055)');
-      spot.addColorStop(1,'rgba(255,255,255,0)');
-      g.fillStyle=spot;g.fillRect(0,0,w,h);
+    g.drawImage(maskCanvas,state.cleanX,state.cleanY,w,h);
+    const moved=!state.lastInkPoint || Math.hypot(pointer.x-state.lastInkPoint.x,pointer.y-state.lastInkPoint.y)>5;
+    if(active && now-state.lastInkAt>25 && moved){
+      state.inkBlobs.push({x:pointer.x,y:pointer.y,at:now,r:Math.max(31,Math.min(w,h)*.075)});
+      state.lastInkAt=now;state.lastInkPoint={x:pointer.x,y:pointer.y};
     }
+    state.inkBlobs=state.inkBlobs.filter(b=>now-b.at<3800).slice(-100);
+    if(!state.inkBlobs.length)return;
+    const area=sceneBCtx,metal=sceneACtx;
+    area.clearRect(0,0,w,h);
+    for(const blob of state.inkBlobs){
+      const life=1-(now-blob.at)/3800;
+      area.fillStyle=`rgba(0,0,0,${Math.min(1,life*2)})`;
+      area.beginPath();area.arc(blob.x,blob.y,blob.r*(.9+life*.2),0,Math.PI*2);area.fill();
+    }
+    g.drawImage(sceneB,0,0,w,h);
+    metal.clearRect(0,0,w,h);
+    metal.drawImage(maskCanvas,0,0,w,h);
+    metal.globalCompositeOperation='source-in';
+    const shine=metal.createLinearGradient(0,h*.24,w*.5,h*.8);
+    shine.addColorStop(0,'#363942');shine.addColorStop(.26,'#c4cad5');
+    shine.addColorStop(.52,'#61656f');shine.addColorStop(.69,'#f2f3f6');shine.addColorStop(1,'#777b87');
+    metal.fillStyle=shine;metal.fillRect(0,0,w,h);
+    metal.globalCompositeOperation='destination-in';metal.drawImage(sceneB,0,0,w,h);
+    metal.globalCompositeOperation='source-over';
+    g.drawImage(sceneA,0,0,w,h);
   }
 
   function renderMode(g, mode, t, dt) {

@@ -99,7 +99,7 @@ jobs:
           const plates=fs.readFileSync('hero-art-plates.js','utf8');
           const overlay=fs.readFileSync('hero-gpu.js','utf8');
           if(!fs.existsSync('hero-art-plates.js') || !fs.existsSync('hero-gpu.js'))throw Error('Preserved material renderer missing');
-          if(!h.includes('hero-ink.js?v=20261124wave') || !h.includes('script.js?v=20261124wave') || !h.includes('styles.css?v=20261124surface'))throw Error('Production hero cache-buster stale');
+          if(!h.includes('hero-ink.js?v=20261125reveal') || !h.includes('script.js?v=20261125reveal') || !h.includes('styles.css?v=20261124surface'))throw Error('Production hero cache-buster stale');
           for(const dormant of ['hero-webgl.js','hero-art-plates.js','hero-stage.js','hero-scenes.js','hero-gpu.js']){
             if(h.includes('<script src="'+dormant))throw Error('Dormant material script should not load: '+dormant);
           }
