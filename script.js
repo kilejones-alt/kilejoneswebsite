@@ -775,7 +775,14 @@
     g.drawImage(maskCanvas,state.cleanX,state.cleanY,w,h);
     const moved=!state.lastInkPoint || Math.hypot(pointer.x-state.lastInkPoint.x,pointer.y-state.lastInkPoint.y)>5;
     if(active && now-state.lastInkAt>25 && moved){
-      state.inkBlobs.push({x:pointer.x,y:pointer.y,at:now,r:Math.max(31,Math.min(w,h)*.075)});
+      const old=state.lastInkPoint||{x:pointer.x,y:pointer.y};
+      const distance=Math.hypot(pointer.x-old.x,pointer.y-old.y);
+      const steps=Math.min(32,Math.max(1,Math.ceil(distance/34)));
+      for(let i=1;i<=steps;i++){
+        const fraction=i/steps;
+        state.inkBlobs.push({x:old.x+(pointer.x-old.x)*fraction,
+          y:old.y+(pointer.y-old.y)*fraction,at:now,r:Math.max(31,Math.min(w,h)*.075)});
+      }
       state.lastInkAt=now;state.lastInkPoint={x:pointer.x,y:pointer.y};
     }
     state.inkBlobs=state.inkBlobs.filter(b=>now-b.at<3800).slice(-100);
