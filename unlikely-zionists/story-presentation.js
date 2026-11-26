@@ -27,13 +27,15 @@
   const presentation=document.createElement('dialog');
   presentation.className='story-presentation';
   presentation.setAttribute('aria-label','EXPLORE IMAGE');
-  presentation.innerHTML='<button type="button" class="presentation-close" aria-label="Close image">×</button><div class="presentation-stage"><img alt=""><blockquote hidden></blockquote></div><div class="presentation-controls"><button type="button" class="presentation-prev" aria-label="Previous photograph position">←</button><progress aria-label="EXPLORE IMAGE"></progress><button type="button" class="presentation-next" aria-label="Next photograph position">→</button></div>';
+  presentation.innerHTML='<button type="button" class="presentation-close" aria-label="Close image">×</button><div class="presentation-stage"><img alt=""><blockquote hidden></blockquote></div><div class="presentation-controls"><button type="button" class="presentation-prev" aria-label="Previous photograph">←</button><progress aria-label="Photograph position"></progress><button type="button" class="presentation-next" aria-label="Next photograph">→</button><button type="button" class="presentation-playback">PAUSE</button></div>';
   document.body.appendChild(presentation);
   const photo=presentation.querySelector('img'),quote=presentation.querySelector('blockquote');
   const previous=presentation.querySelector('.presentation-prev'),next=presentation.querySelector('.presentation-next');
   const progress=presentation.querySelector('progress'),close=presentation.querySelector('.presentation-close');
   const photos=story.content.photos.filter(item=>item.src);
-  let index=0,timer=null,previousFocus=null;
+  const playback=presentation.querySelector('.presentation-playback');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  let index=0,timer=null,previousFocus=null,paused=false;
   progress.max=photos.length;
   function stop(){clearInterval(timer);timer=null;}
   function show(newIndex){
@@ -45,19 +47,23 @@
     presentation.classList.toggle('has-quote',!quote.hidden);
     progress.value=index+1;
     presentation.dataset.slide=String(index);
+    presentation.querySelector('.presentation-stage').scrollTop=0;
   }
-  function start(){stop();if(photos.length>1)timer=setInterval(()=>{if(!document.hidden&&photo.complete&&photo.naturalWidth)show(index+1);},4000);}
+  function start(){stop();if(!paused&&!document.hidden&&presentation.open&&photos.length>1)timer=setInterval(()=>{if(photo.complete&&photo.naturalWidth)show(index+1);},4000);}
+  function setPaused(value){paused=value;playback.textContent=paused?'PLAY':'PAUSE';playback.setAttribute('aria-label',paused?'Play photograph presentation':'Pause photograph presentation');start();}
   function end(){stop();if(presentation.open)presentation.close();previousFocus?.focus({preventScroll:true});}
   explore.addEventListener('click',()=>{
     if(!photos.length)return;
     previousFocus=document.activeElement;
-    show(0);presentation.showModal();close.focus({preventScroll:true});start();
+    show(0);presentation.showModal();close.focus({preventScroll:true});setPaused(reduced.matches);
   });
   close.addEventListener('click',end);
   presentation.addEventListener('close',()=>{stop();photo.removeAttribute('src');});
   presentation.addEventListener('cancel',event=>{event.preventDefault();end();});
   previous.addEventListener('click',()=>{show(index-1);start();});
   next.addEventListener('click',()=>{show(index+1);start();});
+  playback.addEventListener('click',()=>setPaused(!paused));
+  presentation.querySelector('.presentation-stage').addEventListener('scroll',()=>{if(presentation.open&&!paused)setPaused(true);},{passive:true});
   document.addEventListener('keydown',event=>{
     if(!presentation.open)return;
     if(['ArrowLeft','ArrowRight','Escape'].includes(event.key)){
@@ -66,6 +72,7 @@
     }
   },true);
   document.addEventListener('visibilitychange',()=>{if(!presentation.open)return;if(document.hidden)stop();else start();});
+  reduced.addEventListener('change',()=>{if(presentation.open&&reduced.matches)setPaused(true);});
   addEventListener('uz-viewer-close',end);
   addEventListener('pagehide',stop);
   photos.forEach(item=>{const preload=new Image();preload.src=item.src;});

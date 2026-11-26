@@ -1050,7 +1050,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
 </style>
 <link rel="stylesheet" href="content-update.css">
-  <link rel="stylesheet" href="story-viewer.css">
+  <link rel="stylesheet" href="story-viewer.css?v=20261126">
 </head>
 <body>
   <div id="app">
@@ -1081,7 +1081,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 .res-panel:nth-child(2) .res-label{color:var(--white)}
 @media(max-width:600px){.res-label{font-size:clamp(20px,5.8vw,34px);max-width:7ch}}
 
-</style><nav class="fallback-nav" aria-label="Preview navigation"><a href="#stories">STORIES</a><a href="#community">COMMUNITY</a><a href="#resources">RESOURCES</a><a href="#submit">SUBMIT</a></nav></noscript>
+</style><nav class="fallback-nav" aria-label="Preview navigation"><a href="#stories">STORIES</a><a href="#community">COMMUNITY</a><a href="#submit">SUBMIT</a></nav></noscript>
       </header>
 
     <nav class="menu-overlay" id="site-menu" aria-label="Site navigation" aria-hidden="true" inert>
@@ -1089,7 +1089,6 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
       <div class="menu-items">
         <a href="#stories"><span>STORIES</span><span class="arr" aria-hidden="true">→</span></a>
         <a href="#community"><span>COMMUNITY</span><span class="arr" aria-hidden="true">→</span></a>
-        <a href="#resources"><span>RESOURCES</span><span class="arr" aria-hidden="true">→</span></a>
         <a href="#submit"><span>SUBMIT</span><span class="arr" aria-hidden="true">→</span></a>
       </div>
     </nav>
@@ -1125,36 +1124,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
         </div>
         <div class="story-transition" aria-hidden="true"><span></span><span></span><span></span></div>
 
-        <section class="documentary-archive" id="story-archive" aria-labelledby="archive-heading">
-          <div class="archive-intro">
-            <p class="archive-eyebrow">A PERSONAL ACCOUNT</p>
-            <h2 id="archive-heading">WHAT CHANGED?</h2>
-            <p class="archive-summary">Explore the experiences and materials behind Kile's story.</p>
-          </div>
-          <div class="archive-layout">
-            <nav class="archive-index" aria-label="Explore the turning points">
-              <button class="archive-index-item is-current" type="button" data-archive-step="0" aria-current="step">WHAT I BELIEVED <span aria-hidden="true">↗</span></button>
-              <button class="archive-index-item" type="button" data-archive-step="1">WHAT I HEARD <span aria-hidden="true">↗</span></button>
-              <button class="archive-index-item" type="button" data-archive-step="2">WHAT I SAW <span aria-hidden="true">↗</span></button>
-              <button class="archive-index-item" type="button" data-archive-step="3">WHAT I STUDIED <span aria-hidden="true">↗</span></button>
-            </nav>
-            <div class="archive-stage">
-              <div class="archive-stage-inner">
-                <div class="archive-layer archive-layer-back" aria-hidden="true"></div>
-                <div class="archive-layer archive-layer-mid" aria-hidden="true"></div>
-                <div class="archive-narrative" aria-live="polite">
-                  <p class="archive-step-name">WHAT I BELIEVED</p>
-                  <p class="archive-step-copy"></p>
-                </div>
-                <button class="archive-artifact" id="archive-artifact" type="button" aria-haspopup="dialog" aria-label="Original October 2023 New York Times screenshot">
-                  <img class="archive-original" id="archive-original" src="./assets/nyt-october-2023-original.jpg" alt="Original October 2023 New York Times screenshot" loading="lazy" decoding="async" onload="document.getElementById('archive-original-status').hidden=true" onerror="this.hidden=true;document.getElementById('archive-original-status').hidden=false">
-                  <span id="archive-original-status" class="archive-original-status" hidden></span>
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="archive-scroll-track" aria-hidden="true"><span></span></div>
-        </section>
+
       </section>
 
       <section class="community scene" id="community" data-section="community" aria-labelledby="community-title">
@@ -1169,23 +1139,12 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
             <div class="field"><label for="member-email">EMAIL</label><input id="member-email" type="email" name="email" autocomplete="email" required maxlength="254"></div>
             <label class="consent"><input type="checkbox" id="member-consent" name="consent" required><span>I agree to be contacted by Unlikely Zionists.</span></label>
             <button type="submit" class="join-button" disabled aria-describedby="form-status"><span>JOIN</span><span aria-hidden="true">→</span></button>
-            <p id="form-status" class="sr-only" aria-live="polite"></p>
+            <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
           </form>
         </div>
       </section>
 
-      <section class="resources scene" id="resources" data-section="resources" aria-labelledby="resources-title">
-        <div class="resources-head reveal"><h2 id="resources-title">RESOURCES</h2></div>
-        <div class="resources-panels"><div class="res-panel" data-resource-inactive><div><span class="res-label">Other Unlikely Zionists</span></div></div><div class="res-panel"><div><span class="res-label">Challenging Stereotypes</span></div></div><div class="res-panel"><div><span class="res-label">How to Respond</span></div></div></div>
-        <div class="resources-underline" aria-hidden="true"></div>
 
-        <div class="resource-discovery" id="resource-discovery" aria-live="polite" hidden>
-          <p class="resource-discovery-label">COLLECTION IN DEVELOPMENT</p>
-          <h3 id="resource-discovery-title">Other Unlikely Zionists</h3>
-          <p>Resources will appear here when they have been reviewed and approved.</p>
-          <button type="button" id="resource-close" aria-label="Close resource collection">CLOSE ↗</button>
-        </div>
-      </section>
 
 
       <section class="submit scene" id="submit" data-section="submit" aria-labelledby="submit-title">
@@ -1262,7 +1221,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
                 <h3 id="story-step-4">Add photos, if you like.</h3>
                 <p class="step-desc">You can submit without photographs. Before any story is published, we will ask for a genuine portrait and separate permission to use it. Uploaded images remain private during review.</p>
                 <label class="file-drop" id="story-file-drop">
-                  <strong>Choose photographs</strong><span>Up to five JPG, PNG, or WebP images · 6 MB each</span>
+                  <strong>Choose photographs</strong><span>Up to five JPG, PNG, or WebP images · 6 MB each · 10 MB total</span>
                   <input type="file" name="photos" id="story-photos" accept="image/jpeg,image/png,image/webp" multiple>
                 </label>
                 <div id="files-preview" hidden aria-label="Selected photographs"></div>
@@ -1303,8 +1262,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     <div class="reading-progress" aria-hidden="true"><span></span></div>
     <input type="file" id="image-picker" accept="image/*" hidden aria-label="Select an approved photograph for local preview">
   </div>
-  <script src="form-mail.js"></script>
-  <script src="story-content.js"></script>
+  <script src="form-mail.js?v=20261126"></script>
+  <script src="story-content.js?v=20261126"></script>
   <script defer>
 (() => {
   'use strict';
@@ -1345,14 +1304,20 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   const orderedScenes = [...document.querySelectorAll('[data-section]')];
   const staticPhotoUrls = [person.photos[0]?.src || null, person.photos[1]?.src || null, person.reasonImage || null];
 
+  function syncOverlayAccess() {
+    document.getElementById('main').inert=state.menuOpen||state.viewerOpen;
+    header.inert=state.viewerOpen;
+  }
   function setMenu(open) {
     state.menuOpen = open;
+    syncOverlayAccess();
     menu.classList.toggle('is-open', open);
     menu.setAttribute('aria-hidden', String(!open));
     menu.inert = !open;
     menuButton.setAttribute('aria-expanded', String(open));
     menuLabel.textContent = open ? 'CLOSE' : 'MENU';
     document.body.classList.toggle('menu-open', open);
+    dispatchEvent(new CustomEvent('uz-navigation-change'));
     if (open) {
       state.lastFocus = document.activeElement;
       setTimeout(() => menu.querySelector('a')?.focus({preventScroll: true}), prefersReducedMotion.matches ? 0 : 220);
@@ -1482,6 +1447,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     state.lastFocus = document.activeElement;
     updateViewerImage();
     state.viewerOpen = true;
+    syncOverlayAccess();
     window.dispatchEvent(new CustomEvent('uz-viewer-open',{detail:{index:state.active}}));
     viewer.inert = false;
     viewer.setAttribute('aria-hidden', 'false');
@@ -1492,6 +1458,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   function closeViewer() {
     if (!state.viewerOpen) return;
     state.viewerOpen = false;
+    syncOverlayAccess();
     window.dispatchEvent(new CustomEvent('uz-viewer-close'));
     viewer.classList.remove('is-open');
     viewer.setAttribute('aria-hidden', 'true');
@@ -1502,6 +1469,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   function moveViewer(step) {
     rotate(step);
     updateViewerImage();
+    viewer.querySelector('.viewer-content').scrollTop=0;
     window.dispatchEvent(new CustomEvent('uz-chapter-change',{detail:{index:state.active}}));
     viewer.classList.remove('changing-chapter');
     void viewer.offsetWidth;
@@ -1564,6 +1532,15 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     openViewer();
   });
   document.addEventListener('keydown', event => {
+    if(event.key==='Tab' && (state.menuOpen||state.viewerOpen) && !document.querySelector('dialog[open]')){
+      const candidates=state.viewerOpen
+        ? [...viewer.querySelectorAll('button,a[href],[tabindex="0"]')]
+        : [menuButton,...menu.querySelectorAll('a[href]')];
+      const focusable=candidates.filter(element=>!element.disabled&&element.getClientRects().length);
+      const first=focusable[0],last=focusable[focusable.length-1];
+      if(event.shiftKey&&(document.activeElement===first||!focusable.includes(document.activeElement))){event.preventDefault();last?.focus();}
+      else if(!event.shiftKey&&(document.activeElement===last||!focusable.includes(document.activeElement))){event.preventDefault();first?.focus();}
+    }
     if (event.key === 'Escape') {
       if (state.viewerOpen) closeViewer();
       else if (state.menuOpen) setMenu(false);
@@ -1715,7 +1692,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     }
   });
 
-  // No invented success claims. This offline preview intentionally does not transmit personal data.
+  // Show delivery feedback only after the email service accepts the request.
   const signup = document.querySelector('#community-form');
   const joinButton=signup.querySelector('button[type="submit"]');
   const joinStatus=document.getElementById('form-status');
@@ -1727,14 +1704,14 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   signup.addEventListener('submit',async event=>{
     event.preventDefault();
     if(joining||!signup.reportValidity())return;
-    joining=true;syncJoin();joinStatus.textContent='';
+    joining=true;syncJoin();signup.setAttribute('aria-busy','true');joinStatus.textContent='Sending…';
     try{
       await window.UnlikelyZionistsMail.send(signup,'Community request');
       signup.reset();
-      joinStatus.textContent='';
+      joinStatus.textContent='Thank you. Your community request has been sent.';
     }catch{
-      joinStatus.textContent='Could not submit privately. Your story has not been sent.';
-    }finally{joining=false;syncJoin();}
+      joinStatus.textContent='Your request could not be sent. Please try again.';
+    }finally{joining=false;signup.removeAttribute('aria-busy');syncJoin();}
   });
 
 
@@ -1838,8 +1815,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   uploadControl.addEventListener('change', () => {
     resetPreview();
     const files=[...uploadControl.files];
-    if(files.length>5 || files.some(file=>!acceptableTypes.has(file.type) || file.size>6*1024*1024)) {
-      formError.textContent='Choose up to five JPG, PNG, or WebP images, each 6 MB or smaller.';
+    if(files.length>5 || files.some(file=>!acceptableTypes.has(file.type) || file.size>6*1024*1024) || files.reduce((total,file)=>total+file.size,0)>10*1024*1024) {
+      formError.textContent='Choose up to five JPG, PNG, or WebP images: 6 MB per image and 10 MB in total.';
       uploadControl.value='';
       return;
     }
@@ -1952,6 +1929,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
       state.active = Math.max(0, Math.min(cards.length - 1, index));
       renderCards(false);
       updateViewerImage();
+      viewer.querySelector('.viewer-content').scrollTop=0;
       window.dispatchEvent(new CustomEvent('uz-chapter-change', {detail:{index:state.active}}));
     }
   });
@@ -1982,8 +1960,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   const scenes = [
     {id:'home',kind:0,number:14},
     {id:'stories',kind:1,number:14},
-    {id:'community',kind:2,number:10},
-    {id:'resources',kind:3,number:12}
+    {id:'community',kind:2,number:10}
   ];
   const vert = `#version 300 es
     precision highp float;
@@ -2217,22 +2194,29 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   addEventListener('uz-viewer-close',()=>{if(lookup.has('stories'))lookup.get('stories').pulseAt=performance.now();});
   addEventListener('uz-chapter-change',()=>{if(lookup.has('story-viewer'))lookup.get('story-viewer').pulseAt=performance.now();});
   addEventListener('webglcontextrestored',()=>{location.reload();});
-  let last=0,stop=false;
+  let last=0,stop=false,frameRequest=0;
   const observer=new IntersectionObserver(entries=>{
     for(const entry of entries){const o=lookup.get(entry.target.id);if(o)o.inView=entry.isIntersecting;}
   },{rootMargin:'120px'});
   contexts.filter(x=>x.config.kind!==4).forEach(x=>observer.observe(x.element));
   function frame(ms){
-    if(stop)return;
+    frameRequest=0;
+    if(stop||document.hidden||reduced.matches||document.getElementById('main').inert)return;
     const delta=ms-last;
     if(delta>=(lowPower.matches?30:14)||!last){
       for(const o of contexts){if(o.config.kind===4||o.inView)draw(o,ms*.001);}
       last=ms;
     }
-    requestAnimationFrame(frame);
+    frameRequest=requestAnimationFrame(frame);
   }
-  addEventListener('pagehide',()=>{stop=true;});
-  requestAnimationFrame(frame);
+  function resumeMotion(){if(!stop&&!document.hidden&&!reduced.matches&&!document.getElementById('main').inert&&!frameRequest)frameRequest=requestAnimationFrame(frame);}
+  function suspendMotion(){cancelAnimationFrame(frameRequest);frameRequest=0;}
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)suspendMotion();else resumeMotion();});
+  reduced.addEventListener('change',()=>{if(reduced.matches)suspendMotion();else resumeMotion();});
+  ['uz-viewer-open','uz-viewer-close','uz-navigation-change'].forEach(name=>addEventListener(name,()=>{if(document.getElementById('main').inert)suspendMotion();else resumeMotion();}));
+  addEventListener('pagehide',()=>{stop=true;suspendMotion();});
+  addEventListener('pageshow',()=>{stop=false;resumeMotion();});
+  resumeMotion();
 })();
 
 </script>
@@ -2333,95 +2317,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 </script>
 
 
-<script>
-/* Documentary timeline and accessible original-media examination. */
-(() => {
-  const archive=document.getElementById('story-archive');
-  if(!archive)return;
-  const steps=[
-    ['WHAT I BELIEVED',''],
-    ['WHAT I HEARD',''],
-    ['WHAT I SAW',''],
-    ['WHAT I STUDIED','']
-  ];
-  const buttons=[...archive.querySelectorAll('[data-archive-step]')];
-  const name=archive.querySelector('.archive-step-name');
-  const copy=archive.querySelector('.archive-step-copy');
-  const panel=archive.querySelector('.archive-narrative');
-  let current=0;
-  let animation=null;
-  function activate(index){
-    if(index===current)return;
-    current=index;
-    buttons.forEach((b,i)=>{if(i===index)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');});
-    if(animation)animation.cancel();
-    const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
-    name.textContent=steps[index][0];
-    copy.textContent=steps[index][1];
-    if(!reduced){
-      animation=panel.animate([{opacity:.2,transform:'translateX(-35px)'},{opacity:1,transform:'translateX(0)'}],{duration:580,easing:'cubic-bezier(.16,1,.3,1)'});
-    }
-  }
-  buttons.forEach((b,i)=>b.addEventListener('click',()=>activate(i)));
-  const reduced=matchMedia('(prefers-reduced-motion:reduce)');
-  let ticking=false;
-  function onScroll(){
-    ticking=false;
-    if(reduced.matches)return;
-    const box=archive.getBoundingClientRect(),height=Math.max(1,box.height-innerHeight);
-    const progress=Math.max(0,Math.min(1,-box.top/height));
-    archive.style.setProperty('--archive-progress',progress.toFixed(3));
-    archive.style.setProperty('--archive-depth',((progress-.5)*2).toFixed(3));
-    if(innerWidth>780)activate(Math.min(3,Math.floor(progress*4)));
-  }
-  addEventListener('scroll',()=>{if(!ticking){ticking=true;requestAnimationFrame(onScroll);}}, {passive:true});
-  addEventListener('resize',onScroll,{passive:true});
-  onScroll();
-  // Show original screenshot only when the resource upload has actually been supplied.
-  const original=document.getElementById('archive-original');
-  const artifact=document.getElementById('archive-artifact');
-  const modal=document.createElement('dialog');
-  modal.className='archive-lightbox';
-  modal.setAttribute('aria-label','Original October 2023 New York Times screenshot');
-  modal.innerHTML='<button type="button" class="archive-lightbox-close" aria-label="Close artifact">×</button><div class="archive-lightbox-inner"><img alt="Original New York Times screenshot, October 2023" hidden><div class="archive-lightbox-fallback"></div></div>';
-  document.body.appendChild(modal);
-  const image=modal.querySelector('img');
-  const fallback=modal.querySelector('.archive-lightbox-fallback');
-  artifact.addEventListener('click',()=>{
-    if(original.complete && original.naturalWidth){
-      image.src=original.currentSrc||original.src;
-      image.hidden=false;
-      fallback.hidden=true;
-    }else{image.hidden=true;fallback.hidden=false;}
-    modal.showModal();
-    modal.querySelector('button').focus();
-  });
-  modal.querySelector('button').addEventListener('click',()=>modal.close());
-  modal.addEventListener('click',e=>{if(e.target===modal)modal.close();});
-  const discovery=document.getElementById('resource-discovery');
-  const detail=document.getElementById('resource-discovery-title');
-  const choices=[...document.querySelectorAll('.resources .res-panel')];
-  choices.forEach((panel,i)=>{
-    if(panel.matches('a[href],[data-resource-inactive]'))return;
-    panel.setAttribute('role','button');
-    panel.setAttribute('tabindex','0');
-    panel.setAttribute('aria-label','Explore '+panel.textContent.trim());
-    function open(){
-      detail.textContent=panel.textContent.trim();
-      discovery.hidden=false;
-      discovery.scrollIntoView({behavior:reduced.matches?'instant':'smooth',block:'center'});
-    }
-    panel.addEventListener('click',open);
-    panel.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
-  });
-  const resourceClose=document.getElementById('resource-close');
-  resourceClose.addEventListener('click',()=>{
-    discovery.hidden=true;
-    document.getElementById('resources-title').scrollIntoView({behavior:reduced.matches?'instant':'smooth'});
-  });
-})();
-</script>
 
-<script src="story-presentation.js"></script>
+
+<script src="story-presentation.js?v=20261126"></script>
 </body>
 </html>
