@@ -47,7 +47,7 @@
     }
     let response;
     try{
-      response=await fetch(endpoint,{method:'POST',headers:{Accept:'application/json'},body,credentials:'omit',signal:AbortSignal.timeout(90000)});
+      response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(Object.fromEntries(body)),credentials:'omit',signal:AbortSignal.timeout(90000)});
     }catch{throw new Error(failure);}
     const result=await response.json().catch(()=>null);
     if(!response.ok||!result||!['true',true].includes(result.success)){console.warn('Email relay declined delivery:',result?.message||response.status);throw new Error(failure);}

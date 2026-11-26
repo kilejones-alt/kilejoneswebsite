@@ -1050,7 +1050,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
 </style>
 <link rel="stylesheet" href="content-update.css">
-  <link rel="stylesheet" href="story-viewer.css?v=20261126b">
+  <link rel="stylesheet" href="story-viewer.css?v=20261126c">
+  <link rel="stylesheet" href="refinement.css?v=20261126c">
 </head>
 <body>
   <div id="app">
@@ -1099,7 +1100,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
         <div class="hero-layer hero-right" aria-hidden="true"><i></i><i></i></div>
         <div class="hero-wipe hero-wipe-left" aria-hidden="true"></div>
         <div class="hero-wipe hero-wipe-right" aria-hidden="true"></div>
-        <div class="hero-core"><p class="statement">WELL, THIS IS UNEXPECTED.</p></div>
+        <div class="hero-core"><p class="statement">WELL, THIS IS UNEXPECTED.</p><a class="hero-story-link" href="#stories">Explore the stories <span aria-hidden="true">↗</span></a></div>
         <div class="hero-bottom-rule" aria-hidden="true"></div>
         <a class="scroll-cue" href="#stories" aria-label="Scroll to stories"><svg viewBox="0 0 28 51" aria-hidden="true"><path d="M14 0V47M2 34l12 12 12-12"/></svg></a>
       </section>
@@ -1122,6 +1123,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
             <button id="deck-next" type="button" class="round-arrow" aria-label="Next photograph position"><svg viewBox="0 0 34 30" aria-hidden="true"><path d="M2 15h30M20 3l12 12-12 12"/></svg></button>
           </div>
         </div>
+        <p class="deck-caption"><span>Kile’s story</span><output id="deck-position" aria-live="polite">01 / 03</output></p>
         <div class="story-transition" aria-hidden="true"><span></span><span></span><span></span></div>
 
 
@@ -1140,7 +1142,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
             <label class="consent"><input type="checkbox" id="member-consent" name="consent" required><span>I agree to be contacted by Unlikely Zionists.</span></label>
             <button type="submit" class="join-button" disabled aria-describedby="form-status"><span>JOIN</span><span aria-hidden="true">→</span></button>
             <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
-            <a id="community-email-fallback" class="email-fallback" href="mailto:kilebardenjones@gmail.com?subject=The%20Unlikely%20Zionists%20%E2%80%94%20Community" hidden>Email us instead</a>
+            <a id="community-email-fallback" class="email-fallback" href="mailto:kilebardenjones@gmail.com?subject=The%20Unlikely%20Zionists%20%E2%80%94%20Community">Prefer email? Contact Kile</a>
           </form>
         </div>
       </section>
@@ -1161,21 +1163,21 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
             </div>
           </div>
           <form class="submission-form reveal" id="story-submission-form" method="post" enctype="multipart/form-data" novalidate>
-            <div class="form-progress-head"><span>SHARE YOUR STORY</span></div>
+            <div class="form-progress-head"><span>SHARE YOUR STORY</span><span id="story-step-status" aria-live="polite">01 / 04 · Identity</span></div>
             <div class="form-progress-track" aria-hidden="true"><span id="story-progress-line"></span></div>
             <div class="submission-steps">
               <section class="submission-step" data-step="0" aria-hidden="false" aria-labelledby="story-step-1">
-                <h3 id="story-step-1">Choose what kind of Zionist you want to be.</h3>
+                <h3 id="story-step-1">How would you like to be identified?</h3>
                 <fieldset>
                   <legend>Choose one</legend>
                   <div class="option-row">
-                    <label class="choice-card"><input type="radio" name="identity" value="anonymous" checked> an anonymous Zionist</label>
-                    <label class="choice-card"><input type="radio" name="identity" value="first_name"> a Zionist by first name</label>
-                    <label class="choice-card"><input type="radio" name="identity" value="full_name"> a public Zionist</label>
+                    <label class="choice-card"><input type="radio" name="identity" value="anonymous" checked> Anonymous</label>
+                    <label class="choice-card"><input type="radio" name="identity" value="first_name"> First name only</label>
+                    <label class="choice-card"><input type="radio" name="identity" value="full_name"> Full name</label>
                   </div>
                 </fieldset>
                 <div id="public-name-wrapper" class="form-field" hidden><label for="story-display-name">Name to use if published</label><input type="text" id="story-display-name" name="display_name" autocomplete="name" maxlength="90"></div>
-                <div class="form-field"><label for="story-private-email">Email for a likely follow-up</label><input type="email" id="story-private-email" name="private_email" autocomplete="email" maxlength="254"></div>
+                <div class="form-field"><label for="story-private-email">Email for follow-up (optional)</label><input type="email" id="story-private-email" name="private_email" autocomplete="email" maxlength="254"></div>
                 
               </section>
               <section class="submission-step" data-step="1" aria-hidden="true" aria-labelledby="story-step-2">
@@ -1234,7 +1236,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
               </section>
             </div>
             <div id="story-form-error" role="alert" aria-live="polite"></div>
-            <a id="story-email-fallback" class="email-fallback" href="mailto:kilebardenjones@gmail.com?subject=The%20Unlikely%20Zionists%20%E2%80%94%20Story" hidden>Email your story instead</a>
+            <p id="story-send-status" class="story-send-status" role="status"></p>
+            <a id="story-email-fallback" class="email-fallback" href="mailto:kilebardenjones@gmail.com?subject=The%20Unlikely%20Zionists%20%E2%80%94%20Story">Prefer email? Send your story directly</a>
             <div class="form-controls">
               <button type="button" id="story-back" hidden>Back</button>
               <button type="button" id="story-next">Continue <span aria-hidden="true">→</span></button>
@@ -1250,6 +1253,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
         </div>
       </section>
     </main>
+    <footer class="site-footer"><p>The Unlikely Zionists</p><nav aria-label="Footer navigation"><a href="#stories">Stories</a><a href="#community">Community</a><a href="#submit">Share your story</a><a href="mailto:kilebardenjones@gmail.com">Contact</a></nav></footer>
 
     <div class="story-viewer" id="story-viewer" role="dialog" aria-modal="true" aria-label="Stories" aria-hidden="true" inert>
       <div class="viewer-door viewer-door-left" aria-hidden="true"></div>
@@ -1264,8 +1268,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     <div class="reading-progress" aria-hidden="true"><span></span></div>
     <input type="file" id="image-picker" accept="image/*" hidden aria-label="Select an approved photograph for local preview">
   </div>
-  <script src="form-mail.js?v=20261126b"></script>
-  <script src="story-content.js?v=20261126b"></script>
+  <script src="form-mail.js?v=20261126c"></script>
+  <script src="story-content.js?v=20261126c"></script>
   <script defer>
 (() => {
   'use strict';
@@ -1308,6 +1312,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
   function syncOverlayAccess() {
     document.getElementById('main').inert=state.menuOpen||state.viewerOpen;
+    document.querySelector('.site-footer').inert=state.menuOpen||state.viewerOpen;
     header.inert=state.viewerOpen;
   }
   function setMenu(open) {
@@ -1359,6 +1364,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     }
     progressLine.style.width = (100 / cards.length) + '%';
     progressLine.style.transform = `translateX(${state.active * 100}%)`;
+    document.getElementById('deck-position').textContent=String(state.active+1).padStart(2,'0')+' / '+String(cards.length).padStart(2,'0');
     ['deck-prev','viewer-prev'].forEach(id=>document.getElementById(id).disabled=state.active===0);
     ['deck-next','viewer-next'].forEach(id=>document.getElementById(id).disabled=state.active===cards.length-1);
   }
@@ -1706,7 +1712,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   signup.addEventListener('submit',async event=>{
     event.preventDefault();
     if(joining||!signup.reportValidity())return;
-    joining=true;syncJoin();signup.setAttribute('aria-busy','true');joinStatus.textContent='Sending…';document.getElementById('community-email-fallback').hidden=true;
+    joining=true;syncJoin();signup.setAttribute('aria-busy','true');joinStatus.textContent='Sending…';
+    const waiting=setTimeout(()=>{joinStatus.textContent='Delivery is taking longer than usual. Keep this page open, or email us below.';},12000);
     try{
       await window.UnlikelyZionistsMail.send(signup,'Community request');
       signup.reset();
@@ -1714,7 +1721,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     }catch{
       joinStatus.textContent='We could not confirm delivery. Please wait before trying again, or use the email link below.';
       document.getElementById('community-email-fallback').hidden=false;
-    }finally{joining=false;signup.removeAttribute('aria-busy');syncJoin();}
+    }finally{clearTimeout(waiting);joining=false;signup.removeAttribute('aria-busy');syncJoin();}
   });
 
 
@@ -1755,6 +1762,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
   function showStoryStep(n, focus = false) {
     storyStep = Math.max(0, Math.min(3, n));
+    document.getElementById('story-step-status').textContent=String(storyStep+1).padStart(2,'0')+' / 04 · '+['Identity','Your story','Context','Photographs'][storyStep];
     storySteps.forEach((step,index) => {
       const visible = index === storyStep;
       step.setAttribute('aria-hidden',String(!visible));
@@ -1766,7 +1774,10 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     sendStory.hidden = storyStep !== 3;
     formError.textContent = '';
     if (focus) storySteps[storyStep].querySelector('h3')?.setAttribute('tabindex','-1');
-    if (focus) storySteps[storyStep].querySelector('h3')?.focus({preventScroll:true});
+    if (focus) {
+      storySteps[storyStep].querySelector('h3')?.focus({preventScroll:true});
+      storyForm.scrollIntoView({behavior:prefersReducedMotion.matches?'instant':'smooth',block:'start'});
+    }
   }
   function validateCurrentStep() {
     if (storyStep === 0) {
@@ -1848,7 +1859,9 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     const sendLabel=sendStory.innerHTML;
     sendStory.textContent='Sending…';
     storyForm.setAttribute('aria-busy','true');
-    document.getElementById('story-email-fallback').hidden=true;
+    const sendStatus=document.getElementById('story-send-status');
+    sendStatus.textContent='Sending your story…';
+    const waiting=setTimeout(()=>{sendStatus.textContent='Delivery is taking longer than usual. Keep this page open, or email us below.';},12000);
     try {
       const data=await window.UnlikelyZionistsMail.send(storyForm,'Story submission');
       storySteps.forEach(step=>{step.setAttribute('aria-hidden','true');step.inert=true});
@@ -1865,6 +1878,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     } finally {
       sendStory.disabled=false;
       nextStep.disabled=false;
+      clearTimeout(waiting);sendStatus.textContent='';
       sendStory.innerHTML=sendLabel;
       storyForm.removeAttribute('aria-busy');
     }
@@ -2329,6 +2343,6 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
 
 
-<script src="story-presentation.js?v=20261126b"></script>
+<script src="story-presentation.js?v=20261126c"></script>
 </body>
 </html>
