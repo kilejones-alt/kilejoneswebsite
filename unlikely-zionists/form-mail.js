@@ -3,7 +3,7 @@
   'use strict';
   const endpoint='https://formsubmit.co/ajax/c079591d84c865a3c180911463dd3fd5';
   const website='https://kilejones.com/unlikely-zionists/';
-  const failure='Could not submit privately. Your story has not been sent.';
+  const failure='We could not confirm delivery. Please wait before trying again, or use the email link below.';
   function build(form,kind){
     const source=new FormData(form),body=new FormData();
     const reference=crypto.randomUUID();
@@ -21,7 +21,7 @@
     const replyTo=String(source.get('private_email')||source.get('email')||'').trim();
     if(replyTo)body.set('_replyto',replyTo);
     const files=source.getAll('photos').filter(value=>value instanceof Blob&&value.size>0);
-    if(files.length>5||files.some(file=>!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>6*1024*1024)||files.reduce((sum,file)=>sum+file.size,0)>10*1024*1024)throw new Error(failure);
+    if(files.length>5||files.some(file=>!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>6*1024*1024)||files.reduce((sum,file)=>sum+file.size,0)>10*1024*1024)throw new Error('Choose up to five JPG, PNG, or WebP images: 6 MB per image and 10 MB in total.');
     files.forEach((file,index)=>body.append(index?'attachment'+(index+1):'attachment',file,file.name));
     return {body,reference};
   }
@@ -45,7 +45,10 @@
       HTMLFormElement.prototype.submit.call(transfer);
       return new Promise(()=>{});
     }
-    const response=await fetch(endpoint,{method:'POST',headers:{Accept:'application/json'},body,credentials:'omit',signal:AbortSignal.timeout(45000)});
+    let response;
+    try{
+      response=await fetch(endpoint,{method:'POST',headers:{Accept:'application/json'},body,credentials:'omit',signal:AbortSignal.timeout(90000)});
+    }catch{throw new Error(failure);}
     const result=await response.json().catch(()=>null);
     if(!response.ok||!result||!['true',true].includes(result.success)){console.warn('Email relay declined delivery:',result?.message||response.status);throw new Error(failure);}
     return {received:true,id:reference};

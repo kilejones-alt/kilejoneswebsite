@@ -57,6 +57,9 @@
 .presentation-controls progress{width:48px}
 .community-form #form-status{margin:0;font-size:14px;line-height:1.5}
 .community-form #form-status:empty{display:none}
+.email-fallback{display:inline-block;font:600 13px/1.5 'DM Sans',Arial,sans-serif;text-decoration:underline;text-underline-offset:4px}
+.email-fallback[hidden]{display:none}
+#story-email-fallback{margin:0 clamp(20px,4vw,56px) 20px;color:var(--ruby)}
 :where(button,a,input,textarea,select):focus-visible{outline:3px solid currentColor;outline-offset:5px}
 @media(max-height:500px) and (min-width:751px){
  #story-viewer.is-open{padding-top:80px;padding-bottom:115px}

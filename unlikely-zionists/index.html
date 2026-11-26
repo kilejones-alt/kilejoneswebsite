@@ -1050,7 +1050,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
 </style>
 <link rel="stylesheet" href="content-update.css">
-  <link rel="stylesheet" href="story-viewer.css?v=20261126">
+  <link rel="stylesheet" href="story-viewer.css?v=20261126b">
 </head>
 <body>
   <div id="app">
@@ -1140,6 +1140,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
             <label class="consent"><input type="checkbox" id="member-consent" name="consent" required><span>I agree to be contacted by Unlikely Zionists.</span></label>
             <button type="submit" class="join-button" disabled aria-describedby="form-status"><span>JOIN</span><span aria-hidden="true">→</span></button>
             <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+            <a id="community-email-fallback" class="email-fallback" href="mailto:kilebardenjones@gmail.com?subject=The%20Unlikely%20Zionists%20%E2%80%94%20Community" hidden>Email us instead</a>
           </form>
         </div>
       </section>
@@ -1233,6 +1234,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
               </section>
             </div>
             <div id="story-form-error" role="alert" aria-live="polite"></div>
+            <a id="story-email-fallback" class="email-fallback" href="mailto:kilebardenjones@gmail.com?subject=The%20Unlikely%20Zionists%20%E2%80%94%20Story" hidden>Email your story instead</a>
             <div class="form-controls">
               <button type="button" id="story-back" hidden>Back</button>
               <button type="button" id="story-next">Continue <span aria-hidden="true">→</span></button>
@@ -1262,8 +1264,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     <div class="reading-progress" aria-hidden="true"><span></span></div>
     <input type="file" id="image-picker" accept="image/*" hidden aria-label="Select an approved photograph for local preview">
   </div>
-  <script src="form-mail.js?v=20261126"></script>
-  <script src="story-content.js?v=20261126"></script>
+  <script src="form-mail.js?v=20261126b"></script>
+  <script src="story-content.js?v=20261126b"></script>
   <script defer>
 (() => {
   'use strict';
@@ -1704,13 +1706,14 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   signup.addEventListener('submit',async event=>{
     event.preventDefault();
     if(joining||!signup.reportValidity())return;
-    joining=true;syncJoin();signup.setAttribute('aria-busy','true');joinStatus.textContent='Sending…';
+    joining=true;syncJoin();signup.setAttribute('aria-busy','true');joinStatus.textContent='Sending…';document.getElementById('community-email-fallback').hidden=true;
     try{
       await window.UnlikelyZionistsMail.send(signup,'Community request');
       signup.reset();
       joinStatus.textContent='Thank you. Your community request has been sent.';
     }catch{
-      joinStatus.textContent='Your request could not be sent. Please try again.';
+      joinStatus.textContent='We could not confirm delivery. Please wait before trying again, or use the email link below.';
+      document.getElementById('community-email-fallback').hidden=false;
     }finally{joining=false;signup.removeAttribute('aria-busy');syncJoin();}
   });
 
@@ -1842,6 +1845,10 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     sendStory.disabled=true;
     nextStep.disabled=true;
     formError.textContent='';
+    const sendLabel=sendStory.innerHTML;
+    sendStory.textContent='Sending…';
+    storyForm.setAttribute('aria-busy','true');
+    document.getElementById('story-email-fallback').hidden=true;
     try {
       const data=await window.UnlikelyZionistsMail.send(storyForm,'Story submission');
       storySteps.forEach(step=>{step.setAttribute('aria-hidden','true');step.inert=true});
@@ -1853,10 +1860,13 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
       resetPreview();
       storyForm.reset();
     } catch(error) {
-      formError.textContent=error.message || 'Could not submit privately. Your story has not been sent.';
+      formError.textContent=error.message || 'We could not confirm delivery. Please wait before trying again, or use the email link below.';
+      document.getElementById('story-email-fallback').hidden=false;
     } finally {
       sendStory.disabled=false;
       nextStep.disabled=false;
+      sendStory.innerHTML=sendLabel;
+      storyForm.removeAttribute('aria-busy');
     }
   });
   document.getElementById('story-restart').addEventListener('click',()=>{
@@ -2319,6 +2329,6 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
 
 
-<script src="story-presentation.js?v=20261126"></script>
+<script src="story-presentation.js?v=20261126b"></script>
 </body>
 </html>
