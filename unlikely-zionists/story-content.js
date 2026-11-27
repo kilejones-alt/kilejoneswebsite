@@ -74,7 +74,7 @@ window.UZStoryContent = Object.freeze({
   reasonImage: 'assets/nyt-october-2023-original.jpg',
   photos: [
     {src:'assets/kile-family-portrait.jpg', quote:'When I stopped softening my takes on Zionism and said it plainly, the friendships cooled into mere courtesy.'},
-    {src:'assets/kile-event.jpg', quote:'If that’s wrong, what else is wrong?'},
-    {src:'assets/kile-conversation.jpg', quote:'It happened slowly. That’s what makes me trust it more.'}
+    {src:'assets/kile-event-laugh.jpg', quote:'I’m not Jewish, but I stand with Jewish people.'},
+    {src:'assets/kile-portrait.webp', quote:'It happened slowly. That’s what makes me trust it more.'}
   ]
 });

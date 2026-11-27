@@ -8,6 +8,7 @@
 .invitation-link{display:inline-flex;align-items:center;min-height:44px;border-bottom:1px solid currentColor;color:inherit;text-decoration:none;font:600 12px/1.4 'DM Sans',Arial,sans-serif}
 /* Navigation and editorial rhythm, layered over the existing motion direction. */
 .deck-caption{display:flex;align-items:center;justify-content:center;gap:20px;color:var(--ruby);font:500 11px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.04em;margin:20px 0 0}
+#deck-playback{min-width:55px;min-height:44px;padding:8px;border:0;background:transparent;color:var(--ruby);font:600 10px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.08em}
 #story-viewer .chapter-rail{gap:8px}
 #story-viewer .chapter-rail button{width:44px;height:38px;border:0;background:transparent;color:var(--ruby)}
 #story-viewer .chapter-rail button::before{display:block}
@@ -41,6 +42,9 @@
 }
 @media(max-height:500px) and (min-width:751px){#story-viewer.is-open{padding-bottom:125px}}
 @media(max-width:600px){
+ .deck-controls{width:calc(100% - 40px);max-width:340px;gap:12px;margin-inline:auto}
+ .deck-progress{flex:1;min-width:20px;width:auto}
+ .deck-controls .round-arrow,#deck-playback{flex:none}
  .hero .statement{font-size:clamp(14px,3.8vw,17px)}
  #story-viewer.is-intro-chapter #viewer-public-name{font-size:clamp(16px,4.7vw,26px)}
  .site-footer{display:block;padding-block:32px}

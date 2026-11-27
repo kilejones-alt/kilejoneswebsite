@@ -50,7 +50,8 @@
     index=(newIndex+slides.length)%slides.length;
     photo.src=slides[index].src;
     photo.alt=slides[index].alt||story.content.firstName;
-    quote.textContent=slides[index].quote||'';
+    const text=String(slides[index].quote||'').trim();
+    quote.textContent=text?'“'+text+'”':'';
     quote.hidden=!quote.textContent;
     presentation.classList.toggle('has-quote',!quote.hidden);
     progress.value=index+1;
@@ -80,7 +81,7 @@
   previous.addEventListener('click',()=>{show(index-1);start();});
   next.addEventListener('click',()=>{show(index+1);start();});
   playback.addEventListener('click',()=>setPaused(!paused));
-  presentation.querySelector('.presentation-stage').addEventListener('scroll',()=>{if(presentation.open&&!paused)setPaused(true);},{passive:true});
+  ['wheel','touchmove'].forEach(name=>presentation.querySelector('.presentation-stage').addEventListener(name,()=>{if(presentation.open&&!paused)setPaused(true);},{passive:true}));
   document.addEventListener('keydown',event=>{
     if(!presentation.open)return;
     if(['ArrowLeft','ArrowRight','Escape'].includes(event.key)){

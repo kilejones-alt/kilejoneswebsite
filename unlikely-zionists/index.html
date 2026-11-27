@@ -1051,7 +1051,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 </style>
 <link rel="stylesheet" href="content-update.css">
   <link rel="stylesheet" href="story-viewer.css?v=20261126d">
-  <link rel="stylesheet" href="refinement.css?v=20261127-invitation">
+  <link rel="stylesheet" href="refinement.css?v=20261127-autoplay">
   <link rel="stylesheet" href="story-reading.css?v=20261127-profile">
 </head>
 <body>
@@ -1122,6 +1122,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
             <button id="deck-prev" type="button" class="round-arrow" aria-label="Previous photograph position"><svg viewBox="0 0 34 30" aria-hidden="true"><path d="M32 15H2m12-12L2 15l12 12"/></svg></button>
             <div class="deck-progress" aria-hidden="true"><i id="deck-progress-line"></i></div>
             <button id="deck-next" type="button" class="round-arrow" aria-label="Next photograph position"><svg viewBox="0 0 34 30" aria-hidden="true"><path d="M2 15h30M20 3l12 12-12 12"/></svg></button>
+            <button id="deck-playback" type="button" aria-label="Pause story cards">PAUSE</button>
           </div>
         </div>
         <p class="deck-caption"><span>Kile’s story</span></p>
@@ -1276,7 +1277,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     <input type="file" id="image-picker" accept="image/*" hidden aria-label="Select an approved photograph for local preview">
   </div>
   <script src="form-mail.js?v=20261126d"></script>
-  <script src="story-content.js?v=20261127-profile"></script>
+  <script src="story-content.js?v=20261127-photographs"></script>
   <script defer>
 (() => {
   'use strict';
@@ -1379,6 +1380,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     state.active = Math.max(0, Math.min(cards.length - 1, state.active + step));
     window.dispatchEvent(new CustomEvent('uz-story-rotate',{detail:{index:state.active}}));
     renderCards(true);
+    scheduleDeckAutoplay();
   }
 
   function showPicker(index) {
@@ -1531,8 +1533,48 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   // Swipes browse the deck; every story entry opens at the introduction.
   let drag = null;
   const deck = document.querySelector('#story-deck');
+  const deckPlayback = document.getElementById('deck-playback');
+  let deckTimer = null, deckVisible = false, deckPaused = prefersReducedMotion.matches;
+  function stopDeckAutoplay() {
+    clearTimeout(deckTimer);
+    deckTimer = null;
+  }
+  function scheduleDeckAutoplay() {
+    stopDeckAutoplay();
+    if (deckPaused || prefersReducedMotion.matches || !deckVisible || document.hidden || state.viewerOpen || state.menuOpen || drag || deck.matches(':focus-within')) return;
+    deckTimer = setTimeout(() => {
+      deckTimer = null;
+      if (state.active === cards.length - 1) {
+        state.active = 0;
+        renderCards(true);
+        window.dispatchEvent(new CustomEvent('uz-story-rotate',{detail:{index:state.active}}));
+        scheduleDeckAutoplay();
+      } else rotate(1);
+    }, 4000);
+  }
+  function setDeckPaused(value) {
+    deckPaused = value;
+    deckPlayback.textContent = deckPaused ? 'PLAY' : 'PAUSE';
+    deckPlayback.setAttribute('aria-label', deckPaused ? 'Play story cards' : 'Pause story cards');
+    scheduleDeckAutoplay();
+  }
+  const deckObserver = new IntersectionObserver(entries => {
+    deckVisible = entries[0].isIntersecting && entries[0].intersectionRatio >= .35;
+    scheduleDeckAutoplay();
+  }, {threshold: [0, .35]});
+  deckObserver.observe(deck);
+  deckPlayback.addEventListener('click', () => setDeckPaused(!deckPaused));
+  deck.addEventListener('focusin', stopDeckAutoplay);
+  deck.addEventListener('focusout', () => queueMicrotask(scheduleDeckAutoplay));
+  document.addEventListener('visibilitychange', scheduleDeckAutoplay);
+  ['uz-viewer-open','uz-viewer-close','uz-navigation-change'].forEach(name => addEventListener(name, scheduleDeckAutoplay));
+  prefersReducedMotion.addEventListener('change', () => setDeckPaused(prefersReducedMotion.matches));
+  addEventListener('pagehide', stopDeckAutoplay);
+  addEventListener('pageshow', scheduleDeckAutoplay);
+  setDeckPaused(deckPaused);
   deck.addEventListener('pointerdown', event => {
     if (event.button !== 0) return;
+    stopDeckAutoplay();
     drag = { id:event.pointerId, x:event.clientX, y:event.clientY, started:performance.now(), horizontal:false };
 
   });
@@ -1560,12 +1602,14 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     deck.classList.remove('is-dragging');
     cards.forEach(card => card.style.removeProperty('--drag-x'));
     drag = null;
+    scheduleDeckAutoplay();
   });
   deck.addEventListener('pointercancel', event => {
     if (drag && event.pointerId === drag.id) if (deck.hasPointerCapture?.(event.pointerId)) deck.releasePointerCapture(event.pointerId);
     deck.classList.remove('is-dragging');
     cards.forEach(card => card.style.removeProperty('--drag-x'));
     drag = null;
+    scheduleDeckAutoplay();
   });
 
   deck.addEventListener('click', event => {
@@ -2377,6 +2421,6 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
 
 
-<script src="story-presentation.js?v=20261127-profile"></script>
+<script src="story-presentation.js?v=20261127-photographs"></script>
 </body>
 </html>
