@@ -17,7 +17,7 @@
   function schedule() {
     pause();
     if (hovering || focused || touching || document.hidden) return;
-    timer = setTimeout(() => move((current + 1) % reels.length), 5000);
+    timer = setTimeout(() => move((current + 1) % reels.length), 4000);
   }
   function select(index) {
     current = index;
@@ -104,7 +104,7 @@
   function schedule() {
     clearTimeout(timer);
     if (visible && !document.hidden && !motion.matches && !clicked && !hovered && !focused && !touchStart) {
-      timer = setTimeout(() => show(current + 1), 5000);
+      timer = setTimeout(() => show(current + 1), 4000);
     }
   }
 
