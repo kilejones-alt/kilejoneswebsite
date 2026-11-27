@@ -1,4 +1,5 @@
 /* The expanded account uses the same white viewer, photographs and chapter controls. */
+.profile-intro-quote{margin:0;font:inherit;color:inherit}
 #story-viewer.is-long-chapter .viewer-content{grid-template-columns:minmax(220px,.78fr) minmax(0,1.22fr);align-items:start;gap:clamp(28px,4vw,68px);scroll-padding-top:8px}
 #story-viewer.is-long-chapter #viewer-photo{position:sticky!important;top:3px!important;align-self:start}
 #story-viewer.is-long-chapter #viewer-public-story{max-width:660px;margin:0;text-align:left}

@@ -1,4 +1,4 @@
-/* Preview reading sections use Kile's published words; the introduction and photo quotes retain prior approval. */
+/* Reading sections use Kile's published words, arranged and formatted with his review. */
 window.UZStoryContent = Object.freeze({
   firstName: 'Kile',
   introQuote: 'When I stopped softening my takes on Zionism and said it plainly, the friendships cooled into mere courtesy.',
@@ -8,16 +8,14 @@ window.UZStoryContent = Object.freeze({
       heading: 'Growing up',
       paragraphs: [
         'I was raised in a small town north of San Diego, one of two kids of divorced parents, in a family that broke early and kept breaking. The town was unserious, an eternal summer where history only happened to others. Next door lived a boy whose father was Israeli and whose mother was South African.',
-        'There were hardly any Jewish families around, but the jokes circulated.',
-        'Mostly it confused me why Jews were made fun of. I had no answer. I viewed it like any other racism.'
+        'There were hardly any Jewish families around, but the jokes circulated. Mostly it confused me why Jews were made fun of. I had no answer. I viewed it like any other racism.'
       ]
     },
     {
       heading: 'The garage',
       paragraphs: [
         'I’m fifteen, maybe sixteen, getting tattooed in a garage by a punk guy I barely know, and I’m drinking Heineken. He tells me to knock it off. Alcohol thins the blood, he says, and he can tell I’m bleeding too much. He had his shirt off because it was muggy in that garage. He’s being professional about the blood. It takes me a little while but eventually I glance at the tats covering his torso. Swastikas. Sig runes.',
-        'The man holding the needle to my skin isn’t a punk guy.',
-        'He’s a neo-Nazi, and I’m a teenager in his garage, bleeding.'
+        'The man holding the needle to my skin isn’t a punk guy. He’s a neo-Nazi, and I’m a teenager in his garage, bleeding.'
       ]
     },
     {
@@ -30,8 +28,7 @@ window.UZStoryContent = Object.freeze({
     {
       heading: 'Meeting Noam Chomsky',
       paragraphs: [
-        'I was studying the work of Noam Chomsky at the time, enamored by his anarcho-syndicalism, ideas on propaganda, and takes on the Middle East.',
-        'When I met him, he had CNN reporters waiting for their interview ahead of me. He came out and told them to wait so we could meet. I was a humble student at the time, and I got to sit and talk about philosophy and politics for 30 minutes with my hero. We discussed liberation theology in South America, the assassination of Bishop Oscar Romero, the legendary philosopher Bertrand Russell, and how much we both disliked Sam Harris. It was the zenith of my political development, I thought.',
+        'I was studying the work of Noam Chomsky at the time, enamored by his anarcho-syndicalism, ideas on propaganda, and takes on the Middle East. When I met him, he had CNN reporters waiting for their interview ahead of me. He came out and told them to wait so we could meet. I was a humble student at the time, and I got to sit and talk about philosophy and politics for 30 minutes with my hero. We discussed liberation theology in South America, the assassination of Bishop Oscar Romero, the legendary philosopher Bertrand Russell, and how much we both disliked Sam Harris. It was the zenith of my political development, I thought.',
         'I was on a leftist high and felt certain I would stay a leftist forever.'
       ]
     }

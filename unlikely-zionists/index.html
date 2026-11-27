@@ -1052,7 +1052,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 <link rel="stylesheet" href="content-update.css">
   <link rel="stylesheet" href="story-viewer.css?v=20261126d">
   <link rel="stylesheet" href="refinement.css?v=20261127-invitation">
-  <link rel="stylesheet" href="story-reading.css?v=20261127-preview">
+  <link rel="stylesheet" href="story-reading.css?v=20261127-profile">
 </head>
 <body>
   <div id="app">
@@ -1276,7 +1276,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     <input type="file" id="image-picker" accept="image/*" hidden aria-label="Select an approved photograph for local preview">
   </div>
   <script src="form-mail.js?v=20261126d"></script>
-  <script src="story-content.js?v=20261127-preview"></script>
+  <script src="story-content.js?v=20261127-profile"></script>
   <script defer>
 (() => {
   'use strict';
@@ -1295,7 +1295,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
   const person = window.UZStoryContent;
   const staticStories = [
-    {name: person.firstName + ' is an unlikely Zionist.', story: person.introQuote, turning_point: ''},
+    {name: person.firstName + ' is an unlikely Zionist.', story: person.introQuote, quotation: true, turning_point: ''},
     {name: person.firstName, story: person.background, sections: person.backgroundSections, turning_point: ''},
     {name: person.reasonTitle, story: person.reasonQuote, sections: person.reasonSections, turning_point: ''}
   ];
@@ -1418,7 +1418,15 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   function renderStoryText(item) {
     const body=document.getElementById('viewer-public-text');
     body.replaceChildren();
-    if(Array.isArray(item.sections)&&item.sections.length){
+    if(item.quotation){
+      const text=String(item.story||'').trim();
+      if(text){
+        const quotation=document.createElement('blockquote');
+        quotation.className='profile-intro-quote';
+        quotation.textContent='“'+text+'”';
+        body.appendChild(quotation);
+      }
+    }else if(Array.isArray(item.sections)&&item.sections.length){
       for(const section of item.sections){
         const part=document.createElement('section');
         part.className='story-passage';
@@ -2369,6 +2377,6 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
 
 
-<script src="story-presentation.js?v=20261126d"></script>
+<script src="story-presentation.js?v=20261127-profile"></script>
 </body>
 </html>

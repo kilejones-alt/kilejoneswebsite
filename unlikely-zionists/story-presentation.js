@@ -28,7 +28,7 @@
   explore.type='button';explore.className='viewer-examine';explore.textContent='VIEW PHOTOGRAPHS';
   viewer.appendChild(explore);
   const share=document.createElement('a');
-  share.className='story-next-action';share.href='#submit';share.textContent='Share your story ↗';share.hidden=true;
+  share.className='story-next-action';share.href='#submit';share.textContent='Share your story';share.hidden=true;
   share.addEventListener('click',()=>document.getElementById('viewer-close').click());
   document.getElementById('viewer-public-story').appendChild(share);
   syncRail();

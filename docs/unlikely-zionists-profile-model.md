@@ -1,0 +1,15 @@
+# The Unlikely Zionists profile model
+
+User-approved format, November 27, 2026. Use this model for future contributors.
+
+- Use the contributor's correct first name in the heading: `[First name] is an unlikely Zionist.` Kile is spelled Kile.
+- Store the approved introductory quotation in `introQuote` without outer quotation marks. The introduction sets `quotation: true`; `renderStoryText` creates a semantic blockquote with visible opening and closing curly double quotation marks. This is a reusable renderer, not punctuation hardcoded into Kile's content.
+- Keep `Share your story` as text, without an arrow, icon, or generated decoration.
+- Put related sentences in normal paragraphs. Do not split consecutive sentences into separate one-sentence paragraphs for dramatic effect. A deliberate isolated sentence may be used sparingly.
+- Keep distinct memories in distinct sections. Retain enough original context that pronouns and quoted language cannot change the author's meaning.
+- Do not leave criticized slogans as an unexplained closing declaration.
+- Use antizionism and antizionist without hyphens in all visitor-facing text, including imported excerpts. Preserve functional source URLs.
+- Keep navigation free of visible numbering. Preserve the site motion, readable body type, full photographs, and controls outside the scrolling reading area.
+- Add only real contributor material with the necessary publication permissions. Do not invent people, quotes, motives, or experiences.
+
+The current data model is `UZStoryContent` in `unlikely-zionists/story-content.js`. The existing three-part viewer supplies the introduction, background, and personal account. Its introductory name and quotation are generated from the profile data so the same format can be reused.
