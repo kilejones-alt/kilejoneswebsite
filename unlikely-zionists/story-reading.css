@@ -1,0 +1,23 @@
+/* The expanded account uses the same white viewer, photographs and chapter controls. */
+#story-viewer.is-long-chapter .viewer-content{grid-template-columns:minmax(220px,.78fr) minmax(0,1.22fr);align-items:start;gap:clamp(28px,4vw,68px);scroll-padding-top:8px}
+#story-viewer.is-long-chapter #viewer-photo{position:sticky!important;top:3px!important;align-self:start}
+#story-viewer.is-long-chapter #viewer-public-story{max-width:660px;margin:0;text-align:left}
+#story-viewer.is-long-chapter #viewer-public-name{font-size:clamp(26px,2.5vw,36px);text-align:left;margin-bottom:28px}
+#story-viewer.is-long-chapter #viewer-public-text{max-width:none;margin:0;font:400 17px/1.8 'DM Sans',Arial,sans-serif;color:var(--ink);text-align:left;translate:none;transition:none;overflow-wrap:break-word}
+.story-passage{padding-bottom:6px}
+.story-passage+.story-passage{margin-top:28px;padding-top:24px;border-top:1px solid rgba(158,0,60,.2)}
+.story-passage h4{margin:0 0 18px;font:600 12px/1.5 'DM Sans',Arial,sans-serif;letter-spacing:.08em;color:var(--ruby);text-transform:uppercase}
+.story-passage p{margin:0 0 20px;text-wrap:pretty}
+.story-passage p:last-child{margin-bottom:0}
+#story-viewer.is-long-chapter .story-next-action{margin-top:30px;margin-bottom:12px}
+@media(max-width:900px){
+ #story-viewer.is-long-chapter .viewer-content{display:block;max-width:680px}
+ #story-viewer.is-long-chapter #viewer-photo{position:relative!important;top:auto!important;height:min(29dvh,260px)!important;margin-bottom:26px!important}
+ #story-viewer.is-long-chapter #viewer-public-story{max-width:none}
+ #story-viewer.is-long-chapter #viewer-public-text{font-size:16px;line-height:1.8}
+ #story-viewer.is-long-chapter #viewer-public-name{font-size:27px;margin-bottom:24px}
+}
+@media(max-height:500px) and (min-width:751px){
+ #story-viewer.is-long-chapter .viewer-content{display:grid;grid-template-columns:minmax(180px,.75fr) minmax(0,1.25fr)}
+ #story-viewer.is-long-chapter #viewer-photo{position:sticky!important;top:3px!important;margin-bottom:0!important;height:calc(100dvh - 210px)!important}
+}

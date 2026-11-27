@@ -1052,6 +1052,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 <link rel="stylesheet" href="content-update.css">
   <link rel="stylesheet" href="story-viewer.css?v=20261126d">
   <link rel="stylesheet" href="refinement.css?v=20261127-invitation">
+  <link rel="stylesheet" href="story-reading.css?v=20261127-preview">
 </head>
 <body>
   <div id="app">
@@ -1275,7 +1276,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     <input type="file" id="image-picker" accept="image/*" hidden aria-label="Select an approved photograph for local preview">
   </div>
   <script src="form-mail.js?v=20261126d"></script>
-  <script src="story-content.js?v=20261126d"></script>
+  <script src="story-content.js?v=20261127-preview"></script>
   <script defer>
 (() => {
   'use strict';
@@ -1295,8 +1296,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
   const person = window.UZStoryContent;
   const staticStories = [
     {name: person.firstName + ' is an unlikely Zionist.', story: person.introQuote, turning_point: ''},
-    {name: person.firstName, story: person.background, turning_point: ''},
-    {name: person.reasonTitle, story: person.reasonQuote, turning_point: ''}
+    {name: person.firstName, story: person.background, sections: person.backgroundSections, turning_point: ''},
+    {name: person.reasonTitle, story: person.reasonQuote, sections: person.reasonSections, turning_point: ''}
   ];
 
   const header = document.querySelector('#site-header');
@@ -1414,6 +1415,28 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     openViewer();
   });
 
+  function renderStoryText(item) {
+    const body=document.getElementById('viewer-public-text');
+    body.replaceChildren();
+    if(Array.isArray(item.sections)&&item.sections.length){
+      for(const section of item.sections){
+        const part=document.createElement('section');
+        part.className='story-passage';
+        const heading=document.createElement('h4');
+        heading.textContent=section.heading;
+        part.appendChild(heading);
+        for(const text of section.paragraphs){
+          const paragraph=document.createElement('p');
+          paragraph.textContent=text;
+          part.appendChild(paragraph);
+        }
+        body.appendChild(part);
+      }
+    }else{
+      body.textContent=item.story||'';
+    }
+  }
+
   function updateViewerImage() {
     const published = state.published[state.active];
     const staticItem = staticStories[state.active];
@@ -1423,34 +1446,32 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     viewer.classList.toggle('is-intro-chapter', state.active===0);
     viewer.classList.toggle('is-kile-portrait', !published && state.active === 0);
     viewer.classList.toggle('is-news-photo', !published && state.active === 2);
+    viewer.classList.toggle('is-long-chapter', !published && Boolean(staticItem?.sections?.length));
     const publishedArticle = document.getElementById('viewer-public-story');
     publishedArticle.hidden = !(published || staticItem);
     if (published) {
       document.getElementById('viewer-public-name').textContent = published.name;
-      document.getElementById('viewer-public-text').textContent = published.story;
+      renderStoryText(published);
       document.getElementById('viewer-public-turning-point').textContent = published.turning_point || '';
     } else if (staticItem) {
       document.getElementById('viewer-public-name').textContent = staticItem.name;
-      document.getElementById('viewer-public-text').textContent = staticItem.story;
+      renderStoryText(staticItem);
       document.getElementById('viewer-public-turning-point').textContent = staticItem.turning_point || '';
     }
     document.getElementById('viewer-public-text').hidden = !document.getElementById('viewer-public-text').textContent.trim();
     document.getElementById('viewer-public-turning-point').hidden = !document.getElementById('viewer-public-turning-point').textContent.trim();
     viewer.classList.toggle('has-real-photo', Boolean(url));
     const viewerPhoto = document.querySelector('#viewer-photo');
-    viewerPhoto.setAttribute('aria-label', published
-      ? 'Approved real photograph associated with a submitted story'
-      : staticItem && state.active===0
-        ? "Kile B. Jones portrait"
-        : (url ? 'Replace the current locally selected photograph'
-        : 'Choose a real photograph for this empty story position'));
+    viewerPhoto.setAttribute('aria-label', !published && state.active===2
+      ? 'View newspaper image'
+      : 'View photographs');
     if (!url) {
       viewerImage.hidden = true;
       viewerImage.removeAttribute('src');
       return;
     }
     viewerImage.src = url;
-    viewerImage.alt = !published && state.active === 0 ? "Kile B. Jones, photographic portrait" : !published && state.active === 2 ? "Archival New York Times headline from October 2023" : published ? "Contributor-supplied photograph" : "";
+    viewerImage.alt = !published && state.active === 0 ? "Kile B. Jones, photographic portrait" : !published && state.active === 2 ? "Archival New York Times headline from October 2023" : published ? "Contributor-supplied photograph" : "Photograph of Kile B. Jones";
     viewerImage.hidden = false;
   }
 
