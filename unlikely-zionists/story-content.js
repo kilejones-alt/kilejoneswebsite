@@ -17,7 +17,7 @@ window.UZStoryContent = Object.freeze({
     {
       heading: 'What I believed',
       paragraphs: [
-        'I was once an anti-Zionist. My political views were shaped by leftist academics during my time doing graduate work at Boston University. I had immersed myself in Marxist theory, sure I was on the righteous path of my political forebears. I was studying the work of Noam Chomsky at the time, enamored by his anarcho-syndicalism, ideas on propaganda, and takes on the Middle East.',
+        'I was once an antizionist. My political views were shaped by leftist academics during my time doing graduate work at Boston University. I had immersed myself in Marxist theory, sure I was on the righteous path of my political forebears. I was studying the work of Noam Chomsky at the time, enamored by his anarcho-syndicalism, ideas on propaganda, and takes on the Middle East.',
         'I read Rashid Khalidi, Fayez Sayegh, Homi Bhabha, and Frantz Fanon, absorbing concepts like colonialism, hybridity, indigeneity, and “othering.” I would use these concepts and theories to interpret the world. It was my mental tool-bag, and the world was in disrepair.'
       ]
     },
