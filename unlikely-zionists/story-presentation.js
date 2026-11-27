@@ -37,17 +37,50 @@
   presentation.setAttribute('aria-label','Photographs');
   presentation.innerHTML='<button type="button" class="presentation-close" aria-label="Close image">×</button><div class="presentation-stage"><img alt=""><blockquote hidden></blockquote></div><div class="presentation-controls"><button type="button" class="presentation-prev" aria-label="Previous photograph">←</button><progress aria-label="Photograph position"></progress><button type="button" class="presentation-next" aria-label="Next photograph">→</button><button type="button" class="presentation-playback">PAUSE</button></div>';
   document.body.appendChild(presentation);
-  const photo=presentation.querySelector('img'),quote=presentation.querySelector('blockquote');
+  const stage=presentation.querySelector('.presentation-stage');
+  const photo=stage.querySelector('img'),quote=stage.querySelector('blockquote');
   const previous=presentation.querySelector('.presentation-prev'),next=presentation.querySelector('.presentation-next');
   const progress=presentation.querySelector('progress'),close=presentation.querySelector('.presentation-close');
   const photos=story.content.photos.filter(item=>item.src);
   const playback=presentation.querySelector('.presentation-playback');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const preparedImages=new Map();
   let index=0,timer=null,previousFocus=null,paused=false,slides=photos;
+  let pending=0,loading=false,fade=null;
   progress.max=photos.length;
   function stop(){clearTimeout(timer);timer=null;}
-  function show(newIndex){
-    index=(newIndex+slides.length)%slides.length;
+  function prepareImage(src){
+    if(!preparedImages.has(src)){
+      const image=new Image();image.decoding='async';image.src=src;
+      preparedImages.set(src,image.decode());
+    }
+    return preparedImages.get(src);
+  }
+  function clearFade(){
+    if(fade){fade.animation.cancel();fade.element.remove();fade=null;}
+  }
+  async function show(newIndex,instant=false){
+    stop();
+    const request=++pending;
+    const nextIndex=(newIndex+slides.length)%slides.length;
+    const nextSlide=slides[nextIndex];
+    loading=true;
+    try{await prepareImage(nextSlide.src);}catch{
+      if(request===pending){loading=false;start();}
+      return;
+    }
+    if(request!==pending||!presentation.open)return;
+    loading=false;
+    clearFade();
+    stage.scrollTop=0;
+    let outgoing=null;
+    if(!instant&&!reduced.matches&&photo.hasAttribute('src')&&photo.complete&&photo.naturalWidth){
+      outgoing=document.createElement('div');
+      outgoing.className='presentation-outgoing';
+      outgoing.setAttribute('aria-hidden','true');outgoing.inert=true;
+      outgoing.append(photo.cloneNode(true),quote.cloneNode(true));
+    }
+    index=nextIndex;
     photo.src=slides[index].src;
     photo.alt=slides[index].alt||story.content.firstName;
     const text=String(slides[index].quote||'').trim();
@@ -56,15 +89,21 @@
     presentation.classList.toggle('has-quote',!quote.hidden);
     progress.value=index+1;
     presentation.dataset.slide=String(index);
-    presentation.querySelector('.presentation-stage').scrollTop=0;
+    if(outgoing){
+      stage.appendChild(outgoing);
+      const animation=outgoing.animate([{opacity:1},{opacity:0}],{duration:500,easing:'ease-in-out'});
+      fade={element:outgoing,animation};
+      animation.finished.then(()=>{outgoing.remove();if(fade?.element===outgoing)fade=null;},()=>outgoing.remove());
+    }
+    start();
   }
   function start(){
     stop();
-    const readingTime=Math.max(5000,Math.min(10000,quote.textContent.trim().split(/\s+/).length*300+1500));
-    if(!paused&&!document.hidden&&presentation.open&&slides.length>1)timer=setTimeout(()=>{if(photo.complete&&photo.naturalWidth)show(index+1);start();},readingTime);
+    const readingTime=quote.textContent.trim().split(/\s+/).length>=18?8000:6000;
+    if(!paused&&!loading&&!document.hidden&&presentation.open&&slides.length>1)timer=setTimeout(()=>show(index+1),readingTime);
   }
   function setPaused(value){paused=value;playback.textContent=paused?'PLAY':'PAUSE';playback.setAttribute('aria-label',paused?'Play photograph presentation':'Pause photograph presentation');start();}
-  function end(){stop();if(presentation.open)presentation.close();previousFocus?.focus({preventScroll:true});}
+  function end(){++pending;loading=false;stop();clearFade();if(presentation.open)presentation.close();previousFocus?.focus({preventScroll:true});}
   explore.addEventListener('click',()=>{
     if(!photos.length)return;
     previousFocus=document.activeElement;
@@ -73,25 +112,25 @@
     progress.max=slides.length;
     previous.hidden=next.hidden=playback.hidden=slides.length<2;
     presentation.setAttribute('aria-label',artifact?'New York Times screenshot, October 2023':'Photographs');
-    show(0);presentation.showModal();close.focus({preventScroll:true});setPaused(reduced.matches);
+    setPaused(reduced.matches);presentation.showModal();close.focus({preventScroll:true});show(0,true);
   });
   close.addEventListener('click',end);
-  presentation.addEventListener('close',()=>{stop();photo.removeAttribute('src');});
+  presentation.addEventListener('close',()=>{++pending;loading=false;stop();clearFade();photo.removeAttribute('src');});
   presentation.addEventListener('cancel',event=>{event.preventDefault();end();});
-  previous.addEventListener('click',()=>{show(index-1);start();});
-  next.addEventListener('click',()=>{show(index+1);start();});
+  previous.addEventListener('click',()=>show(index-1));
+  next.addEventListener('click',()=>show(index+1));
   playback.addEventListener('click',()=>setPaused(!paused));
   ['wheel','touchmove'].forEach(name=>presentation.querySelector('.presentation-stage').addEventListener(name,()=>{if(presentation.open&&!paused)setPaused(true);},{passive:true}));
   document.addEventListener('keydown',event=>{
     if(!presentation.open)return;
     if(['ArrowLeft','ArrowRight','Escape'].includes(event.key)){
       event.preventDefault();event.stopImmediatePropagation();
-      if(event.key==='Escape')end();else{show(index+(event.key==='ArrowRight'?1:-1));start();}
+      if(event.key==='Escape')end();else show(index+(event.key==='ArrowRight'?1:-1));
     }
   },true);
   document.addEventListener('visibilitychange',()=>{if(!presentation.open)return;if(document.hidden)stop();else start();});
-  reduced.addEventListener('change',()=>{if(presentation.open&&reduced.matches)setPaused(true);});
+  reduced.addEventListener('change',()=>{if(reduced.matches){clearFade();if(presentation.open)setPaused(true);}});
   addEventListener('uz-viewer-close',end);
-  addEventListener('pagehide',stop);
-  photos.forEach(item=>{const preload=new Image();preload.src=item.src;});
+  addEventListener('pagehide',()=>{++pending;loading=false;stop();clearFade();});
+  photos.forEach(item=>{prepareImage(item.src).catch(()=>preparedImages.delete(item.src));});
 })();
