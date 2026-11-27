@@ -7,7 +7,11 @@
     drawer.classList.toggle('is-open', open);
     drawer.inert = !open;
   };
-  button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
+  button.addEventListener('click', event => {
+    const finePointer = matchMedia('(hover:hover) and (pointer:fine)').matches;
+    const open = button.getAttribute('aria-expanded') === 'true';
+    setOpen(finePointer && event.detail > 0 ? true : !open);
+  });
   button.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') setOpen(true); });
   document.addEventListener('click', e => { if (!button.contains(e.target) && !drawer.contains(e.target)) setOpen(false); });
   drawer.addEventListener('click', e => { if (e.target.closest('a')) setOpen(false); });
