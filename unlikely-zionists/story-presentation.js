@@ -11,7 +11,6 @@
   const buttons=names.map((name,index)=>{
     const button=document.createElement('button');button.type='button';
     button.setAttribute('aria-label',name);button.title=name;
-    button.textContent=String(index+1).padStart(2,'0');
     button.addEventListener('click',()=>story.goTo(index));
     rail.appendChild(button);return button;
   });
@@ -36,7 +35,7 @@
   const presentation=document.createElement('dialog');
   presentation.className='story-presentation';
   presentation.setAttribute('aria-label','Photographs');
-  presentation.innerHTML='<button type="button" class="presentation-close" aria-label="Close image">×</button><div class="presentation-stage"><img alt=""><blockquote hidden></blockquote></div><div class="presentation-controls"><button type="button" class="presentation-prev" aria-label="Previous photograph">←</button><progress aria-label="Photograph position"></progress><output class="presentation-position" aria-label="Photograph position"></output><button type="button" class="presentation-next" aria-label="Next photograph">→</button><button type="button" class="presentation-playback">PAUSE</button></div>';
+  presentation.innerHTML='<button type="button" class="presentation-close" aria-label="Close image">×</button><div class="presentation-stage"><img alt=""><blockquote hidden></blockquote></div><div class="presentation-controls"><button type="button" class="presentation-prev" aria-label="Previous photograph">←</button><progress aria-label="Photograph position"></progress><button type="button" class="presentation-next" aria-label="Next photograph">→</button><button type="button" class="presentation-playback">PAUSE</button></div>';
   document.body.appendChild(presentation);
   const photo=presentation.querySelector('img'),quote=presentation.querySelector('blockquote');
   const previous=presentation.querySelector('.presentation-prev'),next=presentation.querySelector('.presentation-next');
@@ -44,7 +43,6 @@
   const photos=story.content.photos.filter(item=>item.src);
   const playback=presentation.querySelector('.presentation-playback');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  const position=presentation.querySelector('.presentation-position');
   let index=0,timer=null,previousFocus=null,paused=false,slides=photos;
   progress.max=photos.length;
   function stop(){clearTimeout(timer);timer=null;}
@@ -56,7 +54,6 @@
     quote.hidden=!quote.textContent;
     presentation.classList.toggle('has-quote',!quote.hidden);
     progress.value=index+1;
-    position.textContent=String(index+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
     presentation.dataset.slide=String(index);
     presentation.querySelector('.presentation-stage').scrollTop=0;
   }

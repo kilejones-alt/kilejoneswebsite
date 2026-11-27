@@ -1050,8 +1050,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
 </style>
 <link rel="stylesheet" href="content-update.css">
-  <link rel="stylesheet" href="story-viewer.css?v=20261126c">
-  <link rel="stylesheet" href="refinement.css?v=20261126c">
+  <link rel="stylesheet" href="story-viewer.css?v=20261126d">
+  <link rel="stylesheet" href="refinement.css?v=20261126d">
 </head>
 <body>
   <div id="app">
@@ -1100,12 +1100,12 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
         <div class="hero-layer hero-right" aria-hidden="true"><i></i><i></i></div>
         <div class="hero-wipe hero-wipe-left" aria-hidden="true"></div>
         <div class="hero-wipe hero-wipe-right" aria-hidden="true"></div>
-        <div class="hero-core"><p class="statement">WELL, THIS IS UNEXPECTED.</p><a class="hero-story-link" href="#stories">Explore the stories <span aria-hidden="true">↗</span></a></div>
+        <div class="hero-core"><p class="statement">WELL, THIS IS UNEXPECTED.</p></div>
         <div class="hero-bottom-rule" aria-hidden="true"></div>
-        <a class="scroll-cue" href="#stories" aria-label="Scroll to stories"><svg viewBox="0 0 28 51" aria-hidden="true"><path d="M14 0V47M2 34l12 12 12-12"/></svg></a>
       </section>
 
       <section class="stories scene" id="stories" data-section="stories" aria-labelledby="stories-title">
+        <a class="story-entry-link reveal" href="#story-deck">Explore the stories</a>
         <div class="story-head reveal">
           <h1 id="stories-title">STORIES</h1>
           <div class="story-rule" aria-hidden="true"></div>
@@ -1123,7 +1123,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
             <button id="deck-next" type="button" class="round-arrow" aria-label="Next photograph position"><svg viewBox="0 0 34 30" aria-hidden="true"><path d="M2 15h30M20 3l12 12-12 12"/></svg></button>
           </div>
         </div>
-        <p class="deck-caption"><span>Kile’s story</span><output id="deck-position" aria-live="polite">01 / 03</output></p>
+        <p class="deck-caption"><span>Kile’s story</span></p>
         <div class="story-transition" aria-hidden="true"><span></span><span></span><span></span></div>
 
 
@@ -1163,7 +1163,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
             </div>
           </div>
           <form class="submission-form reveal" id="story-submission-form" method="post" enctype="multipart/form-data" novalidate>
-            <div class="form-progress-head"><span>SHARE YOUR STORY</span><span id="story-step-status" aria-live="polite">01 / 04 · Identity</span></div>
+            <div class="form-progress-head"><span>SHARE YOUR STORY</span><span id="story-step-status" aria-live="polite">Identity</span></div>
             <div class="form-progress-track" aria-hidden="true"><span id="story-progress-line"></span></div>
             <div class="submission-steps">
               <section class="submission-step" data-step="0" aria-hidden="false" aria-labelledby="story-step-1">
@@ -1268,8 +1268,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     <div class="reading-progress" aria-hidden="true"><span></span></div>
     <input type="file" id="image-picker" accept="image/*" hidden aria-label="Select an approved photograph for local preview">
   </div>
-  <script src="form-mail.js?v=20261126c"></script>
-  <script src="story-content.js?v=20261126c"></script>
+  <script src="form-mail.js?v=20261126d"></script>
+  <script src="story-content.js?v=20261126d"></script>
   <script defer>
 (() => {
   'use strict';
@@ -1364,7 +1364,6 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     }
     progressLine.style.width = (100 / cards.length) + '%';
     progressLine.style.transform = `translateX(${state.active * 100}%)`;
-    document.getElementById('deck-position').textContent=String(state.active+1).padStart(2,'0')+' / '+String(cards.length).padStart(2,'0');
     ['deck-prev','viewer-prev'].forEach(id=>document.getElementById(id).disabled=state.active===0);
     ['deck-next','viewer-next'].forEach(id=>document.getElementById(id).disabled=state.active===cards.length-1);
   }
@@ -1762,7 +1761,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
   function showStoryStep(n, focus = false) {
     storyStep = Math.max(0, Math.min(3, n));
-    document.getElementById('story-step-status').textContent=String(storyStep+1).padStart(2,'0')+' / 04 · '+['Identity','Your story','Context','Photographs'][storyStep];
+    document.getElementById('story-step-status').textContent=['Identity','Your story','Context','Photographs'][storyStep];
     storySteps.forEach((step,index) => {
       const visible = index === storyStep;
       step.setAttribute('aria-hidden',String(!visible));
@@ -2343,6 +2342,6 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 
 
 
-<script src="story-presentation.js?v=20261126c"></script>
+<script src="story-presentation.js?v=20261126d"></script>
 </body>
 </html>

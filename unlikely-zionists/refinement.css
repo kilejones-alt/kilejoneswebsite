@@ -1,20 +1,15 @@
+.story-entry-link{display:inline-flex;align-items:center;min-height:44px;margin-bottom:28px;padding:9px 0;color:var(--ruby);font:600 12px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.04em;text-decoration:none;border-bottom:1px solid currentColor}
 /* Navigation and editorial rhythm, layered over the existing motion direction. */
-.hero .hero-core{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:24px}
-.hero-story-link{display:inline-flex;align-items:center;gap:25px;min-height:44px;padding:9px 0;color:var(--ruby);font:600 12px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.04em;text-decoration:none;border-bottom:1px solid currentColor;transition:gap .3s ease}
-.hero-story-link:hover{gap:35px}
-.hero-story-link span{font-size:20px;font-weight:400}
 .deck-caption{display:flex;align-items:center;justify-content:center;gap:20px;color:var(--ruby);font:500 11px/1.4 'DM Sans',Arial,sans-serif;letter-spacing:.04em;margin:20px 0 0}
-.deck-caption output{font-variant-numeric:tabular-nums;opacity:.65}
 #story-viewer .chapter-rail{gap:8px}
-#story-viewer .chapter-rail button{width:44px;height:38px;border:1px solid rgba(158,0,60,.25);border-radius:0;background:#fff;color:var(--ruby);font:600 10px/1 'DM Sans',Arial,sans-serif;letter-spacing:.05em}
-#story-viewer .chapter-rail button::before{display:none}
-#story-viewer .chapter-rail button[aria-current=step]{color:#fff;background:var(--ruby);border-color:var(--ruby)}
+#story-viewer .chapter-rail button{width:44px;height:38px;border:0;background:transparent;color:var(--ruby)}
+#story-viewer .chapter-rail button::before{display:block}
+
 #story-viewer #viewer-public-text{max-width:36ch;margin-inline:auto;text-wrap:pretty}
 #story-viewer.is-text-chapter #viewer-public-story{max-width:650px;margin-inline:auto}
 #story-viewer.is-text-chapter #viewer-public-text{max-width:none;margin-inline:0}
 .story-next-action{display:inline-flex;gap:22px;align-items:center;color:var(--ruby);font:600 12px/1.4 'DM Sans',Arial,sans-serif;margin-top:28px;padding-block:14px;text-decoration:none;border-bottom:1px solid currentColor}
 .story-next-action[hidden]{display:none}
-.presentation-position{font:500 11px/1 'DM Sans',Arial,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ruby);min-width:38px;text-align:center}
 .presentation-controls progress{display:none}
 .presentation-controls:has(.presentation-prev[hidden]){display:none}
 .form-progress-head{display:flex;justify-content:space-between;gap:16px;align-items:center}
@@ -39,8 +34,6 @@
 }
 @media(max-height:500px) and (min-width:751px){#story-viewer.is-open{padding-bottom:125px}}
 @media(max-width:600px){
- .hero .hero-core{gap:18px}
- .hero-story-link{font-size:11px;gap:22px}
  .hero .statement{font-size:clamp(14px,3.8vw,17px)}
  #story-viewer.is-intro-chapter #viewer-public-name{font-size:clamp(16px,4.7vw,26px)}
  .site-footer{display:block;padding-block:32px}
@@ -48,4 +41,5 @@
  #story-step-status{font-size:10px}
  .form-progress-head{gap:10px}
 }
-@media(prefers-reduced-motion:reduce){.hero-story-link{transition:none}}
+
+@media(max-width:600px){.story-entry-link{margin-left:21px;margin-right:21px;font-size:11px}}
