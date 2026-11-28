@@ -24,8 +24,16 @@ void main(){
  vec2 segment=b-a;
  float along=clamp(dot(p-a,segment)/max(dot(segment,segment),.000001),0.,1.);
  vec2 offset=p-mix(a,b,along);
- float brush=exp(-dot(offset,offset)*185.);
- vec2 curl=vec2(-offset.y,offset.x)*brush*(.55+.15*sin(time*1.7));
+ vec2 cell=1./vec2(textureSize(previous,0));
+ float left=texture(previous,uv-vec2(cell.x,0.)).b;
+ float right=texture(previous,uv+vec2(cell.x,0.)).b;
+ float bottom=texture(previous,uv-vec2(0.,cell.y)).b;
+ float top=texture(previous,uv+vec2(0.,cell.y)).b;
+ vec2 dyeGradient=vec2(right-left,top-bottom);
+ float wobble=sin(p.x*81.+time*1.8)*sin(p.y*73.-time*1.2);
+ float brush=exp(-dot(offset,offset)*(255.+wobble*58.));
+ vec2 curl=vec2(-offset.y,offset.x)*brush*(.75+.2*sin(time*1.7))+
+           vec2(-dyeGradient.y,dyeGradient.x)*.018;
  vec2 newVelocity=clamp(carried*pow(.963,delta*60.)+
    motion*brush*inject*.11+curl*inject*.23,vec2(-.85),vec2(.85));
  float dye=clamp(old.b*pow(.991,delta*60.)+brush*inject*.80,0.,1.);
@@ -40,8 +48,10 @@ uniform float time;
 out vec4 color;
 void main(){
  float glyph=texture(mask,uv).a,dye=texture(fluid,uv).b;
- float edge=max(fwidth(dye)*1.3,.006);
- float reveal=smoothstep(.118-edge,.118+edge,dye);
+ float edge=max(fwidth(dye)*.95,.004);
+ float torn=(sin(uv.x*113.+time*.9)*sin(uv.y*89.-time*.7)+
+             sin(uv.x*53.-uv.y*71.+time*.5))*.009;
+ float reveal=smoothstep(.118-edge,.118+edge,dye+torn);
  float height=pow(texture(blurred,uv).a,.53);
  float dx=pow(texture(blurred,uv+vec2(texel.x*3.,0.)).a,.53)-
           pow(texture(blurred,uv-vec2(texel.x*3.,0.)).a,.53);
