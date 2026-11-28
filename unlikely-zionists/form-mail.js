@@ -1,4 +1,4 @@
-/* Email delivery only. This module does not change presentation or editorial content. */
+/* Private submission storage and email delivery. No presentation or editorial changes. */
 (() => {
   'use strict';
   const endpoint='https://formsubmit.co/ajax/c079591d84c865a3c180911463dd3fd5';
@@ -14,6 +14,7 @@
     }
     for(const [key,values] of fields)body.set(key,values.join(', '));
     body.set('reference',reference);
+    body.set('submission_type',kind);
     body.set('_subject',`The Unlikely Zionists — ${kind} — ${reference}`);
     body.set('_template','table');
     body.set('_url',website);
@@ -25,12 +26,32 @@
     files.forEach((file,index)=>body.append(index?'attachment'+(index+1):'attachment',file,file.name));
     return {body,reference};
   }
+  async function save(body){
+    const endpoint=window.UnlikelyZionistsCommunity?.endpoint;
+    if(!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(endpoint||''))return false;
+    const fields={};
+    const photos=[];
+    for(const [key,value] of body){
+      if(value instanceof Blob){if(value.size)photos.push(value.name||key);}
+      else fields[key]=String(value);
+    }
+    if(photos.length)fields.photograph_names=photos.join(', ');
+    let response,result;
+    try{
+      // A simple cross-origin POST avoids a preflight; the JSON response confirms the write.
+      response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({form_data:fields}),credentials:'omit',signal:AbortSignal.timeout(30000)});
+      result=await response.json();
+    }catch{throw new Error(failure);}
+    if(!response.ok||result?.ok!==true)throw new Error(failure);
+    return true;
+  }
   async function send(form,kind){
     if(!['https:','http:'].includes(location.protocol))throw new Error(failure);
     const {body,reference}=build(form,kind);
     // File delivery uses the provider's documented native multipart route.
     // Its AJAX route accepts text but drops file uploads.
     if([...body.values()].some(value=>value instanceof Blob&&value.size>0)){
+      await save(body);
       const transfer=document.createElement('form');
       transfer.method='POST';transfer.action=endpoint.replace('/ajax/','/');
       transfer.enctype='multipart/form-data';transfer.hidden=true;
@@ -51,7 +72,8 @@
     }catch{throw new Error(failure);}
     const result=await response.json().catch(()=>null);
     if(!response.ok||!result||!['true',true].includes(result.success)){console.warn('Email relay declined delivery:',result?.message||response.status);throw new Error(failure);}
-    return {received:true,id:reference};
+    const stored=await save(body);
+    return {received:true,id:reference,stored};
   }
   window.UnlikelyZionistsMail=Object.freeze({send,build});
 })();

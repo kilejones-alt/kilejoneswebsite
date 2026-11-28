@@ -1051,7 +1051,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
 </style>
 <link rel="stylesheet" href="content-update.css">
   <link rel="stylesheet" href="story-viewer.css?v=20261127-crossfade">
-  <link rel="stylesheet" href="refinement.css?v=20261127-autoplay">
+  <link rel="stylesheet" href="refinement.css?v=20261127-group">
   <link rel="stylesheet" href="story-reading.css?v=20261127-profile">
 </head>
 <body>
@@ -1261,7 +1261,7 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
         </div>
       </section>
     </main>
-    <footer class="site-footer"><p>The Unlikely Zionists</p><nav aria-label="Footer navigation"><a href="#stories">Stories</a><a href="#community">Community</a><a href="#submit">Share your story</a><a href="mailto:kilebardenjones@gmail.com">Contact</a></nav></footer>
+    <footer class="site-footer"><p>The Unlikely Zionists</p><nav aria-label="Footer navigation"><a href="#stories">Stories</a><a href="#community">Community</a><a href="#submit">Share your story</a><a href="mailto:kilebardenjones@gmail.com">Contact</a><a class="group-pill" href="group/">group</a></nav></footer>
 
     <div class="story-viewer" id="story-viewer" role="dialog" aria-modal="true" aria-label="Stories" aria-hidden="true" inert>
       <div class="viewer-door viewer-door-left" aria-hidden="true"></div>
@@ -1276,7 +1276,8 @@ html.scroll-chapter-active :is(#stories-title,#community-title,#resources-title,
     <div class="reading-progress" aria-hidden="true"><span></span></div>
     <input type="file" id="image-picker" accept="image/*" hidden aria-label="Select an approved photograph for local preview">
   </div>
-  <script src="form-mail.js?v=20261126d"></script>
+  <script src="community-config.js?v=20261127-group"></script>
+  <script src="form-mail.js?v=20261127-group"></script>
   <script src="story-content.js?v=20261127-photographs"></script>
   <script defer>
 (() => {
