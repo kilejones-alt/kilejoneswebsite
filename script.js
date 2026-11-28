@@ -103,6 +103,7 @@
     cleanTrailVY: 0,
     cleanGpuActive: false,
     inkBlobs: [],
+    inkWasIdle: false,
     lastInkAt: 0,
     lastInkPoint: null,
     sceneX: 0,
@@ -775,17 +776,22 @@
     const now=performance.now();
     g.fillStyle='#fff';g.fillRect(0,0,w,h);
     g.drawImage(maskCanvas,state.cleanX,state.cleanY,w,h);
-    const moved=!state.lastInkPoint || Math.hypot(pointer.x-state.lastInkPoint.x,pointer.y-state.lastInkPoint.y)>5;
-    if(active && now-state.lastInkAt>25 && moved){
-      const old=state.lastInkPoint||{x:pointer.x,y:pointer.y};
-      const distance=Math.hypot(pointer.x-old.x,pointer.y-old.y);
+    const idle=!reduceMotion && now-pointer.lastT>3500;
+    const seconds=(now-state.start)/1000;
+    const inkX=idle?w*(.5+.19*Math.sin(seconds*.64)):pointer.x;
+    const inkY=idle?h*(.5+.12*Math.sin(seconds*1.28)):pointer.y;
+    if(idle!==state.inkWasIdle){state.lastInkPoint=null;state.inkWasIdle=idle;}
+    const moved=!state.lastInkPoint || Math.hypot(inkX-state.lastInkPoint.x,inkY-state.lastInkPoint.y)>5;
+    if((active||idle) && now-state.lastInkAt>25 && moved){
+      const old=state.lastInkPoint||{x:inkX,y:inkY};
+      const distance=Math.hypot(inkX-old.x,inkY-old.y);
       const steps=Math.min(32,Math.max(1,Math.ceil(distance/34)));
       for(let i=1;i<=steps;i++){
         const fraction=i/steps;
-        state.inkBlobs.push({x:old.x+(pointer.x-old.x)*fraction,
-          y:old.y+(pointer.y-old.y)*fraction,at:now,r:Math.max(31,Math.min(w,h)*.075)});
+        state.inkBlobs.push({x:old.x+(inkX-old.x)*fraction,
+          y:old.y+(inkY-old.y)*fraction,at:now,r:Math.max(25,Math.min(w,h)*(idle?.042:.058)),phase:seconds*2+i});
       }
-      state.lastInkAt=now;state.lastInkPoint={x:pointer.x,y:pointer.y};
+      state.lastInkAt=now;state.lastInkPoint={x:inkX,y:inkY};
     }
     state.inkBlobs=state.inkBlobs.filter(b=>now-b.at<3800).slice(-100);
     if(!state.inkBlobs.length)return;
@@ -794,7 +800,8 @@
     for(const blob of state.inkBlobs){
       const life=1-(now-blob.at)/3800;
       area.fillStyle=`rgba(0,0,0,${Math.min(1,life*2)})`;
-      area.beginPath();area.arc(blob.x,blob.y,blob.r*(.9+life*.2),0,Math.PI*2);area.fill();
+      area.beginPath();area.ellipse(blob.x,blob.y,blob.r*(.95+life*.2),blob.r*(.76+life*.14),blob.phase*.37,0,Math.PI*2);area.fill();
+      area.beginPath();area.ellipse(blob.x+blob.r*.38*Math.sin(blob.phase),blob.y+blob.r*.28*Math.cos(blob.phase),blob.r*.49,blob.r*.34,-blob.phase*.52,0,Math.PI*2);area.fill();
     }
     g.drawImage(sceneB,0,0,w,h);
     metal.clearRect(0,0,w,h);
