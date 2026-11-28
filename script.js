@@ -371,7 +371,7 @@
       const size = fitTrackedFont(g,'JONES',family,weight,targetW,maxSize);
       const tracking = size * (state.mobile ? .040 : .045);
       const left = state.w * (state.mobile ? .045 : .045);
-      const centerY = state.h * (state.mobile ? .52 : .53);
+      const centerY = state.h * (state.mobile ? .50 : .47);
       const lineGap = Math.min(size * .82, state.h * (state.mobile ? .22 : .30));
       const yTop = centerY - lineGap * .5;
       const yBottom = centerY + lineGap * .5;
