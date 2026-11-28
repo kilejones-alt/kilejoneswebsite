@@ -363,7 +363,7 @@
     // The wordmark is deliberately smaller than the previous full-width build,
     // while the broad glyph strokes retain large windows into the moving worlds.
     if(HERO_TRY>=9){
-      const targetW = state.w * (state.mobile ? .90 : .91) / horizontal;
+      const targetW = state.w * (state.mobile ? .90 : .56) / horizontal;
       const maxSize = Math.min(
         state.w * .60,
         state.h * (state.mobile ? .35 : .55)
@@ -371,7 +371,7 @@
       const size = fitTrackedFont(g,'JONES',family,weight,targetW,maxSize);
       const tracking = size * (state.mobile ? .040 : .045);
       const left = state.w * (state.mobile ? .045 : .045);
-      const centerY = state.h * (state.mobile ? .50 : .47);
+      const centerY = state.h * (state.mobile ? .19 : .51);
       const lineGap = Math.min(size * .82, state.h * (state.mobile ? .22 : .30));
       const yTop = centerY - lineGap * .5;
       const yBottom = centerY + lineGap * .5;
