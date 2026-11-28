@@ -778,8 +778,8 @@
     g.drawImage(maskCanvas,state.cleanX,state.cleanY,w,h);
     const idle=!reduceMotion && now-pointer.lastT>3500;
     const seconds=(now-state.start)/1000;
-    const inkX=idle?w*(.5+.19*Math.sin(seconds*.64)):pointer.x;
-    const inkY=idle?h*(.5+.12*Math.sin(seconds*1.28)):pointer.y;
+    const inkX=idle?w*(.5+.08*Math.sin(seconds*.64)):pointer.x;
+    const inkY=idle?h*(.5+.05*Math.sin(seconds*1.28)):pointer.y;
     if(idle!==state.inkWasIdle){state.lastInkPoint=null;state.inkWasIdle=idle;}
     const moved=!state.lastInkPoint || Math.hypot(inkX-state.lastInkPoint.x,inkY-state.lastInkPoint.y)>5;
     if((active||idle) && now-state.lastInkAt>25 && moved){
@@ -789,7 +789,7 @@
       for(let i=1;i<=steps;i++){
         const fraction=i/steps;
         state.inkBlobs.push({x:old.x+(inkX-old.x)*fraction,
-          y:old.y+(inkY-old.y)*fraction,at:now,r:Math.max(25,Math.min(w,h)*(idle?.042:.058)),phase:seconds*2+i});
+          y:old.y+(inkY-old.y)*fraction,at:now,r:Math.max(idle?12:25,Math.min(w,h)*(idle?.018:.052)),phase:seconds*2+i});
       }
       state.lastInkAt=now;state.lastInkPoint={x:inkX,y:inkY};
     }
@@ -799,9 +799,9 @@
     area.clearRect(0,0,w,h);
     for(const blob of state.inkBlobs){
       const life=1-(now-blob.at)/3800;
-      area.fillStyle=`rgba(0,0,0,${Math.min(1,life*2)})`;
-      area.beginPath();area.ellipse(blob.x,blob.y,blob.r*(.95+life*.2),blob.r*(.76+life*.14),blob.phase*.37,0,Math.PI*2);area.fill();
-      area.beginPath();area.ellipse(blob.x+blob.r*.38*Math.sin(blob.phase),blob.y+blob.r*.28*Math.cos(blob.phase),blob.r*.49,blob.r*.34,-blob.phase*.52,0,Math.PI*2);area.fill();
+      area.fillStyle='#000';
+      area.beginPath();area.ellipse(blob.x,blob.y,blob.r*(.65+life*.35),blob.r*(.54+life*.3),blob.phase*.37,0,Math.PI*2);area.fill();
+      area.beginPath();area.ellipse(blob.x+blob.r*.38*Math.sin(blob.phase),blob.y+blob.r*.28*Math.cos(blob.phase),blob.r*(.3+life*.18),blob.r*(.21+life*.13),-blob.phase*.52,0,Math.PI*2);area.fill();
     }
     g.drawImage(sceneB,0,0,w,h);
     metal.clearRect(0,0,w,h);
