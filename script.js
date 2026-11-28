@@ -4,6 +4,7 @@
   const canvas = document.querySelector('#hero-canvas');
   if (!canvas) return;
   const hero = canvas.parentElement;
+  const portrait = hero.querySelector('.home-portrait');
 
   const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
   if (!ctx) return;
@@ -58,7 +59,7 @@
     8:{name:'nothin-material-choreography',family:'"Instrument Sans","Helvetica Neue",Arial,sans-serif',weight:700,horizontal:.965,
        gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.42,oil:2.35,material:2,
        durations:[7.6,6.8,6.3,5.5,6.6,7.4],transition:1.10},
-    9:{name:'nothin-final-refinement',family:'"Bowlby One SC","Arial Black",sans-serif',weight:400,horizontal:1,
+    9:{name:'unbounded-ink',family:'"Unbounded","Arial Black",sans-serif',weight:900,horizontal:1,
        gravity:0,restitution:0,damping:0,squash:0,wobble:0,delay:0,parallax:2.38,oil:2.18,material:3,
        durations:[7.9,7.1,6.7,5.8,7.0,7.7,8.0,10.0],transition:.96}
   };
@@ -731,6 +732,7 @@
       && (!coarsePointer || pointer.down);
     const nx = activeInput ? Math.max(-1,Math.min(1,pointer.nx)) : 0;
     const ny = activeInput ? Math.max(-1,Math.min(1,pointer.ny)) : 0;
+    if(portrait) portrait.style.transform=`translate3d(${(-nx*(state.mobile?5:13)).toFixed(2)}px,${(-ny*(state.mobile?4:9)).toFixed(2)}px,0)`;
     // The surface moves within its viewport; never translate the viewport
     // itself and expose empty gutters along its edges.
     [state.sceneX,state.sceneVX] = springAxis(state.sceneX,state.sceneVX,

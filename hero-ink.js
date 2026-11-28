@@ -92,7 +92,7 @@ void main(){
     canvas.setAttribute('aria-hidden','true');sourceCanvas.parentElement.append(canvas);
     const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:false,stencil:false,powerPreference:'low-power'});
     if(!gl){canvas.remove();return null;}
-    let flow,composite,glyph,soft,fields=[],size=[1,1],ready=false,lost=false,last=null,lastPointer=null;
+    let flow,composite,glyph,soft,fields=[],size=[1,1],ready=false,lost=false,last=null,lastPointer=null,lastMotionAt=0,wasIdle=false;
     const blurCanvas=document.createElement('canvas'),blurContext=blurCanvas.getContext('2d');
     function initialize(){
       flow=program(gl,FLOW,['previous','pointer','previousPointer','motion','aspect','delta','inject','time']);
@@ -127,10 +127,14 @@ void main(){
       resize,
       render({width,height,pointerX,pointerY,impulseX,impulseY,energy=0,active=false,time=0,dt=.016}){
         if(!ready||lost||!fields.length)return false;
-        const x=(pointerX+1)*.5,y=(1-pointerY)*.5;
-        const prior=lastPointer||[x,y];lastPointer=[x,y];
+        const userX=(pointerX+1)*.5,userY=(1-pointerY)*.5;
+        if(active && energy>.025)lastMotionAt=time;
+        const idle=time>3.5 && time-lastMotionAt>3.5;
+        const x=idle?.5+.19*Math.sin(time*.64):userX;
+        const y=idle?.5+.12*Math.sin(time*1.28):userY;
+        const prior=lastPointer && idle===wasIdle?lastPointer:[x,y];lastPointer=[x,y];wasIdle=idle;
         const moved=Math.hypot((x-prior[0])*width/height,y-prior[1]);
-        const inject=active&&moved>.0003?Math.min(1.35,.62+energy*.17):0;
+        const inject=idle?.13:(active&&moved>.0003?Math.min(1.35,.62+energy*.17):0);
         gl.bindFramebuffer(gl.FRAMEBUFFER,fields[1].f);gl.viewport(0,0,...size);
         gl.useProgram(flow.p);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,fields[0].t);
         gl.uniform1i(flow.u.previous,0);gl.uniform2f(flow.u.pointer,x,y);
